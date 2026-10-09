@@ -1,0 +1,198 @@
+import { Language } from '../../types/language';
+
+export const PHB_LANGUAGES: Language[] = [
+    // --- 标准语言 Standard Languages ---
+    {
+        id: 'common',
+        name: '通用语',
+        nameEn: 'Common',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['人类'],
+        script: '通用语',
+        origin: '印记城'
+    },
+    {
+        id: 'common-sign-language',
+        name: '通用手语',
+        nameEn: 'Common Sign Language',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['各种'],
+        script: '—',
+        origin: '印记城'
+    },
+    {
+        id: 'dwarvish',
+        name: '矮人语',
+        nameEn: 'Dwarvish',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['矮人'],
+        script: '矮人语',
+        origin: '矮人'
+    },
+    {
+        id: 'elvish',
+        name: '精灵语',
+        nameEn: 'Elvish',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['精灵'],
+        script: '精灵语',
+        origin: '精灵'
+    },
+    {
+        id: 'draconic',
+        name: '龙语',
+        nameEn: 'Draconic',
+        type: 'Standard', // 2024 中为 Standard, 2014 为 Exotic
+        source: 'XPHB',
+        typicalSpeakers: ['龙类', '龙裔'],
+        script: '龙语',
+        origin: '龙类'
+    },
+    {
+        id: 'giant',
+        name: '巨人语',
+        nameEn: 'Giant',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['食人魔', '巨人'],
+        script: '矮人语',
+        origin: '巨人'
+    },
+    {
+        id: 'gnomish',
+        name: '侏儒语',
+        nameEn: 'Gnomish',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['侏儒'],
+        script: '矮人语',
+        origin: '侏儒'
+    },
+    {
+        id: 'goblin',
+        name: '地精语',
+        nameEn: 'Goblin',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['类地精'],
+        script: '矮人语',
+        origin: '类地精'
+    },
+    {
+        id: 'halfling',
+        name: '半身人语',
+        nameEn: 'Halfling',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['半身人'],
+        script: '通用语',
+        origin: '半身人'
+    },
+    {
+        id: 'orc',
+        name: '兽人语',
+        nameEn: 'Orc',
+        type: 'Standard',
+        source: 'XPHB',
+        typicalSpeakers: ['兽人'],
+        script: '矮人语',
+        origin: '兽人'
+    },
+
+    // --- 稀有/特种语言 Rare / Exotic Languages ---
+    {
+        id: 'abyssal',
+        name: '深渊语',
+        nameEn: 'Abyssal',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['恶魔'],
+        script: '炼狱语',
+        origin: '深渊的恶魔'
+    },
+    {
+        id: 'celestial',
+        name: '天界语',
+        nameEn: 'Celestial',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['天族'],
+        script: '天界语',
+        origin: '天族'
+    },
+    {
+        id: 'deep-speech',
+        name: '深潜语',
+        nameEn: 'Deep Speech',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['异怪', '底栖魔鱼', '斗篷怪'],
+        script: '—',
+        origin: '异怪'
+    },
+    {
+        id: 'infernal',
+        name: '炼狱语',
+        nameEn: 'Infernal',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['魔鬼'],
+        script: '炼狱语',
+        origin: '九狱的魔鬼'
+    },
+    {
+        id: 'primordial',
+        name: '原初语',
+        nameEn: 'Primordial',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['元素生物'],
+        script: '矮人语',
+        origin: '元素',
+        dialects: ['水族语Aquan', '气族语Auran', '火族语Ignan', '土族语Terran']
+    },
+    {
+        id: 'sylvan',
+        name: '木族语',
+        nameEn: 'Sylvan',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['妖精'],
+        script: '精灵语',
+        origin: '妖精荒野'
+    },
+    {
+        id: 'undercommon',
+        name: '地底通用语',
+        nameEn: 'Undercommon',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['幽暗地域商人'],
+        script: '精灵语',
+        origin: '幽暗地域'
+    },
+    {
+        id: 'druidic',
+        name: '德鲁伊语',
+        nameEn: 'Druidic',
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['德鲁伊'],
+        script: '—',
+        origin: '德鲁伊结社'
+    },
+    {
+        id: 'thieves-cant',
+        name: '盗贼黑话',
+        nameEn: "Thieves' Cant",
+        type: 'Rare',
+        source: 'XPHB',
+        typicalSpeakers: ['盗贼'],
+        script: '—',
+        origin: '各种犯罪公会'
+    }
+];

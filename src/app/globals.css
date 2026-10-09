@@ -1,0 +1,346 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+
+/* ================================================
+   D&D 2024 DARK FANTASY DESIGN SYSTEM — CORE TOKENS
+   ================================================ */
+
+:root {
+  /* Core Background & Surfaces - DARK FANTASY (暗夜星铁黑金) */
+  --color-bg-light: #1a1c2c;
+  --color-bg-dark: #141625;
+  --color-bg-surface: #22243a;
+  --color-bg-surface-elevated: #2d304b;
+  --color-bg-card: #22243a;
+  --color-bg-subtle: rgba(255, 255, 255, 0.05);
+
+  /* Fantasy Metallic & Accents (曜石古金) */
+  --color-gold-accent: #ffa300;
+  --color-gold-bright: #ffec27;
+  --color-gold-dark: #ffa300;
+  --color-border-dark: #424660;
+  --color-border-subtle: #424660;
+  --color-border-gold: rgba(255, 236, 39, 0.42);
+
+  /* Typography Colors (晨曦象牙白 & 星辉银) - WCAG AAA */
+  --color-text-primary: #f4f4f4;
+  --color-text-secondary: #c6ccdb;
+  --color-text-tertiary: #a5aec7;
+  --color-text-on-dark: #ffffff;
+
+  /* Functional Accents (炼金语义色) */
+  --color-apple-blue: #29adff;
+  --color-link-blue: #ffec27;
+  --color-link-blue-dark: #ffa300;
+  --color-accent-blood: #ff004d;
+  --color-accent-arcane: #ff77a8;
+  --color-success: #00e436;
+  --color-warning: #ffa300;
+
+  /* Shadows & Glows */
+  --shadow-card: 4px 4px 0 #10111e;
+  --shadow-subtle: 2px 2px 0 #10111e;
+  --shadow-gold-glow: 4px 4px 0 #ffa300;
+  --shadow-red-glow: 4px 4px 0 #ff004d;
+
+  /* Spacing - Legacy & 4px Step Standard Scale */
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-12: 12px;
+  --space-md: 16px;
+  --space-20: 20px;
+  --space-lg: 24px;
+  --space-32: 32px;
+  --space-xl: 40px;
+  --space-2xl: 64px;
+
+  /* Typography Scale Baseline (紧凑、清楚、克制) */
+  --font-size-page-title: 26px;     /* 页面主标题 24–28px */
+  --font-size-section-title: 17px;  /* 区块标题 16–18px */
+  --font-size-card-title: 15px;     /* 卡片/条目标题 14–16px */
+  --font-size-body: 14px;           /* 正文与规则描述 14–15px */
+  --font-size-secondary: 13px;      /* 辅助说明 12–13px */
+  --font-size-caption: 12px;        /* 次级辅助/属性注记 */
+  --font-size-tag: 11px;            /* 短标签/元信息 11–12px */
+
+  --line-height-tight: 1.25;
+  --line-height-body: 1.6;
+  --line-height-relaxed: 1.7;
+
+  /* Container Widths */
+  --container-reading-max-width: 980px;
+  --container-workbench-max-width: 1280px;
+
+  /* Radius */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-pill: 0px;
+  --radius-circle: 50%;
+
+  /* Nav */
+  --nav-height: 60px;
+  --nav-bg: rgba(26, 28, 44, 0.94);
+
+  /* Typography with Fallbacks */
+  --font-family-serif: 'Courier New', 'Microsoft YaHei', monospace;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-medium: 250ms ease;
+  --transition-slow: 400ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* ================================================
+   ADVENTURER'S TOME THEME (精装冒险者手札 - 暖羊皮纸与古铜金)
+   ================================================ */
+[data-theme="light"] {
+  /* Core Background & Surfaces (暖羊皮纸微调层) */
+  --color-bg-light: #f5f4ef;
+  --color-bg-dark: #ebe9e0;
+  --color-bg-surface: #fdfcf9;
+  --color-bg-surface-elevated: #f0eee6;
+  --color-bg-card: #fdfcf9;
+  --color-bg-subtle: rgba(0, 0, 0, 0.04);
+
+  /* Fantasy Metallic & Accents (深沉古铜烫金，绝不刺眼发虚) */
+  --color-gold-accent: #9a6f22;
+  --color-gold-bright: #7c5411;
+  --color-gold-dark: #5a3d0b;
+  --color-border-dark: #d8d6cc;
+  --color-border-subtle: #d8d6cc;
+  --color-border-gold: rgba(154, 111, 34, 0.32);
+
+  /* Typography Colors (深沉石板墨水字，超高对比度 13.5:1) */
+  --color-text-primary: #1e232e;
+  --color-text-secondary: #50596b;
+  --color-text-tertiary: #768093;
+  --color-text-on-dark: #ffffff;
+
+  /* Functional Accents (炼金语义色) */
+  --color-apple-blue: #1d4ed8;
+  --color-link-blue: #1d4ed8;
+  --color-link-blue-dark: #1e40af;
+  --color-accent-blood: #c43232;
+  --color-accent-arcane: #6d28d9;
+  --color-success: #15803d;
+  --color-warning: #b45309;
+
+  /* Shadows & Glows (典雅纸质立体阴影) */
+  --shadow-card: 0 4px 18px -2px rgba(40, 35, 25, 0.08), 0 0 1px rgba(40, 35, 25, 0.12);
+  --shadow-subtle: 0 2px 8px rgba(40, 35, 25, 0.05);
+  --shadow-gold-glow: 0 0 16px rgba(154, 111, 34, 0.16);
+  --shadow-red-glow: 0 0 16px rgba(196, 50, 50, 0.18);
+
+  --nav-bg: rgba(245, 244, 239, 0.94);
+  --font-family-serif: 'Cinzel', Georgia, 'Times New Roman', 'Source Han Serif SC', serif;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 980px;
+}
+
+/* 深色主题只改变视觉表面，保留页面网格、尺寸和交互结构。 */
+:root:not([data-theme="light"]) body {
+  background-image: none;
+}
+
+:root:not([data-theme="light"]) :is(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-family-serif);
+  letter-spacing: 0.02em;
+}
+
+:root:not([data-theme="light"]) :is(input, select, textarea) {
+  border-radius: 0;
+  border-color: var(--color-border-dark);
+  box-shadow: none;
+}
+
+:root:not([data-theme="light"]) :is(button, input, select, textarea) {
+  border-radius: 0 !important;
+}
+
+:root:not([data-theme="light"]) .appShellMain :is(
+  [class*="traitCard"],
+  [class*="basicInfoGrid"],
+  [class*="previewBox"],
+  [class*="lineageInlinePanel"],
+  [class*="mainPanel"],
+  [class*="detailsPanel"],
+  .pixel-surface
+) {
+  border-radius: 0 !important;
+  box-shadow: 3px 3px 0 #10111e;
+}
+
+/* ================================================
+   BASE RESET & TYPOGRAPHY
+   ================================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-light);
+  background-image: 
+    radial-gradient(circle at 50% 0%, var(--color-border-gold) 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(59, 130, 246, 0.02) 0%, transparent 45%);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+h1 {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-page-title);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+h2 {
+  font-family: var(--font-family);
+  font-size: var(--font-size-section-title);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--color-text-primary);
+}
+
+h3 {
+  font-family: var(--font-family);
+  font-size: var(--font-size-card-title);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+h4, h5, h6 {
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+p {
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+}
+
+a {
+  color: var(--color-link-blue);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--color-apple-blue);
+  outline-offset: 2px;
+}
+
+/* ================================================
+   UTILITY CLASSES
+   ================================================ */
+
+.page-container {
+  max-width: var(--container-reading-max-width, 980px);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  animation: fadeIn 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.page-container-workbench {
+  max-width: var(--container-workbench-max-width, 1280px);
+  margin: 0 auto;
+  padding: 0 var(--space-lg);
+  animation: fadeIn 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================================
+   PRINT STYLES
+   ================================================ */
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  nav, .builder__footer, button, .glassNav {
+    display: none !important;
+  }
+
+  .page-container, main {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+}
+
+
+/* ================================================
+   APP SHELL MAIN CONTENT (配合常驻侧边栏自适应)
+   ================================================ */
+
+:root {
+  --sidebar-width: 56px;
+}
+
+.appShellMain {
+  margin-left: var(--sidebar-width, 56px);
+  min-height: 100vh;
+  transition: margin-left var(--transition-fast, 180ms cubic-bezier(0.4, 0, 0.2, 1));
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .appShellMain {
+    margin-left: 0 !important;
+  }
+}

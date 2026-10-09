@@ -1,0 +1,35 @@
+{
+  "_provenance": {
+    "repository": "tjliqy/homebrew",
+    "revision": "904cc39fe281f55433da9250010788f7297adedf",
+    "fileSha": "acefc57a1f4b4001f4638db05d270721e4f6997f",
+    "path": "class/Aeron Drake; The Mesmer.json",
+    "extracted": ["class", "subclass", "classFeature", "subclassFeature"]
+  },
+  "class": [{
+    "name": "Mesmer", "source": "ADMesmer", "hd": { "number": 1, "faces": 6 },
+    "proficiency": ["dex", "cha"], "spellcastingAbility": "cha",
+    "classFeatures": [
+      "Mesmer Casting|Mesmer|ADMesmer|1",
+      { "classFeature": "Mesmer Magic Tradition|Mesmer|ADMesmer|1", "gainSubclassFeature": true },
+      "Fast Casting|Mesmer|ADMesmer|2"
+    ]
+  }],
+  "subclass": [{
+    "name": "Domination Magic", "shortName": "Domination", "source": "ADMesmer",
+    "className": "Mesmer", "classSource": "ADMesmer",
+    "subclassFeatures": [
+      "Visions of Regret|Mesmer|ADMesmer|Domination|ADMesmer|1",
+      "Cry of Frustration|Mesmer|ADMesmer|Domination|ADMesmer|6"
+    ]
+  }],
+  "classFeature": [
+    { "name": "Mesmer Casting", "source": "ADMesmer", "className": "Mesmer", "classSource": "ADMesmer", "level": 1, "entries": ["Spellcasting feature."] },
+    { "name": "Mesmer Magic Tradition", "source": "ADMesmer", "className": "Mesmer", "classSource": "ADMesmer", "level": 1, "entries": ["Choose a tradition."] },
+    { "name": "Fast Casting", "source": "ADMesmer", "className": "Mesmer", "classSource": "ADMesmer", "level": 2, "entries": ["Fast casting feature."] }
+  ],
+  "subclassFeature": [
+    { "name": "Visions of Regret", "source": "ADMesmer", "className": "Mesmer", "classSource": "ADMesmer", "subclassShortName": "Domination", "subclassSource": "ADMesmer", "level": 1, "entries": ["Reaction feature."] },
+    { "name": "Cry of Frustration", "source": "ADMesmer", "className": "Mesmer", "classSource": "ADMesmer", "subclassShortName": "Domination", "subclassSource": "ADMesmer", "level": 6, "entries": ["Sixth-level feature."] }
+  ]
+}

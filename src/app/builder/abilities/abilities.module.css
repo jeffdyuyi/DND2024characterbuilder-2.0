@@ -1,0 +1,320 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: var(--font-size-page-title, 26px);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: var(--font-size-secondary, 13px);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+}
+
+.modeSelector {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.mainPanel {
+  background: var(--color-surface-card);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+}
+
+.pointBuyHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-bg-light);
+  border-radius: var(--radius-md);
+}
+
+.pointsLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.pointsValue {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-gold-bright);
+  line-height: 1;
+}
+
+.pointsError {
+  color: var(--color-accent-blood, #d93838);
+}
+
+.standardArrayHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-bg-light);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.arrayPill {
+  background: var(--color-surface-card);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-subtle);
+}
+
+.verticalAbilitiesList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.premiumAbilityCard {
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid var(--color-border-dark);
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.2s ease;
+}
+
+.premiumAbilityCard:hover {
+  transform: translateX(2px);
+  border-color: var(--color-border-gold);
+  box-shadow: 0 8px 24px rgba(0, 113, 227, 0.08);
+}
+
+/* Section 1: Attr & Control */
+.attrSection {
+  width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attrHeader {
+  display: flex;
+  flex-direction: column;
+}
+
+.attrAbbr {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-gold-bright);
+}
+
+.attrLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.stepperModern {
+  display: flex;
+  align-items: center;
+  background: var(--color-bg-dark);
+  border-radius: 12px;
+  padding: 4px;
+  border: 1px solid var(--color-border-dark);
+}
+
+.stepperModern button {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-dark);
+}
+
+.baseVal {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.modernSelect, .modernInput {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-dark);
+  background: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Section 2: Result */
+.resultSection {
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--color-bg-dark);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  position: relative;
+  border: 1px solid var(--color-border-dark);
+}
+
+.modLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.modDisplay {
+  display: flex;
+  align-items: baseline;
+  color: var(--color-gold-bright);
+}
+
+.modNegative {
+  color: var(--color-danger, #ff3b30);
+}
+
+.modSign {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.modValue {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 0.8;
+}
+
+.scoreBadge {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-bg-surface);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border-dark);
+}
+
+.scoreLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.scoreValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gold-bright);
+}
+
+/* Section 3: Source Breakdown */
+.sourceSection {
+  width: 130px;
+  border-right: 1px solid var(--color-border-dark);
+  padding-right: 24px;
+}
+
+.sourceList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sourceRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+/* Section 4: Skills */
+.skillsSection {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skillPill {
+  background: var(--color-bg-dark);
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 140px;
+  border: 1px solid var(--color-border-dark);
+}
+
+.skillPillActive {
+  background: var(--color-bg-surface);
+  border-color: var(--color-border-gold);
+  box-shadow: 0 4px 12px rgba(197, 160, 89, 0.15);
+}
+
+.skillPillInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.skillName {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.skillCalc {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-family: monospace;
+}
+
+.skillResult {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.skillPillActive .skillResult {
+  color: var(--color-gold-bright);
+}
+
+@media (min-width: 1100px) {
+  .title { font-size: 21px; }
+  .subtitle, .modeSelector { margin-bottom: 16px; }
+  .mainPanel { padding: 18px; }
+  .pointBuyHeader { padding: 12px; margin-bottom: 16px; }
+  .standardArrayHeader { padding: 12px; margin-bottom: 16px; font-size: 13px; }
+  .verticalAbilitiesList { gap: 9px; }
+  .premiumAbilityCard { padding: 10px 16px; }
+}

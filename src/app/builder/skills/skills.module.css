@@ -1,0 +1,90 @@
+.skillsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.skillCard {
+  background: var(--color-surface-card);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border-dark);
+}
+
+.skillCard:hover {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border-gold);
+}
+
+.skillCardSelected {
+  border-color: var(--color-gold-bright);
+  background: rgba(197, 160, 89, 0.08);
+  box-shadow: var(--shadow-subtle);
+}
+
+.skillHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skillName {
+  font-size: var(--font-size-card-title, 15px);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.skillCardSelected .checkbox {
+  background: var(--color-gold-bright);
+  border-color: var(--color-gold-bright);
+}
+
+.checkmark {
+  color: #0b0c10;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.warningBox {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm);
+  background: rgba(217, 56, 56, 0.12);
+  color: #ff6b6b;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.skillCardFixed {
+  opacity: 0.5;
+  background: var(--color-bg-light);
+  cursor: default;
+  pointer-events: none;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-section-title, 17px);
+  font-weight: 600;
+  margin: 24px 0 12px;
+  color: var(--color-text-secondary);
+}
+
+.toolSection {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border-dark);
+}

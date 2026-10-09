@@ -1,0 +1,233 @@
+/* ================================================
+   DND 2024 PERMANENT COLLAPSIBLE SIDEBAR
+   Notion / Linear / VS Code Style
+   ================================================ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-surface, #141622);
+  border-right: 1px solid var(--color-border-dark, #23273a);
+  transition: width var(--transition-fast, 180ms cubic-bezier(0.4, 0, 0.2, 1));
+  user-select: none;
+  overflow: visible;
+}
+
+.sidebarExpanded {
+  width: 220px;
+}
+
+.sidebarCollapsed {
+  width: 56px;
+}
+
+/* Header */
+.header {
+  height: var(--nav-height, 60px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--color-border-dark, #23273a);
+  flex-shrink: 0;
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: var(--color-gold-accent);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.logoText {
+  font-family: var(--font-family-serif, serif);
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  color: var(--color-gold-accent);
+}
+
+.toggleBtn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms ease);
+}
+
+.toggleBtn:hover {
+  background: var(--color-bg-surface-elevated);
+  color: var(--color-text-primary);
+}
+
+/* Navigation List */
+.navSection {
+  flex: 1;
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+  padding: 6px 10px 4px;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms ease);
+  white-space: nowrap;
+  position: relative;
+}
+
+.navItem:hover {
+  background: var(--color-bg-surface-elevated);
+  color: var(--color-text-primary);
+}
+
+.navItemActive {
+  background: var(--color-bg-surface-elevated);
+  color: var(--color-gold-accent);
+  font-weight: 600;
+}
+
+.navItemActive::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--color-gold-accent, #2563eb);
+  border-radius: 0 2px 2px 0;
+}
+
+.itemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.itemLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Footer & Settings */
+.footer {
+  padding: 10px 8px;
+  border-top: 1px solid var(--color-border-dark, #23273a);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.footerBtn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast, 150ms ease);
+  white-space: nowrap;
+}
+
+.footerBtn:hover {
+  background: var(--color-bg-surface-elevated);
+  color: var(--color-text-primary);
+}
+
+/* Status in Mini mode */
+.statusMini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-success, #10b981);
+  box-shadow: 0 0 6px var(--color-success, #10b981);
+}
+
+/* Responsive: mobile collapses completely or overlays */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebarMobileOpen {
+    transform: translateX(0);
+    width: 240px;
+  }
+}
+
+:global(:root:not([data-theme="light"])) .sidebar {
+  border-right: 2px solid var(--color-border-dark);
+  transition: none;
+}
+
+:global(:root:not([data-theme="light"])) .logoText {
+  font-family: var(--font-family-serif);
+}
+
+:global(:root:not([data-theme="light"])) .navItem,
+:global(:root:not([data-theme="light"])) .footerBtn,
+:global(:root:not([data-theme="light"])) .toggleBtn {
+  border-radius: 0;
+  transition: none;
+}
+
+:global(:root:not([data-theme="light"])) .navItemActive {
+  background: var(--color-bg-surface-elevated);
+  box-shadow: inset 3px 0 0 var(--color-gold-bright);
+}
+
+:global(:root:not([data-theme="light"])) .footerBtn:hover,
+:global(:root:not([data-theme="light"])) .navItem:hover {
+  box-shadow: inset 3px 0 0 var(--color-apple-blue);
+}

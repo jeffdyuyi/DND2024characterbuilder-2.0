@@ -1,0 +1,538 @@
+.container {
+  min-height: 100vh;
+  background: var(--color-bg-light, #0b0c10);
+  color: var(--color-text-primary, #f0e6d2);
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  max-width: var(--container-workbench-max-width, 1280px);
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px var(--space-lg);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: var(--color-bg-surface, rgba(18, 22, 34, 0.85));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: var(--radius-md);
+  padding: 12px 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-subtle, 0 4px 16px rgba(0,0,0,0.2));
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--font-family-serif, serif);
+  font-size: var(--font-size-page-title, 26px);
+  font-weight: 700;
+  color: var(--color-gold-bright, #e6c278);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.categorySelector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.catBtn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  background: var(--color-bg-light, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--color-border-gold, rgba(255, 255, 255, 0.12));
+  color: var(--color-text-secondary, #9aa0b8);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.catBtn:hover {
+  background: var(--color-bg-surface-elevated, rgba(197, 160, 89, 0.15));
+  color: var(--color-text-primary, #ffffff);
+}
+
+.catBtnActive {
+  background: var(--color-gold-accent, #2563eb) !important;
+  border-color: var(--color-gold-bright, #1d4ed8) !important;
+  color: var(--color-text-on-dark, #ffffff) !important;
+  font-weight: 600;
+}
+
+/* 核心左右双栏分屏布局 */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 480px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 左侧表单填写区 */
+.editorPanel {
+  background: var(--color-bg-surface, rgba(18, 22, 34, 0.85));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card, 0 12px 40px rgba(0, 0, 0, 0.2));
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-gold-bright, #e6c278);
+  border-bottom: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formRow {
+  display: flex;
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .formRow {
+    flex-direction: column;
+  }
+}
+
+.formGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text-primary, rgba(240, 230, 210, 0.85));
+}
+
+.input, .select, .textarea {
+  background: var(--color-bg-light, rgba(10, 12, 18, 0.8));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: var(--color-text-primary, #ffffff);
+  font-size: 0.92rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.input:focus, .select:focus, .textarea:focus {
+  border-color: var(--color-gold-bright, #e6c278);
+  box-shadow: var(--shadow-gold-glow, 0 0 12px rgba(197, 160, 89, 0.2));
+}
+
+/* Markdown 编辑器增强工具栏 */
+.markdownWrapper {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--color-bg-light, rgba(10, 12, 18, 0.8));
+}
+
+.markdownToolbar {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--color-bg-surface-elevated, rgba(255, 255, 255, 0.04));
+  border-bottom: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+  flex-wrap: wrap;
+}
+
+.mdBtn {
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  border-radius: 6px;
+  background: var(--color-bg-surface, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--color-border-dark, rgba(255, 255, 255, 0.1));
+  color: var(--color-text-secondary, #9aa0b8);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mdBtn:hover {
+  background: var(--color-bg-surface-elevated, rgba(197, 160, 89, 0.2));
+  color: var(--color-text-primary, #ffffff);
+  border-color: var(--color-gold-bright, rgba(197, 160, 89, 0.4));
+}
+
+.markdownTextarea {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 12px;
+  min-height: 180px;
+  color: var(--color-text-primary, #ffffff);
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  resize: vertical;
+  outline: none;
+}
+
+/* 属性六维调节器 */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-bg-light, rgba(255, 255, 255, 0.03));
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-gold-bright, #e6c278);
+}
+
+.statInput {
+  width: 100%;
+  text-align: center;
+  background: var(--color-bg-surface, rgba(0, 0, 0, 0.4));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: 6px;
+  color: var(--color-text-primary, #fff);
+  font-weight: bold;
+  padding: 4px 0;
+  outline: none;
+}
+
+.checkboxGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 6px 0;
+}
+
+.checkboxLabel {
+  font-size: 0.85rem;
+  color: var(--color-text-primary, rgba(255, 255, 255, 0.85));
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* 右侧卡片实时预览面板 */
+.previewPanel {
+  position: sticky;
+  top: 80px;
+  background: var(--color-bg-surface, rgba(18, 22, 34, 0.85));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: 18px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card, 0 12px 40px rgba(0, 0, 0, 0.2));
+}
+
+.previewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+  padding-bottom: 10px;
+}
+
+.previewTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-gold-bright, #e6c278);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* D&D 常规卡片样式 */
+.previewCard {
+  background: var(--color-bg-card, #141724);
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.4));
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow-card, 0 10px 30px rgba(0, 0, 0, 0.2));
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  padding-bottom: 10px;
+}
+
+.cardTitleCN {
+  font-family: var(--font-family-serif, serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-gold-bright, #e6c278);
+  line-height: 1.2;
+}
+
+.cardTitleEN {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #9aa0b8);
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.badge {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--color-bg-light, rgba(197, 160, 89, 0.15));
+  color: var(--color-gold-bright, #e6c278);
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.4));
+  font-weight: 600;
+}
+
+.cardMetaRow {
+  display: flex;
+  gap: 12px;
+  font-size: 0.84rem;
+  color: var(--color-text-primary, rgba(255, 255, 255, 0.85));
+  background: var(--color-bg-light, rgba(255, 255, 255, 0.03));
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--color-gold-bright, #e6c278);
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cardBody {
+  font-size: 0.88rem;
+  color: var(--color-text-primary, #f0e6d2);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* =========================================================
+   5etools 官方标准怪物 Statblock 视觉样式 (Official Statblock)
+   ========================================================= */
+.monsterStatblock {
+  background: var(--color-bg-card, #141724);
+  border: 1px solid #9b2c2c;
+  border-radius: 12px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: inherit;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.taperedRule {
+  height: 2px;
+  background: linear-gradient(90deg, #9b2c2c 0%, rgba(155, 44, 44, 0.15) 100%);
+  margin: 2px 0;
+}
+
+.monsterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.monsterNameCN {
+  font-family: var(--font-family-serif, serif);
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #9b2c2c;
+  line-height: 1.2;
+}
+
+.monsterNameEN {
+  font-size: 0.86rem;
+  color: var(--color-text-secondary, #9aa0b8);
+  font-style: italic;
+  margin-top: 1px;
+}
+
+.monsterTypeRow {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--color-text-primary, #f0e6d2);
+}
+
+.monsterVitalsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: var(--color-bg-light, rgba(255, 255, 255, 0.03));
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+
+.vitalBox {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.vitalLabel {
+  font-size: 0.72rem;
+  font-weight: bold;
+  color: #9b2c2c;
+}
+
+.vitalVal {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #ffffff);
+}
+
+.monsterStatsTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 4px 0;
+}
+
+.monsterStatsTable th {
+  font-size: 0.76rem;
+  color: #9b2c2c;
+  font-weight: bold;
+  padding: 4px 6px;
+  text-align: center;
+  border-bottom: 1px solid rgba(155, 44, 44, 0.3);
+}
+
+.monsterStatsTable td {
+  font-size: 0.86rem;
+  padding: 6px;
+  text-align: center;
+  color: var(--color-text-primary, #ffffff);
+}
+
+.statModHighlight {
+  color: #9b2c2c;
+  font-weight: bold;
+}
+
+.monsterTraitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-primary, #f0e6d2);
+  line-height: 1.5;
+}
+
+.monsterTraitLine {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--color-text-primary, #f0e6d2);
+}
+
+.monsterTraitLabel {
+  font-weight: bold;
+  color: #9b2c2c;
+}
+
+.monsterSectionTitle {
+  font-family: var(--font-family-serif, serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #9b2c2c;
+  border-bottom: 1px solid #9b2c2c;
+  padding-bottom: 2px;
+  margin-top: 8px;
+}
+
+.saveBar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.btn {
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btnSecondary {
+  background: var(--color-bg-surface-elevated, rgba(255, 255, 255, 0.08));
+  border: 1px solid var(--color-border-dark, rgba(255, 255, 255, 0.15));
+  color: var(--color-text-primary, #ffffff);
+}
+
+.btnSecondary:hover {
+  background: var(--color-bg-light, rgba(255, 255, 255, 0.15));
+}
+
+.btnPrimary {
+  background: var(--color-gold-accent, #2563eb);
+  color: var(--color-text-on-dark, #ffffff);
+  box-shadow: var(--shadow-subtle, 0 4px 16px rgba(37, 99, 235, 0.3));
+}
+
+.btnPrimary:hover {
+  background: var(--color-gold-bright, #1d4ed8);
+  transform: translateY(-1px);
+}

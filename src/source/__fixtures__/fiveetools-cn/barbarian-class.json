@@ -1,0 +1,3965 @@
+{
+  "_provenance": {
+    "repository": "tjliqy/5etools-cn",
+    "branch": "cn2.0",
+    "revision": "5cc0bbe2c2b241a334e731af4448bdba2168e8bd",
+    "path": "data/class/class-barbarian.json",
+    "fetchedAt": "2026-10-09T01:30:14.682Z"
+  },
+  "_meta": {
+    "internalCopies": [
+      "subclass"
+    ]
+  },
+  "class": [
+    {
+      "ENG_name": "Barbarian",
+      "name": "野蛮人",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "reprintedAs": [
+        "野蛮人|XPHB"
+      ],
+      "edition": "classic",
+      "hd": {
+        "number": 1,
+        "faces": 12
+      },
+      "proficiency": [
+        "str",
+        "con"
+      ],
+      "startingProficiencies": {
+        "skills": [
+          {
+            "choose": {
+              "from": [
+                "animal handling",
+                "athletics",
+                "intimidation",
+                "nature",
+                "perception",
+                "survival"
+              ],
+              "count": 2
+            }
+          }
+        ],
+        "weapons": [
+          "简易",
+          "军用"
+        ],
+        "armor": [
+          "light",
+          "medium",
+          "shield"
+        ],
+        "armorProficiencies": [
+          {
+            "light": true,
+            "medium": true,
+            "shield": true
+          }
+        ]
+      },
+      "startingEquipment": {
+        "additionalFromBackground": true,
+        "default": [
+          "(a) 一把{@item 巨斧|phb} 或 (b) 任意{@filter 军用近战武器|items|source=phb|category=基础|type=军用武器;近战武器=sand}",
+          "(a) 两把{@item 手斧|phb|手斧}或 (b) 任意一把 {@filter 简易武器|items|source=phb|category=基础|type=简易武器}",
+          "一个 {@item 探索套组|phb}和四支 {@item 标枪|phb|标枪}"
+        ],
+        "goldAlternative": "{@dice 2d4 × 10|2d4 × 10|起始金币}",
+        "defaultData": [
+          {
+            "a": [
+              "巨斧|phb"
+            ],
+            "b": [
+              {
+                "equipmentType": "weaponMartialMelee"
+              }
+            ]
+          },
+          {
+            "a": [
+              {
+                "item": "手斧|phb",
+                "quantity": 2
+              }
+            ],
+            "b": [
+              {
+                "equipmentType": "weaponSimple"
+              }
+            ]
+          },
+          {
+            "_": [
+              "探索套组|phb",
+              {
+                "item": "标枪|phb",
+                "quantity": 4
+              }
+            ]
+          }
+        ]
+      },
+      "multiclassing": {
+        "requirements": {
+          "str": 13
+        },
+        "proficienciesGained": {
+          "weapons": [
+            "简易",
+            "军用"
+          ],
+          "armor": [
+            "shield"
+          ],
+          "armorProficiencies": [
+            {
+              "shield": true
+            }
+          ]
+        }
+      },
+      "classTableGroups": [
+        {
+          "colLabels": [
+            "狂暴次数",
+            "狂暴伤害"
+          ],
+          "rows": [
+            [
+              "2",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "2",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "3",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "3",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "3",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 2
+              }
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              }
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 4
+              }
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              }
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              }
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              }
+            ],
+            [
+              "无限制",
+              {
+                "type": "bonus",
+                "value": 4
+              }
+            ]
+          ]
+        }
+      ],
+      "classFeatures": [
+        "狂暴|野蛮人||1",
+        "无甲防御|野蛮人||1",
+        "危机感应|野蛮人||2",
+        "鲁莽攻击|野蛮人||2",
+        {
+          "classFeature": "原初道途|野蛮人||3",
+          "gainSubclassFeature": true
+        },
+        "原初学识|野蛮人||3|TCE",
+        "属性值提升|野蛮人||4",
+        "额外攻击|野蛮人||5",
+        "快速移动|野蛮人||5",
+        {
+          "classFeature": "道途特性|野蛮人||6",
+          "gainSubclassFeature": true
+        },
+        "野性直觉|野蛮人||7",
+        "莽驰|野蛮人||7|TCE",
+        "属性值提升|野蛮人||8",
+        "凶蛮重击(1骰)|野蛮人||9",
+        {
+          "classFeature": "道途特性|野蛮人||10",
+          "gainSubclassFeature": true
+        },
+        "坚韧狂暴|野蛮人||11",
+        "属性值提升|野蛮人||12",
+        "凶蛮重击(2骰)|野蛮人||13",
+        {
+          "classFeature": "道途特性|野蛮人||14",
+          "gainSubclassFeature": true
+        },
+        "持久狂暴|野蛮人||15",
+        "属性值提升|野蛮人||16",
+        "凶蛮重击(3骰)|野蛮人||17",
+        "不屈勇武|野蛮人||18",
+        "属性值提升|野蛮人||19",
+        "原初斗士|野蛮人||20"
+      ],
+      "subclassTitle": "原初道途",
+      "hasFluff": true,
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Barbarian",
+      "name": "野蛮人",
+      "source": "XPHB",
+      "page": 50,
+      "srd52": true,
+      "basicRules2024": true,
+      "edition": "one",
+      "primaryAbility": [
+        {
+          "str": true
+        }
+      ],
+      "hd": {
+        "number": 1,
+        "faces": 12
+      },
+      "proficiency": [
+        "str",
+        "con"
+      ],
+      "featProgression": [
+        {
+          "ENG_name": "Epic Boon",
+          "name": "传奇恩惠",
+          "category": [
+            "EB"
+          ],
+          "progression": {
+            "19": 1
+          }
+        }
+      ],
+      "startingProficiencies": {
+        "skills": [
+          {
+            "choose": {
+              "from": [
+                "animal handling",
+                "athletics",
+                "intimidation",
+                "nature",
+                "perception",
+                "survival"
+              ],
+              "count": 2
+            }
+          }
+        ],
+        "weapons": [
+          "简易",
+          "军用"
+        ],
+        "armor": [
+          "light",
+          "medium",
+          "shield"
+        ],
+        "armorProficiencies": [
+          {
+            "light": true,
+            "medium": true,
+            "shield": true
+          }
+        ]
+      },
+      "startingEquipment": {
+        "additionalFromBackground": true,
+        "defaultData": [
+          {
+            "A": [
+              {
+                "item": "巨斧|xphb"
+              },
+              {
+                "item": "手斧|xphb",
+                "quantity": 4
+              },
+              {
+                "item": "探索套组|xphb"
+              },
+              {
+                "value": 1500
+              }
+            ],
+            "B": [
+              {
+                "value": 7500
+              }
+            ]
+          }
+        ],
+        "entries": [
+          "{@i 选择A或B：} (A) {@item 巨斧|XPHB}，4 {@item 手斧|XPHB|手斧}，{@item 探索套组|XPHB}以及15GP；或 (B) 75GP"
+        ]
+      },
+      "multiclassing": {
+        "proficienciesGained": {
+          "weapons": [
+            "军用"
+          ],
+          "armor": [
+            "shield"
+          ],
+          "armorProficiencies": [
+            {
+              "shield": true
+            }
+          ]
+        }
+      },
+      "classTableGroups": [
+        {
+          "colLabels": [
+            "狂暴次数",
+            "狂暴伤害",
+            "武器精通"
+          ],
+          "rows": [
+            [
+              "2",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "2"
+            ],
+            [
+              "2",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "2"
+            ],
+            [
+              "3",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "2"
+            ],
+            [
+              "3",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "3"
+            ],
+            [
+              "3",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "3"
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "3"
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "3"
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 2
+              },
+              "3"
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "3"
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "4"
+            ],
+            [
+              "4",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "4"
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "4"
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "4"
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "4"
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 3
+              },
+              "4"
+            ],
+            [
+              "5",
+              {
+                "type": "bonus",
+                "value": 4
+              },
+              "4"
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              },
+              "4"
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              },
+              "4"
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              },
+              "4"
+            ],
+            [
+              "6",
+              {
+                "type": "bonus",
+                "value": 4
+              },
+              "4"
+            ]
+          ]
+        }
+      ],
+      "classFeatures": [
+        "狂暴|野蛮人|XPHB|1",
+        "无甲防御|野蛮人|XPHB|1",
+        "武器精通|野蛮人|XPHB|1",
+        "危机感应|野蛮人|XPHB|2",
+        "鲁莽攻击|野蛮人|XPHB|2",
+        {
+          "classFeature": "野蛮人子职|野蛮人|XPHB|3",
+          "gainSubclassFeature": true
+        },
+        "原初学识|野蛮人|XPHB|3",
+        "属性值提升|野蛮人|XPHB|4",
+        "额外攻击|野蛮人|XPHB|5",
+        "快速移动|野蛮人|XPHB|5",
+        {
+          "classFeature": "子职特性|野蛮人|XPHB|6",
+          "gainSubclassFeature": true
+        },
+        "野性直觉|野蛮人|XPHB|7",
+        "莽驰|野蛮人|XPHB|7",
+        "属性值提升|野蛮人|XPHB|8",
+        "凶蛮打击|野蛮人|XPHB|9",
+        {
+          "classFeature": "子职特性|野蛮人|XPHB|10",
+          "gainSubclassFeature": true
+        },
+        "坚韧狂暴|野蛮人|XPHB|11",
+        "属性值提升|野蛮人|XPHB|12",
+        "强化凶蛮打击|野蛮人|XPHB|13",
+        {
+          "classFeature": "子职特性|野蛮人|XPHB|14",
+          "gainSubclassFeature": true
+        },
+        "持久狂暴|野蛮人|XPHB|15",
+        "属性值提升|野蛮人|XPHB|16",
+        "强化凶蛮打击|野蛮人|XPHB|17",
+        "不屈勇武|野蛮人|XPHB|18",
+        "传奇恩惠|野蛮人|XPHB|19",
+        "原初斗士|野蛮人|XPHB|20"
+      ],
+      "subclassTitle": "野蛮人子职",
+      "hasFluff": true,
+      "hasFluffImages": true
+    }
+  ],
+  "subclass": [
+    {
+      "ENG_name": "Path of the Berserker",
+      "name": "狂战士道途",
+      "shortName": "狂战士",
+      "source": "PHB",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 49,
+      "srd": true,
+      "reprintedAs": [
+        "狂战士|野蛮人|XPHB|XPHB"
+      ],
+      "edition": "classic",
+      "subclassFeatures": [
+        "狂战士道途|野蛮人||狂战士||3",
+        "无我狂暴|野蛮人||狂战士||6",
+        "威慑之姿|野蛮人||狂战士||10",
+        "报偿|野蛮人||狂战士||14"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Berserker",
+      "name": "狂战士道途",
+      "shortName": "狂战士",
+      "source": "PHB",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Berserker",
+        "name": "狂战士道途",
+        "source": "PHB",
+        "shortName": "狂战士",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Totem Warrior",
+      "name": "图腾武者道途",
+      "shortName": "图腾武者",
+      "source": "PHB",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 50,
+      "reprintedAs": [
+        "兽心|野蛮人|XPHB|XPHB"
+      ],
+      "edition": "classic",
+      "additionalSpells": [
+        {
+          "innate": {
+            "3": {
+              "ritual": [
+                "野兽感官",
+                "动物交谈"
+              ]
+            },
+            "10": {
+              "ritual": [
+                "问道自然"
+              ]
+            }
+          }
+        }
+      ],
+      "subclassFeatures": [
+        "图腾武者道途|野蛮人||图腾武者||3",
+        "兽之形|野蛮人||图腾武者||6",
+        "精魂行者|野蛮人||图腾武者||10",
+        "图腾同调|野蛮人||图腾武者||14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Totem Warrior",
+      "name": "图腾武者道途",
+      "shortName": "图腾武者",
+      "source": "PHB",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Totem Warrior",
+        "name": "图腾武者道途",
+        "source": "PHB",
+        "shortName": "图腾武者",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      },
+      "fluff": {
+        "_subclassFluff": {
+          "ENG_name": "Path of the Totem Warrior",
+          "name": "图腾武者道途",
+          "source": "PHB",
+          "shortName": "图腾武者",
+          "className": "野蛮人",
+          "classSource": "PHB"
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Battlerager",
+      "name": "战狂道途",
+      "shortName": "战狂",
+      "source": "SCAG",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 121,
+      "edition": "classic",
+      "subclassFeatures": [
+        "战狂道途|野蛮人||战狂|SCAG|3",
+        "凶蛮无羁|野蛮人||战狂|SCAG|6",
+        "战狂冲锋|野蛮人||战狂|SCAG|10",
+        "钉刺反冲|野蛮人||战狂|SCAG|14"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Battlerager",
+      "name": "战狂道途",
+      "shortName": "战狂",
+      "source": "SCAG",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Battlerager",
+        "name": "战狂道途",
+        "source": "SCAG",
+        "shortName": "战狂",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Ancestral Guardian",
+      "name": "先祖守卫道途",
+      "shortName": "先祖守卫",
+      "source": "XGE",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 9,
+      "edition": "classic",
+      "spellcastingAbility": "wis",
+      "additionalSpells": [
+        {
+          "innate": {
+            "10": [
+              "卜筮术",
+              "鹰眼术"
+            ]
+          }
+        }
+      ],
+      "subclassFeatures": [
+        "先祖守卫道途|野蛮人||先祖守卫|XGE|3",
+        "精魂之盾|野蛮人||先祖守卫|XGE|6",
+        "问道精魂|野蛮人||先祖守卫|XGE|10",
+        "仇魂先祖|野蛮人||先祖守卫|XGE|14"
+      ],
+      "hasFluff": true,
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Ancestral Guardian",
+      "name": "先祖守卫道途",
+      "shortName": "先祖守卫",
+      "source": "XGE",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Ancestral Guardian",
+        "name": "先祖守卫道途",
+        "source": "XGE",
+        "shortName": "先祖守卫",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Storm Herald",
+      "name": "风暴先驱道途",
+      "shortName": "风暴先声",
+      "source": "XGE",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 10,
+      "edition": "classic",
+      "subclassFeatures": [
+        "风暴先驱道途|野蛮人||风暴先声|XGE|3",
+        "风暴之魂|野蛮人||风暴先声|XGE|6",
+        "风暴之盾|野蛮人||风暴先声|XGE|10",
+        "狂怒风暴|野蛮人||风暴先声|XGE|14"
+      ],
+      "hasFluff": true,
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Storm Herald",
+      "name": "风暴先驱道途",
+      "shortName": "风暴先声",
+      "source": "XGE",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Storm Herald",
+        "name": "风暴先驱道途",
+        "source": "XGE",
+        "shortName": "风暴先声",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      },
+      "fluff": {
+        "_subclassFluff": {
+          "ENG_name": "Path of the Storm Herald",
+          "name": "风暴先驱道途",
+          "source": "XGE",
+          "shortName": "风暴先声",
+          "className": "野蛮人",
+          "classSource": "PHB"
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Zealot",
+      "name": "狂热者道途",
+      "shortName": "狂热者",
+      "source": "XGE",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 11,
+      "reprintedAs": [
+        "狂热者|野蛮人|XPHB|XPHB"
+      ],
+      "edition": "classic",
+      "subclassFeatures": [
+        "狂热者道途|野蛮人||狂热者|XGE|3",
+        "专心炽志|野蛮人||狂热者|XGE|6",
+        "狂热威仪|野蛮人||狂热者|XGE|10",
+        "怒不畏死|野蛮人||狂热者|XGE|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Zealot",
+      "name": "狂热者道途",
+      "shortName": "狂热者",
+      "source": "XGE",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Zealot",
+        "name": "狂热者道途",
+        "source": "XGE",
+        "shortName": "狂热者",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Beast",
+      "name": "野兽道途",
+      "shortName": "野兽",
+      "source": "TCE",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 24,
+      "edition": "classic",
+      "subclassFeatures": [
+        "野兽道途|野蛮人||野兽|TCE|3",
+        "兽性之魂|野蛮人||野兽|TCE|6",
+        "感染之怒|野蛮人||野兽|TCE|10",
+        "狩猎之唤|野蛮人||野兽|TCE|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Beast",
+      "name": "野兽道途",
+      "shortName": "野兽",
+      "source": "TCE",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Beast",
+        "name": "野兽道途",
+        "source": "TCE",
+        "shortName": "野兽",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      },
+      "fluff": {
+        "_subclassFluff": {
+          "ENG_name": "Path of the Beast",
+          "name": "野兽道途",
+          "source": "TCE",
+          "shortName": "野兽",
+          "className": "野蛮人",
+          "classSource": "PHB"
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of Wild Magic",
+      "name": "狂野魔法道途",
+      "shortName": "狂野魔法",
+      "source": "TCE",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 25,
+      "edition": "classic",
+      "subclassFeatures": [
+        "狂野魔法道途|野蛮人||狂野魔法|TCE|3",
+        "振奋魔法|野蛮人||狂野魔法|TCE|6",
+        "无常反冲|野蛮人||狂野魔法|TCE|10",
+        "掌控浪潮|野蛮人||狂野魔法|TCE|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of Wild Magic",
+      "name": "狂野魔法道途",
+      "shortName": "狂野魔法",
+      "source": "TCE",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of Wild Magic",
+        "name": "狂野魔法道途",
+        "source": "TCE",
+        "shortName": "狂野魔法",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      },
+      "fluff": {
+        "_subclassFluff": {
+          "ENG_name": "Path of Wild Magic",
+          "name": "狂野魔法道途",
+          "source": "TCE",
+          "shortName": "狂野魔法",
+          "className": "野蛮人",
+          "classSource": "PHB"
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Giant",
+      "name": "巨人道途",
+      "shortName": "巨人",
+      "source": "BGG",
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "page": 11,
+      "edition": "classic",
+      "spellcastingAbility": "wis",
+      "additionalSpells": [
+        {
+          "innate": {
+            "3": [
+              "德鲁伊伎俩#c"
+            ]
+          }
+        },
+        {
+          "innate": {
+            "3": [
+              "奇术#c"
+            ]
+          }
+        }
+      ],
+      "subclassFeatures": [
+        "巨人道途|野蛮人||巨人|BGG|3",
+        "元素战刃|野蛮人||巨人|BGG|6",
+        "伟力推动|野蛮人||巨人|BGG|10",
+        "创世巨像|野蛮人||巨人|BGG|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Giant",
+      "name": "巨人道途",
+      "shortName": "巨人",
+      "source": "BGG",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "_copy": {
+        "ENG_name": "Path of the Giant",
+        "name": "巨人道途",
+        "source": "BGG",
+        "shortName": "巨人",
+        "className": "野蛮人",
+        "classSource": "PHB",
+        "_preserve": {
+          "page": true,
+          "otherSources": true,
+          "referenceSources": true,
+          "srd": true,
+          "basicRules": true,
+          "reprintedAs": true
+        }
+      },
+      "fluff": {
+        "_subclassFluff": {
+          "ENG_name": "Path of the Giant",
+          "name": "巨人道途",
+          "source": "BGG",
+          "shortName": "巨人",
+          "className": "野蛮人",
+          "classSource": "PHB"
+        }
+      }
+    },
+    {
+      "ENG_name": "Path of the Berserker",
+      "name": "狂战士道途",
+      "shortName": "狂战士",
+      "source": "XPHB",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "page": 54,
+      "srd52": true,
+      "edition": "one",
+      "subclassFeatures": [
+        "狂战士道途|野蛮人|XPHB|狂战士|XPHB|3",
+        "无我狂暴|野蛮人|XPHB|狂战士|XPHB|6",
+        "报偿|野蛮人|XPHB|狂战士|XPHB|10",
+        "威慑之姿|野蛮人|XPHB|狂战士|XPHB|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Wild Heart",
+      "name": "兽心道途",
+      "shortName": "兽心",
+      "source": "XPHB",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "page": 55,
+      "edition": "one",
+      "additionalSpells": [
+        {
+          "innate": {
+            "3": {
+              "ritual": [
+                "野兽感官|xphb",
+                "动物交谈|xphb"
+              ]
+            },
+            "10": {
+              "ritual": [
+                "问道自然|xphb"
+              ]
+            }
+          }
+        }
+      ],
+      "subclassFeatures": [
+        "兽心道途|野蛮人|XPHB|兽心|XPHB|3",
+        "兽之形貌|野蛮人|XPHB|兽心|XPHB|6",
+        "自然语者|野蛮人|XPHB|兽心|XPHB|10",
+        "兽力威能|野蛮人|XPHB|兽心|XPHB|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the World Tree",
+      "name": "世界树道途",
+      "shortName": "世界树",
+      "source": "XPHB",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "page": 56,
+      "edition": "one",
+      "subclassFeatures": [
+        "世界树道途|野蛮人|XPHB|世界树|XPHB|3",
+        "灵树枝杈|野蛮人|XPHB|世界树|XPHB|6",
+        "根击千钧|野蛮人|XPHB|世界树|XPHB|10",
+        "世界树之奇旅|野蛮人|XPHB|世界树|XPHB|14"
+      ],
+      "hasFluffImages": true
+    },
+    {
+      "ENG_name": "Path of the Zealot",
+      "name": "狂热者道途",
+      "shortName": "狂热者",
+      "source": "XPHB",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "page": 57,
+      "edition": "one",
+      "subclassFeatures": [
+        "狂热者道途|野蛮人|XPHB|狂热者|XPHB|3",
+        "专心炽志|野蛮人|XPHB|狂热者|XPHB|6",
+        "狂热威仪|野蛮人|XPHB|狂热者|XPHB|10",
+        "神之狂暴|野蛮人|XPHB|狂热者|XPHB|14"
+      ],
+      "hasFluffImages": true
+    }
+  ],
+  "classFeature": [
+    {
+      "ENG_name": "Rage",
+      "name": "狂暴",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 1,
+      "entries": [
+        "你带着原初的狂怒作战。你可以在自己回合内以一个附赠动作进入狂暴。",
+        "狂暴持续期间，只要你未着装重甲就获得以下增益：",
+        {
+          "type": "list",
+          "items": [
+            "你进行力量检定和力量豁免时具有优势。",
+            "你用力量值发动近战武器攻击时，你的伤害骰获得+2的加值。这个加值随着你的等级提升而增加。",
+            "你拥有钝击，穿刺和挥砍伤害的抗性。"
+          ]
+        },
+        "拥有施法能力的角色无法在狂暴持续期间施展法术或进行法术专注。",
+        "你的狂暴状态维持1分钟。如果你在狂暴其间陷入{@condition 昏迷} ，或者，如果你从自己上回合结束开始到本回合结束时都未攻击任何敌对生物也未受到伤害，则狂暴提前结束。你也可以在自己回合里以一个附赠动作主动结束狂暴状态。",
+        "一旦你使用狂暴的次数达到了你的野蛮人等级所允许的最大次数，你必须完成一次长休才能再次使用狂暴。你在1级时可以狂暴2次，3级时3次，6级时4次，12级时5次，17级时6次。"
+      ]
+    },
+    {
+      "ENG_name": "Unarmored Defense",
+      "name": "无甲防御",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 1,
+      "entries": [
+        "未着装任何护甲时，你的AC等于10＋你的敏捷调整值＋你的体质调整值。使用盾牌不会影响你从此特性获益。"
+      ]
+    },
+    {
+      "ENG_name": "Danger Sense",
+      "name": "危机感应",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 2,
+      "entries": [
+        "第2级时，你获得对周遭异常情况超乎寻常的感测力，让你能先一步脱离危险。在受到你能看见的效应（诸如陷阱和法术）影响时，你对其进行的敏捷豁免具有优势。你无法在{@condition 目盲}、{@condition 耳聋}或是{@condition 失能}的状态下从此特性获益。"
+      ]
+    },
+    {
+      "ENG_name": "Reckless Attack",
+      "name": "鲁莽攻击",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 2,
+      "entries": [
+        "第2级起，你可以抛弃一切防御的执念进行狂乱的攻击。你在自己回合内发动第一次攻击时，可以选择发动鲁莽攻击。使用此特性后，你本回合内所有使用力量值发动的近战武器攻击具有优势。此后，所有对你发动的攻击检定也将具有优势，且该优势持续存在至你的下个回合。"
+      ]
+    },
+    {
+      "ENG_name": "Primal Knowledge",
+      "name": "原初学识",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 3,
+      "isClassFeatureVariant": true,
+      "entries": [
+        "{@i 3级野蛮人{@variantrule 可选职业特性|tce|可选特性}}",
+        "当你的野蛮人职业等级达到3级和10级时，你可以从野蛮人1级所提供的技能熟练项列表中选择一个技能，获得该技能的熟练。"
+      ]
+    },
+    {
+      "ENG_name": "Primal Path",
+      "name": "原初道途",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 3,
+      "entries": [
+        "第3级时，你选择一种道途来塑造你狂怒时的特质。随后，你将在第3、第6、第10、第14级时获得所选道途的相应特性。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 4,
+      "entries": [
+        "当你达到4级时，你可以选择一项属性值提升2点，或选择两项属性各提升1点。不过你不能通过此特性让属性超过20。",
+        "如果你的DM允许使用专长，你也可以选择一个{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Extra Attack",
+      "name": "额外攻击",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 5,
+      "entries": [
+        "第5级起，你在自己回合内执行{@action 攻击}动作时可以攻击两次而非一次。"
+      ]
+    },
+    {
+      "ENG_name": "Fast Movement",
+      "name": "快速移动",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 5,
+      "entries": [
+        "第5级起，你在未着装重甲时速度提升10尺。"
+      ]
+    },
+    {
+      "ENG_name": "Path Feature",
+      "name": "道途特性",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 6,
+      "entries": [
+        "第6时，获得所选道途的相应特性。"
+      ]
+    },
+    {
+      "ENG_name": "Feral Instinct",
+      "name": "野性直觉",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 7,
+      "entries": [
+        "第7级时，你的直觉变的异常敏锐，从而使你骰先攻时具有优势。",
+        "此外，如果你在战斗开始时{@status 突袭}但并未陷入{@condition 失能}，则你仍可以在你的第一回合正常行动。不过你必须在那一回合进行其它任何行动前先进入狂暴。"
+      ]
+    },
+    {
+      "ENG_name": "Instinctive Pounce",
+      "name": "莽驰",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 7,
+      "isClassFeatureVariant": true,
+      "entries": [
+        "{@i 7级野蛮人 {@variantrule 可选职业特性|tce|可选特性}}",
+        "作为你进入狂暴状态的附赠动作的一部分，你可以至多移动一段等同于你速度的一半的距离。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 8,
+      "entries": [
+        "当你达到第8级时，你可以选择一项属性值提升2点，或选择两项属性各提升1点。不过你不能通过该特性让属性超过20。",
+        "如果你的DM允许使用专长，你也可以选择一个{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Brutal Critical (1 die)",
+      "name": "凶蛮重击(1骰)",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 9,
+      "entries": [
+        "第9级起，计算近战攻击的重击伤害时，你可以额外骰一枚所用武器的伤害骰。",
+        "第13级时，你可以额外骰两枚；第17级时，你可以额外骰三枚。"
+      ]
+    },
+    {
+      "ENG_name": "Path feature",
+      "name": "道途特性",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 10,
+      "entries": [
+        "第10时，获得所选道途的相应特性。"
+      ]
+    },
+    {
+      "ENG_name": "Relentless Rage",
+      "name": "坚韧狂暴",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 11,
+      "entries": [
+        "从11级开始，你的狂暴能让你在遭受重创时继续战斗。当你在狂暴状态下生命值降至0但未直接死亡时，你可以进行一次{@dc 10}的体质豁免检定。若成功，则改为生命值降至1。",
+        "第一次使用此特性后，每当你再次使用此特性时其体质豁免DC提高5。在你完成一次短休或长休后其DC重置为10。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 12,
+      "entries": [
+        "当你达到第12级时，你可以选择一项属性值提升2点，或选择两项属性各提升1点。不过你不能通过该特性让属性超过20。",
+        "如果你的DM允许使用专长，你也可以选择一个{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Brutal Critical (2 dice)",
+      "name": "凶蛮重击(2骰)",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 13,
+      "entries": [
+        "在13级时，计算近战攻击的重击伤害时，你可以额外骰两枚所用武器的伤害骰。",
+        "第17级时，你可以额外骰三枚。"
+      ]
+    },
+    {
+      "ENG_name": "Path feature",
+      "name": "道途特性",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 14,
+      "entries": [
+        "第14时，获得所选道途的相应特性。"
+      ]
+    },
+    {
+      "ENG_name": "Persistent Rage",
+      "name": "持久狂暴",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 15,
+      "entries": [
+        "第15级起，你狂暴期间的情绪高涨得难以抑制，以至于只有当你陷入{@condition 昏迷}或是主动终止才能使你的狂暴提前结束。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 16,
+      "entries": [
+        "当你达到16级时，你可以选择一项属性值提升2点，或选择两项属性各提升1点。不过你不能通过此特性让属性超过20。",
+        "如果你的DM允许使用专长，你也可以选择一个{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Brutal Critical (3 dice)",
+      "name": "凶蛮重击(3骰)",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 17,
+      "entries": [
+        "在13级时，计算近战攻击的重击伤害时，你可以额外骰三枚所用武器的伤害骰。"
+      ]
+    },
+    {
+      "ENG_name": "Indomitable Might",
+      "name": "不屈勇武",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 18,
+      "entries": [
+        "第18级起，你进行力量检定的结果低于你的力量值时，可以直接使用力量值作为检定结果。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 19,
+      "entries": [
+        "当你达到19级时，你可以选择一项属性值提升2点，或选择两项属性各提升1点。不过你不能通过此特性让属性超过20。",
+        "如果你的DM允许使用专长，你也可以选择一个{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Primal Champion",
+      "name": "原初斗士",
+      "source": "PHB",
+      "page": 46,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "level": 20,
+      "entries": [
+        "第20级时，你的存在即是野性之力的具现。你的力量和体质各提升4。并且你这两项属性的上限变为24。"
+      ]
+    },
+    {
+      "ENG_name": "Rage",
+      "name": "狂暴",
+      "source": "XPHB",
+      "page": 51,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 1,
+      "entries": [
+        "你可以将名为狂暴的原初之力赋予己身，为你带来超越常规的伟力和韧性。未着装重甲时，你可以以一个{@variantrule 附赠动作|XPHB}进入狂暴。",
+        "你可以进入狂暴的次数见野蛮人特性表中\"狂暴次数\"一栏。当你完成一次{@variantrule 短休|XPHB}时，你重获一次已使用的狂暴次数；当你完成一次{@variantrule 长休|XPHB}时，你重获所有已使用的狂暴次数。",
+        "你的狂暴激活期间，你将遵循以下这些规则：",
+        {
+          "type": "entries",
+          "entries": [
+            {
+              "ENG_name": "Damage Resistance",
+              "name": "伤害抗性",
+              "type": "entries",
+              "entries": [
+                "你具有钝击，穿刺和挥砍伤害的{@variantrule 抗性|XPHB}。"
+              ]
+            },
+            {
+              "ENG_name": "Rage Damage",
+              "name": "狂暴伤害",
+              "type": "entries",
+              "entries": [
+                "当你使用力量发动一次攻击并对目标造成伤害时（无论这是一次武器攻击还是一次{@variantrule 徒手打击|XPHB}），你的伤害掷骰获得额外加值，这个加值随着你的野蛮人等级提升，见野蛮人特性表中\"狂暴伤害\"一栏。"
+              ]
+            },
+            {
+              "ENG_name": "Strength Advantage",
+              "name": "力量优势",
+              "type": "entries",
+              "entries": [
+                "你的力量检定和力量豁免具有{@variantrule 优势|XPHB}。"
+              ]
+            },
+            {
+              "ENG_name": "No Concentration or Spells",
+              "name": "无法专注或施法",
+              "type": "entries",
+              "entries": [
+                "你无法保持{@status 专注|XPHB}，也不能施展法术。"
+              ]
+            },
+            {
+              "ENG_name": "Duration",
+              "name": "持续时间",
+              "type": "entries",
+              "entries": [
+                "狂暴持续到你的下一个回合结束，如果你穿戴重甲或陷入{@condition 失能|XPHB}状态，狂暴提前结束。如果在你的下一回合你的狂暴仍处于激活状态，你可以执行以下选项之一令你的狂暴延长一轮：",
+                {
+                  "type": "list",
+                  "items": [
+                    "对敌人进行一次攻击检定。",
+                    "迫使一名敌人进行一次豁免检定。",
+                    "以一个{@variantrule 附赠动作|XPHB}延长你的狂暴。"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "每当狂暴被延长，都会持续至你的下个回合结束。你至多可以维持狂暴 10 分钟。"
+      ]
+    },
+    {
+      "ENG_name": "Unarmored Defense",
+      "name": "无甲防御",
+      "source": "XPHB",
+      "page": 51,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 1,
+      "entries": [
+        "你未着装任何护甲期间，你的基础{@variantrule 护甲等级|XPHB}等于10+你的敏捷调整值+你的体质调整值。你可以使用{@item 盾牌|XPHB}而仍然从此特性获益。"
+      ]
+    },
+    {
+      "ENG_name": "Weapon Mastery",
+      "name": "武器精通",
+      "source": "XPHB",
+      "page": 52,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 1,
+      "entries": [
+        "你对武器的训练使你获得{@variantrule 武器精通词条|XPHB|精通词条}：包括两种自选的{@filter 简易|items|type=简易武器;近战武器=sand}或{@filter 军用近战武器|items|type=军用武器;近战武器=sand}的精通属性，例如{@item 巨斧|XPHB|巨斧}和{@item 手斧|XPHB|手斧}。当你完成一次{@variantrule 长休|XPHB}后，你可以重新演练武器技巧，来改变你所选择的其中一个武器类型。",
+        "当你获得特定的野蛮人等级时，你还可以使用更多种类武器的{@variantrule 武器精通词条|XPHB|精通词条}，具体数据见野蛮人特性表中\"武器精通\"一栏。"
+      ]
+    },
+    {
+      "ENG_name": "Danger Sense",
+      "name": "危机感应",
+      "source": "XPHB",
+      "page": 52,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 2,
+      "entries": [
+        "当非常事态发生时，一种不可思议的感觉降临你的心头，指引你更好的躲避危机。只要你未陷入{@condition 失能|XPHB}状态，你的敏捷豁免检定就具有{@variantrule 优势|XPHB}。"
+      ]
+    },
+    {
+      "ENG_name": "Reckless Attack",
+      "name": "鲁莽攻击",
+      "source": "XPHB",
+      "page": 52,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 2,
+      "entries": [
+        "你可以抛弃一切对防御的顾虑来发起更加狂乱的攻击。你在自己回合中进行第一次攻击检定时，可以不顾一切地发起攻击。若如此做，直到你的下个回合开始时，你使用力量进行的攻击检定具有{@variantrule 优势|XPHB}，但在此期间所有以你为目标的攻击检定也具有{@variantrule 优势|XPHB}。"
+      ]
+    },
+    {
+      "ENG_name": "Barbarian Subclass",
+      "name": "野蛮人子职",
+      "source": "XPHB",
+      "page": 52,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 3,
+      "entries": [
+        "你选择获得一项野蛮人子职。子职是一种特化，在特定的野蛮人等级给予你对应的独特能力。此后你将获得你所选的子职所有能力......只要其所需等级等于或低于你的野蛮人等级。"
+      ]
+    },
+    {
+      "ENG_name": "Primal Knowledge",
+      "name": "原初学识",
+      "source": "XPHB",
+      "page": 52,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 3,
+      "entries": [
+        "除了 1 级选择的技能以外，你可以从野蛮人技能表中额外获得一个技能的熟练。",
+        "此外，你的狂暴激活期间，你可以在尝试完成特定的事项时与原初之力相连。每当你使用以下技能进行一次属性检定时，你可以使用力量进行检定而非通常使用的其他属性：{@skill 特技|XPHB}，{@skill 威吓|XPHB}，{@skill 察觉|XPHB}，{@skill 隐匿|XPHB}或{@skill 求生|XPHB}。当你使用这项能力时，你的力量值代表着一种环绕你身的原初之力，强化了你的灵敏度、气质和感知力。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 4,
+      "entries": [
+        "你获得{@feat 属性值提升|XPHB}专长或其它你满足条件的{@5etools 专长|feats.html}。如野蛮人特性表所示，你还会在第8，第12，第16级时再次获得本特性。"
+      ]
+    },
+    {
+      "ENG_name": "Extra Attack",
+      "name": "额外攻击",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 5,
+      "entries": [
+        "当你在自己的回合执行{@action 攻击|XPHB}动作时，你可以发动两次攻击而非一次。"
+      ]
+    },
+    {
+      "ENG_name": "Fast Movement",
+      "name": "快速移动",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 5,
+      "entries": [
+        "当你未着装重甲时，你的速度增加 10 尺。"
+      ]
+    },
+    {
+      "ENG_name": "Subclass Feature",
+      "name": "子职特性",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 6,
+      "entries": [
+        "你获得了来自你野蛮人子职的特性。"
+      ]
+    },
+    {
+      "ENG_name": "Feral Instinct",
+      "name": "野性直觉",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 7,
+      "entries": [
+        "你的直觉变得格外敏锐。你获得{@variantrule 优势|XPHB}（仅限{@variantrule 先攻|XPHB}检定）。"
+      ]
+    },
+    {
+      "ENG_name": "Instinctive Pounce",
+      "name": "莽驰",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 7,
+      "entries": [
+        "作为你进入狂暴的{@variantrule 附赠动作|XPHB}的一部分，你可以移动至多等于你{@variantrule 速度|XPHB}一半的距离。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 8,
+      "entries": [
+        "你获得{@feat 属性值提升|XPHB}专长或其它你满足条件的{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Brutal Strike",
+      "name": "凶蛮打击",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 9,
+      "entries": [
+        "如果你使用了鲁莽攻击，你可以放弃本回合你选择的一次基于力量的攻击检定具有的所有{@variantrule 优势|XPHB}（（不可选择具有{@variantrule 劣势|XPHB}的攻击检定）。被选择的攻击检定命中时，目标将受到{@damage 1d10}的额外伤害，伤害类型与此次攻击所使用的武器或{@variantrule 徒手打击|XPHB}造成的伤害类型相同，并且你可以造成一种你所选的凶蛮打击效应。你具有以下效应选项：",
+        {
+          "type": "entries",
+          "entries": [
+            {
+              "ENG_name": "Forceful Blow",
+              "name": "巨力猛击",
+              "type": "entries",
+              "entries": [
+                "目标被你直线推离 15 尺距离。随后你可以立刻向该目标移动至多等于你{@variantrule 速度|XPHB}一半的距离，并且不会引发{@action 借机攻击|XPHB|借机攻击}。"
+              ]
+            },
+            {
+              "ENG_name": "Hamstring Blow",
+              "name": "断筋猛击",
+              "type": "entries",
+              "entries": [
+                "直至你的下个回合开始，目标的{@variantrule 速度|XPHB}降低 15 尺。一个生物同一时间只会受到最近一次断筋猛击的影响。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Subclass Feature",
+      "name": "子职特性",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 10,
+      "entries": [
+        "你获得了来自你野蛮人子职的特性。"
+      ]
+    },
+    {
+      "ENG_name": "Relentless Rage",
+      "name": "坚韧狂暴",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 11,
+      "entries": [
+        "你狂暴的力量让你即使身受重伤也能持续战斗。你的狂暴激活期间，如果你的{@variantrule 生命值|XPHB}降至 0 且并未立即死亡，则你可以进行一次{@dc 10}的体质豁免。成功则你的{@variantrule 生命值|XPHB}将变为你野蛮人等级的两倍。",
+        "第一次使用此特性后，每当你再次使用此特性时其体质豁免DC提高 5。当你完成一次{@variantrule 短休|XPHB|短}或{@variantrule 长休|XPHB}后其DC重置为 10。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 12,
+      "entries": [
+        "你获得{@feat 属性值提升|XPHB}专长或其它你满足条件的{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Improved Brutal Strike",
+      "name": "强化凶蛮打击",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 13,
+      "entries": [
+        "你训练出了更多种残暴的攻击方式。将以下效应加到你的凶蛮打击选项中：",
+        {
+          "type": "entries",
+          "entries": [
+            {
+              "ENG_name": "Staggering Blow",
+              "name": "震撼猛击",
+              "type": "entries",
+              "entries": [
+                "目标进行的下一次豁免检定具有{@variantrule 劣势|XPHB}，并且目标直到你的下个回合开始时都不能发动{@action 借机攻击|XPHB|借机攻击}。"
+              ]
+            },
+            {
+              "ENG_name": "Sundering Blow",
+              "name": "破势猛击",
+              "type": "entries",
+              "entries": [
+                "直到你的下个回合开始时，下一次由其他生物对目标进行的攻击检定获得+5加值。一次攻击检定只能从一次破势猛击中获得加值。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Subclass Feature",
+      "name": "子职特性",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 14,
+      "entries": [
+        "你获得了来自你野蛮人子职的特性。"
+      ]
+    },
+    {
+      "ENG_name": "Persistent Rage",
+      "name": "持久狂暴",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 15,
+      "entries": [
+        "当你投掷{@variantrule 先攻|XPHB}时，你可以重获所有已使用的狂暴次数。你以此法重获狂暴次数后，直到完成一次{@variantrule 长休|XPHB}时，你都不能再这么做。",
+        "此外，你的狂暴是如此凶悍，现在你的狂暴可以持续 10 分钟，而你无需在每一轮中做任何事情来延长它。除非你处于{@condition 昏迷|XPHB}状态（不仅仅是{@condition 失能|XPHB}状态）或穿戴重甲时，你的狂暴会提前结束。"
+      ]
+    },
+    {
+      "ENG_name": "Ability Score Improvement",
+      "name": "属性值提升",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 16,
+      "entries": [
+        "你获得{@feat 属性值提升|XPHB}专长或其它你满足条件的{@5etools 专长|feats.html}。"
+      ]
+    },
+    {
+      "ENG_name": "Improved Brutal Strike",
+      "name": "强化凶蛮打击",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 17,
+      "entries": [
+        "你凶蛮打击的额外伤害提升至{@damage 2d10}。此外，每当你使用凶蛮打击特性时，你可以同时使用两种不同的凶蛮打击效应。"
+      ]
+    },
+    {
+      "ENG_name": "Indomitable Might",
+      "name": "不屈勇武",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 18,
+      "entries": [
+        "如果你进行的力量检定或力量豁免检定的总值低于你的力量属性值，你可以使用你的力量属性值替代检定总值。"
+      ]
+    },
+    {
+      "ENG_name": "Epic Boon",
+      "name": "传奇恩惠",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 19,
+      "entries": [
+        "你获得了一个{@filter 传奇恩惠专长|feats|category=EB}，或者你选择另一个符合条件的{@5etools 专长|feats.html}。推荐选择{@feat 无敌攻势之恩惠|XPHB}。"
+      ]
+    },
+    {
+      "ENG_name": "Primal Champion",
+      "name": "原初斗士",
+      "source": "XPHB",
+      "page": 53,
+      "srd52": true,
+      "basicRules2024": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "level": 20,
+      "entries": [
+        "你本身便是原初之力的象征。你的力量和体质各提升 4，你这两项属性的上限变为 25。"
+      ]
+    }
+  ],
+  "subclassFeature": [
+    {
+      "ENG_name": "Giant Power",
+      "name": "巨人之力",
+      "source": "BGG",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "巨人",
+      "subclassSource": "BGG",
+      "level": 3,
+      "entries": [
+        "{@i 3级巨人道途特性}",
+        "选择此道途后，你获得说、读、写巨人语的能力。若你已经习得巨人语，则可以改为自选另一种语言。此外，你选择并习得以下戏法之一： {@spell 德鲁伊伎俩}、{@spell 奇术}。这个法术的施法属性为感知。"
+      ]
+    },
+    {
+      "ENG_name": "Giant's Havoc",
+      "name": "巨人之灾",
+      "source": "BGG",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "巨人",
+      "subclassSource": "BGG",
+      "level": 3,
+      "entries": [
+        "{@i 3级巨人道途特性}",
+        "你的狂暴从巨人的原初之力中汲取力量，使你成为强大破坏力的化身。狂暴期间，你获得以下的增益：",
+        {
+          "type": "list",
+          "style": "list-hang-notitle",
+          "items": [
+            {
+              "ENG_name": "Crushing Throw",
+              "name": "粉碎投掷",
+              "type": "item",
+              "entry": "当你用力量且用投掷武器发动远程武器攻击，并成功命中时，你可以将你的狂暴伤害加值加到这次攻击的伤害掷骰中。"
+            },
+            {
+              "ENG_name": "Giant Stature",
+              "name": "巨人体型",
+              "type": "item",
+              "entry": "你的触及范围扩大5尺。且，如果你的体型小于大型，你的体型变为大型，你穿戴的所有装备也会一同变大。如果没有足够的空间供你增大体型，你的体型保持不变。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Path of the Giant",
+      "name": "巨人道途",
+      "source": "BGG",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "巨人",
+      "subclassSource": "BGG",
+      "level": 3,
+      "entries": [
+        "选择踏上巨人道途的野蛮人从巨人和他们的元素同族中汲取力量。他们的狂暴浸润在元素能量下，让这些野蛮人的体型变大，让他们展现出巨人之荣耀。一些野蛮人看上去就像是大一号版本的它们自己，也许元素能量的印记会从他们的眼睛放出的光芒，同时环绕在它们的武器上。另一些变化看上去就比较戏剧性了，他们会采取一个实际存在的巨人的外形，或是一个酷似元素生物的，笼罩在火焰、冰霜、或闪电之下的形态。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "巨人之力|野蛮人||巨人|BGG|3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "巨人之灾|野蛮人||巨人|BGG|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Elemental Cleaver",
+      "name": "元素战刃",
+      "source": "BGG",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "巨人",
+      "subclassSource": "BGG",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "{@i 6级巨人道途特性}",
+        "你和巨人的元素力量的链接成长了，并且，你习得了将原初能量注入武器之中的方式。",
+        "当你进入狂暴时，你可以选择一件你正持握的武器中，并为它选择并注入以下伤害类型之一：强酸、寒冷、火焰、雷鸣、或闪电。当你在狂暴中挥舞注能的武器时，武器的伤害类型将转变为你选择的伤害类型，并在命中时额外造成{@damage 1d6}点所选类型的伤害。此外它还将获得 投掷 属性，具有通常射程20尺与最大射程60尺。如果你投掷这把武器，它不论是否击中目标，它都将在那之后立刻重新出现在你的手中。注能武器的增益将在除你以外的其他生物持握它时将被暂时压制。",
+        "在狂暴期间，若你持握着注能武器，你就可以用一个附赠动作改变其伤害类型为另一项，从前文提到的伤害类型中选择。"
+      ]
+    },
+    {
+      "ENG_name": "Mighty Impel",
+      "name": "伟力推动",
+      "source": "BGG",
+      "page": 12,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "巨人",
+      "subclassSource": "BGG",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "{@i 10级巨人道途特性}",
+        "借由你与巨人之力量的链接，你可以猛投战场上的盟友与敌人。狂暴期间，以一个附赠动作，你可以选择触及范围内的一个不超过中型体型的生物，将其移动到你周围30尺内的一处你可见的、未被占据的空间。非自愿的生物必须成功通过一次力量豁免（DC=8+你的熟练加值+你的力量调整值）才能避免遭受这一效应。",
+        "若在这次移动结束时，被投掷的生物并未站在一个可以支撑他的固体表面或液体中，该生物将坠落，正常承受摔落伤害并在落地时陷入{@condition 倒地}。"
+      ]
+    },
+    {
+      "ENG_name": "Demiurgic Colossus",
+      "name": "创世巨像",
+      "source": "BGG",
+      "page": 12,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "巨人",
+      "subclassSource": "BGG",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "{@i 14级巨人道途特性}",
+        "你狂暴中的原初力量增强了。当你狂暴时，你的触及范围再次提升10尺，而你的体型可以增大为大型或巨型（由你选择），且你还可以用 伟力推动Mighty Impel 特性投掷不超过大型体型的生物。",
+        "此外，你的 元素战刃Elemental Cleaver 特性造成的额外伤害提升至{@dice 2d6}。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Berserker",
+      "name": "狂战士道途",
+      "source": "PHB",
+      "page": 49,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "某些野蛮人认为狂暴即是其归宿，而这种归宿形式无比残暴。狂战士之道追求鲜血与无拘的狂怒。当你进入狂战士式狂暴时，你在战斗的混沌快感中兴奋，舍生忘死的投入厮杀。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "狂怒|野蛮人||狂战士||3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Frenzy",
+      "name": "狂怒",
+      "source": "PHB",
+      "page": 49,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "PHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "从你第3级选择此道途起，你可以在进入狂暴的同时进入狂怒。使用此特性时，你可以在本回合之后狂暴持续时间内的每个回合里，以一个附赠动作发动一次近战武器攻击。而当本次狂暴终止时，你将提升一级{@condition 力竭}。"
+      ]
+    },
+    {
+      "ENG_name": "Mindless Rage",
+      "name": "无我狂暴",
+      "source": "PHB",
+      "page": 49,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "PHB",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "第6级起，你在狂暴期间无法被{@condition 魅惑}或{@condition 恐慌}。如果你开始狂暴时已经陷入{@condition 魅惑}或{@condition 恐慌}，则该效应在你狂暴期间被压制。"
+      ]
+    },
+    {
+      "ENG_name": "Intimidating Presence",
+      "name": "威慑之姿",
+      "source": "PHB",
+      "page": 49,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "PHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "第10级起，你可以用一个动作展示自己的可怖姿态来恐吓他人。指定30尺内一个你能看见的生物。如果该生物能看见你或听见你的声音，则其必须进行一次感知豁免（DC为8＋你的熟练加值＋你的魅力调整值），豁免失败者将因此而陷入{@condition 恐慌}，并持续至你的下回合结束。在接下来的回合里，你可以通过使用动作来延长此效应的持续时间，使之持续至你此后一回合结束。如果{@condition 恐慌}的生物在结束其回合时离开你的视线范围，或是离开你60尺外，则此效应提前终止。",
+        "如果此生物成功通过此豁免，则你在随后的24小时内无法对该生物使用此特性。"
+      ]
+    },
+    {
+      "ENG_name": "Retaliation",
+      "name": "报偿",
+      "source": "PHB",
+      "page": 49,
+      "srd": true,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "PHB",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "第14级起，身边5尺内敌人对你造成伤害时，你可以用反应对该生物发动一次近战武器攻击。"
+      ]
+    },
+    {
+      "ENG_name": "Bear",
+      "name": "熊",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "狂暴期间，你获得对心灵伤害之外所有伤害类型的抗性。熊之精魄令你坚韧无匹，无惧于任何打击。"
+      ]
+    },
+    {
+      "ENG_name": "Eagle",
+      "name": "鹰",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "狂暴期间，如果你未着装重甲，则其他生物在对你进行借机攻击时进行的攻击检定具有劣势。另外，你在自己回合内可以用附赠动作执行{@action 疾走}动作。雕之精魄让你成为在战场中自由穿梭的猎杀者。"
+      ]
+    },
+    {
+      "ENG_name": "Elk",
+      "name": "赤鹿",
+      "source": "SCAG",
+      "page": 122,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "狂暴期间，若你未着重甲，你的步行速度增加15尺。鹿之精魂的庇佑使你格外迅捷。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Totem Warrior",
+      "name": "图腾武者道途",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "图腾武者道途是灵魂修炼的旅途。走上此道的野蛮人以一种兽魂作为其向导、保护者和力量源泉。在战斗中，你的图腾精魄将超自然的力量灌输于你，为你的狂暴注入魔法力量。",
+        "大多数野蛮人部族将图腾兽视为氏族的一员，因此很少有人同时拥有两种或更多图腾精魄，但这样的特例依然存在。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "精魄寻者|野蛮人||图腾武者||3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "图腾精魄|野蛮人||图腾武者||3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Tiger",
+      "name": "老虎",
+      "source": "SCAG",
+      "page": 122,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "狂暴期间，你增加10尺的跳跃距离和3尺的跳高距离。虎之精魂赋予你飞跃的能力。"
+      ]
+    },
+    {
+      "ENG_name": "Wolf",
+      "name": "狼",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "entries": [
+        "狂暴期间，如果你周围5尺范围内有任何敌对生物，则你的盟友对这些生物发动近战攻击时的攻击检定具有优势。狼之精魄让你成为猎手中的领袖。"
+      ]
+    },
+    {
+      "ENG_name": "Spirit Seeker",
+      "name": "精魄寻者",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "你追求融入自然之道，与动物为友。在你选择此道途的第3级时，你获得施展法术{@spell 野兽感官}与{@spell 动物交谈}的能力，但你只能以仪式的方式施展它们，相关法术描述见PHB{@book 第十章|PHB|10|仪式}。"
+      ]
+    },
+    {
+      "ENG_name": "Totem Spirit",
+      "name": "图腾精魄",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "在你选择此道途的第3级时，选择一项图腾精魄并获得其能力。你必须制造或获取一个象征图腾兽其毛，羽，爪，牙或骨的图腾物件，可以是项链，也可以是其他类似的物件。如果你愿意，你的外貌也会发生些细微的改变，让人看到时不由得联想起你的图腾精魄。例如，如果选择熊的图腾精魄，你可能变得毛发旺盛，皮肤粗厚；如果选择雕的图腾精魄，你的眼睛可能变成明亮的黄色。",
+        "你可选择这里列出的动物，或是其他更适合你故乡环境的类似动物。例如，你可以用鹰hawk或秃鹫vulture代替雕eagle。",
+        {
+          "type": "options",
+          "count": 1,
+          "entries": [
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "熊|野蛮人||图腾武者||3"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "鹰|野蛮人||图腾武者||3"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "赤鹿|野蛮人|PHB|图腾武者||3|SCAG"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "老虎|野蛮人|PHB|图腾武者||3|SCAG"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "狼|野蛮人||图腾武者||3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Bear",
+      "name": "熊",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 6,
+      "entries": [
+        "你拥有熊之巨力。你的载重（包括最大负重和最大举重）翻倍，并且你在推、拉、举和破坏物件时进行的力量检定具有优势。"
+      ]
+    },
+    {
+      "ENG_name": "Eagle",
+      "name": "鹰",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 6,
+      "entries": [
+        "你拥有雕之锐目。你可以轻易的看清1里之内的范围，细节之处与100尺距离内的影像一样清晰。此外，你在微光环境中进行感知（{@skill 察觉}）检定时不会具有劣势。"
+      ]
+    },
+    {
+      "ENG_name": "Elk",
+      "name": "赤鹿",
+      "source": "SCAG",
+      "page": 122,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 6,
+      "entries": [
+        "无论你是骑乘还是徒步，你的旅行速度变为双倍。只要你未{@condition 失能}，在你周围60尺内的最多十个同伴也能得到这个好处。鹿的精魂祝福你行得更远更快。"
+      ]
+    },
+    {
+      "ENG_name": "Tiger",
+      "name": "老虎",
+      "source": "SCAG",
+      "page": 122,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 6,
+      "entries": [
+        "你从下列技能中选择两个技能，你得到它们的熟练：{@skill 运动}、{@skill 特技}、{@skill 隐匿}和{@skill 求生}。虎之精魂磨练了你的生存本能。"
+      ]
+    },
+    {
+      "ENG_name": "Wolf",
+      "name": "狼",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 6,
+      "entries": [
+        "你拥有狼之敏锐。你可以在用快速步调旅行的同时追踪其他生物，也可以在用正常步调旅行时保持隐匿。"
+      ]
+    },
+    {
+      "ENG_name": "Aspect of the Beast",
+      "name": "兽之形",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "第6级时，你根据所选的图腾兽获得一项魔法能力。你可以选择和第3级时相同的图腾，也可以另做选择。",
+        {
+          "type": "options",
+          "count": 1,
+          "entries": [
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "熊|野蛮人||图腾武者||6"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "鹰|野蛮人||图腾武者||6"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "赤鹿|野蛮人|PHB|图腾武者||6|SCAG"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "老虎|野蛮人|PHB|图腾武者||6|SCAG"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "狼|野蛮人||图腾武者||6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Spirit Walker",
+      "name": "精魂行者",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "第10级时，你获得施展法术{@spell 问道自然}的能力，但你只能以仪式的方式施展它。施展此法术时，你所选的图腾兽会以精魄形态现身并提供你想要得到的那些信息。"
+      ]
+    },
+    {
+      "ENG_name": "Bear",
+      "name": "熊",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 14,
+      "entries": [
+        "狂暴期间，如果身处你周边5尺内的任何敌对生物发动攻击，而其目标不是你或另一个具有此特性的生物，则该攻击的攻击检定具有劣势。无法看到你或听到你声音的生物，以及无法陷入{@condition 恐慌}的生物对该特性免疫。"
+      ]
+    },
+    {
+      "ENG_name": "Eagle",
+      "name": "鹰",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 14,
+      "entries": [
+        "狂暴期间，你获得等同于你移动速度的飞行速度。此特性只能用于短途冲刺。如果回合结束时你仍在空中且毫无凭依，则你将坠落。"
+      ]
+    },
+    {
+      "ENG_name": "Elk",
+      "name": "赤鹿",
+      "source": "SCAG",
+      "page": 122,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 14,
+      "entries": [
+        "狂暴期间，你可以在移动时使用一个附赠动作穿过一个大型或更小生物的占据空间。该生物必须成功通过一次力量豁免（{@dc 8} + 你的力量调整值 + 你的熟练加值）否则被击倒{@condition 倒地}并受到等于{@damage 1d12} + 你的力量调整值的钝击伤害。"
+      ]
+    },
+    {
+      "ENG_name": "Tiger",
+      "name": "老虎",
+      "source": "SCAG",
+      "page": 122,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 14,
+      "entries": [
+        "狂暴期间，如果你向着一个大型或更小的目标直线接近至少20尺并且向它进行了一次近战武器攻击，你可以用附赠动作对它进行一次额外的近战武器攻击。"
+      ]
+    },
+    {
+      "ENG_name": "Wolf",
+      "name": "狼",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 14,
+      "entries": [
+        "当你处于狂暴状态时，在你的回合中可以使用一个附赠动作，当你用近战武器攻击命中一个大型或更小的生物时，可以将其击倒{@condition 倒地}。"
+      ]
+    },
+    {
+      "ENG_name": "Totemic Attunement",
+      "name": "图腾同调",
+      "source": "PHB",
+      "page": 50,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "图腾武者",
+      "subclassSource": "PHB",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "第14级时，你根据所选的图腾兽获得一项魔法能力。你可以选择和之前相同的图腾，也可以另做选择。",
+        {
+          "type": "options",
+          "count": 1,
+          "entries": [
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "熊|野蛮人||图腾武者||14"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "鹰|野蛮人||图腾武者||14"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "赤鹿|野蛮人|PHB|图腾武者||14|SCAG"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "老虎|野蛮人|PHB|图腾武者||14|SCAG"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "狼|野蛮人||图腾武者||14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Path of the Battlerager",
+      "name": "战狂道途",
+      "source": "SCAG",
+      "page": 121,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "战狂",
+      "subclassSource": "SCAG",
+      "level": 3,
+      "entries": [
+        "战狂道途通常被那些选择追随战争之神的矮人选择，在矮人语中他们被称作为\"库扎尔夫\"（意为\"斧头笨蛋\"）。他们常穿着厚重的、{@item 钉刺甲|SCAG}冲入战场，用他们自己的身体在战斗中挥洒怒火。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "限制——限定矮人|野蛮人||战狂|SCAG|3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "战狂装甲|野蛮人||战狂|SCAG|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Battlerager Armor",
+      "name": "战狂装甲",
+      "source": "SCAG",
+      "page": 121,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "战狂",
+      "subclassSource": "SCAG",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "从3级选择此道途起，你得到将{@item 钉刺甲|SCAG}作为武器使用的能力。",
+        "若你穿着{@item 钉刺甲|SCAG}，在狂暴期间，你便可以以附赠动作，用甲上钉刺对5尺内的目标进行一次近战武器攻击。若攻击命中，钉刺将造成{@damage 1d4}点穿刺伤害。这次攻击检定与伤害掷骰使用你的力量调整值。",
+        "此外，当你使用{@action 攻击}动作去擒抱一个生物时，擒抱成功时，那个生物将受到3点穿刺伤害。"
+      ]
+    },
+    {
+      "ENG_name": "Restriction—Dwarves Only",
+      "name": "限制——限定矮人",
+      "source": "SCAG",
+      "page": 121,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "战狂",
+      "subclassSource": "SCAG",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "只有矮人才可以选择战狂道途。在矮人的社会和文化中战狂占据了一个特殊的位置。",
+        "你的DM可以调整这一规则使之更符合战役。这个限制存在于被遗忘的国度中。能否选择此道途请于您的DM商量。"
+      ]
+    },
+    {
+      "ENG_name": "Reckless Abandon",
+      "name": "凶蛮无羁",
+      "source": "SCAG",
+      "page": 121,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "战狂",
+      "subclassSource": "SCAG",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "从6级起，当你在狂暴期间使用 鲁莽攻击Reckless Attack 时，你还可以得到等同于你的 体质调整值（最少1点） 点的临时生命。这一临时生命值在你狂暴结束后还剩余一部分时，剩余部分会消失。"
+      ]
+    },
+    {
+      "ENG_name": "Battlerager Charge",
+      "name": "战狂冲锋",
+      "source": "SCAG",
+      "page": 121,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "战狂",
+      "subclassSource": "SCAG",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "从10级起，你在狂暴期间可以以附赠动作执行{@action 疾走}动作。"
+      ]
+    },
+    {
+      "ENG_name": "Spiked Retribution",
+      "name": "钉刺反冲",
+      "source": "SCAG",
+      "page": 121,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "战狂",
+      "subclassSource": "SCAG",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "从14级起，狂暴期间，若你未处于{@condition 失能}状态、且穿着{@item 钉刺甲|SCAG}，当你周围5尺范围内有生物用近战攻击命中你时，攻击者将受到3点穿刺伤害。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Beast",
+      "name": "野兽道途",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "野兽",
+      "subclassSource": "TCE",
+      "level": 3,
+      "entries": [
+        "踏上野兽道途的野蛮人点燃其灵魂深处熊熊燃烧的兽性火花以激活狂暴。其内心的野兽在嗥叫中被释放，在狂怒中爆发，并改变野蛮人的形态。",
+        "这些野蛮人可能体内住着一只原初精魂，又或是某个化兽者的后人。请你为自己的野性之力选择一种起源，或在下方的\"野兽起源表\"随机选择。",
+        {
+          "type": "table",
+          "caption": "野兽起源",
+          "colLabels": [
+            "d4",
+            "起源"
+          ],
+          "colStyles": [
+            "col-2 text-center",
+            "col-10"
+          ],
+          "rows": [
+            [
+              "1",
+              "你的生父或生母是一个兽化人，你也遗传了这方面的一些诅咒。"
+            ],
+            [
+              "2",
+              "你是一位大德鲁伊的后人，并且继承了变形部分躯体的能力。"
+            ],
+            [
+              "3",
+              "一只精类的精魂赐予你变换不同野兽形态的能力。"
+            ],
+            [
+              "4",
+              "一只上古野兽的精魂住在你的体内，为你打开走上此道途的大门。"
+            ]
+          ]
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "野兽之形|野蛮人||野兽|TCE|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Form of the Beast",
+      "name": "野兽之形",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "野兽",
+      "subclassSource": "TCE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "{@i 3级野兽道途特性}",
+        "你能在进入狂暴时变形，展现潜在的野兽之力。你将长出一种天生武器，直至狂暴结束。它对你来说被视为一件简易近战武器，并正常使用你的力量调整值进行攻击检定与伤害掷骰。",
+        "你在每次进入狂暴时，可以选择如下的天生武器之一：",
+        {
+          "type": "list",
+          "style": "list-hang-notitle",
+          "items": [
+            {
+              "ENG_name": "Bite",
+              "name": "啃咬",
+              "type": "item",
+              "entry": "你的嘴变成一张野兽的血盆大口或双颚长得巨大（由你选择）。它在击中时造成{@damage 1d8}穿刺伤害。每个你的回合一次，当你用这一啃咬攻击命中一个生物， 并且你的生命值数值小于一半时，你能恢复等于你的熟练加值点的生命值。"
+            },
+            {
+              "ENG_name": "Claws",
+              "name": "爪击",
+              "type": "item",
+              "entry": "你的双手变成利爪，它们在你手空闲时可以作为武器使用。它在击中时造成{@damage 1d6}挥砍伤害。此外，当你在自己的回合使用{@action 攻击}动作进行了爪击，你可以追加执行一次爪击作为该攻击动作的一部分（一回合一次）。"
+            },
+            {
+              "ENG_name": "Tail",
+              "name": "尾击",
+              "type": "item",
+              "entry": "你长出一条如长鞭般带刺的尾巴，其造成{@damage 1d8}穿刺伤害，具有 触及Reach 属性。如果一个你可见的、距离你10尺以内的生物发动的攻击击中了你，你可以用反应挥起你的尾巴，骰一个{@dice d8}并将骰值加在你的AC上，可能导致这次攻击打失。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Bestial Soul",
+      "name": "兽性之魂",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "野兽",
+      "subclassSource": "TCE",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "{@i 6级野兽道途特性}",
+        "你体内的野性精魂的力量不断成长，这使得你用野兽之形Form of Beast 特性的天生武器攻击对非魔法攻击或伤害具有抗性或免疫的目标时视为魔法武器的攻击。",
+        "你还能改变你的形态来适应周遭环境，当你完成一次短休或长休后，你选择以下增益之一，获得之。这一增益将一直持续直至你再次完成短休或长休为止：",
+        {
+          "type": "list",
+          "items": [
+            "你获得等于步行速度的游泳速度，并且能够在水中呼吸。",
+            "你获得等于步行速度的攀爬速度。你无需进行属性检定也可攀爬于困难表面，包括倒挂天花板。",
+            "每回合一次，你能在跳跃时进行一次力量（{@skill 运动}）检定，使你的跳跃距离延长等于检定结果的尺数。"
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Infectious Fury",
+      "name": "感染之怒",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "野兽",
+      "subclassSource": "TCE",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "{@i 10级野兽道途特性}",
+        "当你在狂暴时用天生武器命中一个敌人时，你体内的精魂将带着狂怒诅咒目标，使之进行一次感知豁免（DC=8+你的体质调整值+你的熟练值），豁免失败将遭受以下效应之一（由你选择）：",
+        {
+          "type": "list",
+          "items": [
+            "目标用反应对一个由你选择且你能看见的生物发动一次近战攻击。",
+            "目标受到{@damage 2d12}心灵伤害。"
+          ]
+        },
+        "你可以使用此能力的次数等同于你的熟练加值。当你完成一次长休后，你重获全部已消耗的使用次数。"
+      ]
+    },
+    {
+      "ENG_name": "Call the Hunt",
+      "name": "狩猎之唤",
+      "source": "TCE",
+      "page": 24,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "野兽",
+      "subclassSource": "TCE",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "{@i 14级野兽道途特性}",
+        "你内心的那匹强大野兽使你能激发盟友的凶性，并强化自己的耐性。当你进入狂暴时，你可以选择你周围30尺内的数个你可见的其他自愿生物，其数量至多等同于你的你的体质调整值（至少1）个。",
+        "你获得等同于接受狩猎之唤特性的生物数量五倍点的临时生命值。直至你的狂暴结束前，被选择的这些生物可以分别在每个自己的回合中使用一次以下能力：当攻击检定命中一个目标并造成伤害时，可以骰一个{@dice d6}，并在伤害中获得骰出结果的加值。",
+        "你可以使用此能力的次数等同于你的熟练加值。当你完成一次长休后，你重获全部已消耗的使用次数。"
+      ]
+    },
+    {
+      "ENG_name": "Path of Wild Magic",
+      "name": "狂野魔法道途",
+      "source": "TCE",
+      "page": 25,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂野魔法",
+      "subclassSource": "TCE",
+      "level": 3,
+      "entries": [
+        "这个多元宇宙的许多地方充满了美丽，强烈的情感，以及狂野而难以控制的魔力。妖精荒野，上层位面，以及其他辐射着超自然力量的领域都以这股力量深深的影响着人们。我们情感丰富而激烈的老伙计们——野蛮人尤其容易受这些狂野的扰动影响。其中又一些人接受了狂野魔法的浸洗而转变，变形。这些被魔力染上一抹亮色的野蛮人所走的，便是狂野魔法道途。精类，提夫林，阿斯莫和元素裔的野蛮人中不乏选择狂野魔法道途的，希求显耀他们先祖的那不属于这个世界的魔力。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "魔法察觉|野蛮人||狂野魔法|TCE|3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "狂野浪潮|野蛮人||狂野魔法|TCE|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Magic Awareness",
+      "name": "魔法察觉",
+      "source": "TCE",
+      "page": 25,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂野魔法",
+      "subclassSource": "TCE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "{@i 3级狂野魔法道途特性}",
+        "以一个动作，你让你的感官对聚集的魔力的存在保持警觉。直到你的下一个回合结束前，你可以知晓60尺内任何对你来说不处于{@quickref 掩护||3||全身掩护}的任何法术或者魔法物品的位置。当你察觉到一个法术的存在时，你还能知晓这个法术属于哪一个学派。",
+        "你可以使用此能力的次数等同于你的熟练加值。当你完成一次长休后，你重获全部已消耗的使用次数。"
+      ]
+    },
+    {
+      "ENG_name": "Wild Surge",
+      "name": "狂野浪潮",
+      "source": "TCE",
+      "page": 25,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂野魔法",
+      "subclassSource": "TCE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "{@i 3级狂野魔法道途特性}",
+        "你体内那翻滚不息的魔法能量有时会从你身上爆发出来。当你进入狂暴时，投掷下方的狂野魔法列表中决定它所产生的魔法效应。",
+        "如果这个效果需要进行豁免检定，则其DC等于8+你的熟练加值+你的体质调整值。",
+        {
+          "type": "table",
+          "caption": "狂野魔法",
+          "colLabels": [
+            "d8",
+            "魔法效应"
+          ],
+          "colStyles": [
+            "col-2 text-center",
+            "col-10"
+          ],
+          "rows": [
+            [
+              "1",
+              "阴暗的卷须在你身边疯狂挥舞。在你能看到的30尺内由你选择的生物都必须进行一次体质豁免，如果失败，则将受到{@damage 1d12}的暗蚀伤害。此外。你还会立刻获得{@dice 1d12}点临时生命值。"
+            ],
+            [
+              "2",
+              "你可以传送至多30尺到一个未被占据的、你可以看见的空间。直至你的狂暴结束为止，你的每个回合都可以再用一个附赠动作，再次发动这个效果。"
+            ],
+            [
+              "3",
+              "一个看起来像{@creature 呋噜}或者{@creature 皮克精}（由你决定）的不定形精魂，出现在一个你30尺内可以看到的生物的5尺以内。并且在当前回合结束时，这个精魂会爆炸，所有它周围5尺范围内的生物都必须通过一次敏捷豁免，若失败将承受{@damage 1d6}的力场伤害。直至你的狂暴结束为止，你的每个回合都可以再用一个附赠动作，再次发动这个效果。"
+            ],
+            [
+              "4",
+              "魔力与你正持握着的一件武器（由你选择）紧紧相融在一起。直至你的狂暴结束为止，这把武器的伤害类型转变为力场伤害，并且获得 轻型 和 投掷 的属性，其投掷射程为常规20尺与最大60尺。如果这把武器脱离了你的手，它将会在脱离的同一回合结束时重新出现在你的手中。"
+            ],
+            [
+              "5",
+              "直至你的狂暴结束为止，每当一个生物以攻击检定击中了你，你身上的魔力将抽打反击它，对其造成{@damage 1d6}的力场伤害。"
+            ],
+            [
+              "6",
+              "直至你的狂暴结束为止，你将被彩色的防护光芒环绕，使你的AC获得+1加值。在你10尺内的盟友也可以享受到相同的AC加值。"
+            ],
+            [
+              "7",
+              "你身边将不断临时生长出花朵与藤蔓。直至你的狂暴结束为止，你周围15尺的地面对你的敌人来说变为{@quickref 困难地形||3}。"
+            ],
+            [
+              "8",
+              "一束光从你胸膛射出。你所选择的30尺内的你可以看到的另一个生物必须进行一次体质豁免，如果失败，将会受到{@damage 1d6}的光耀伤害，并陷入 {@condition 目盲} ，直到你的下一个回合开始前。直至你的狂暴结束为止，你的每个回合都可以再用一个附赠动作，再次发动这个效果。"
+            ]
+          ],
+          "data": {
+            "genTables": {
+              "tableInclude": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "ENG_name": "Bolstering Magic",
+      "name": "振奋魔法",
+      "source": "TCE",
+      "page": 25,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂野魔法",
+      "subclassSource": "TCE",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "{@i 6级狂野魔法道途特性}",
+        "你可以控制你的狂野魔法并用于振奋自己或者一个同伴。以一个动作，你触碰一个生物（可以是你自己）并且为该生物提供以下增益中你所选择的一种：",
+        {
+          "type": "list",
+          "items": [
+            "10分钟内，该生物在投掷攻击检定或者属性检定时可以额外掷一枚{@dice d3}，将其加到所扔的{@dice d20}中。",
+            "掷一枚{@dice d3}。这个生物将恢复一个环数小于等于所掷出骰子的结果的法术位（由这个生物决定具体的环阶）。当一个生物享受了这一增益后，直到下一次长休结束前那个生物都不能再次从此特性中获益。"
+          ]
+        },
+        "你可以使用此能力的次数等同于你的熟练加值次，完成一次长休后，你重获全部已消耗的使用次数。"
+      ]
+    },
+    {
+      "ENG_name": "Unstable Backlash",
+      "name": "无常反冲",
+      "source": "TCE",
+      "page": 25,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂野魔法",
+      "subclassSource": "TCE",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "{@i 10级狂野魔法道途特性}",
+        "在你狂暴期间，如果你受到危险，你体内的魔法会猛烈爆发。每当你在狂暴时受到伤害或者没能通过豁免检定后，你都可以立刻用反应再次重骰你的狂野魔法表，并立刻产生一次骰出的新的魔法效应。这个魔法效应将会替代你当前有的狂野魔法效应。"
+      ]
+    },
+    {
+      "ENG_name": "Controlled Surge",
+      "name": "掌控浪潮",
+      "source": "TCE",
+      "page": 25,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂野魔法",
+      "subclassSource": "TCE",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "{@i 14级狂野魔法道途特性}",
+        "每当你投掷狂野魔法表时，你可以掷两次骰子并且选择其中之一作为生效的狂野魔法效应。如果你掷出的两个骰子数值相同，那么你可以无视这个数字，任选表中的一个效应生效。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Ancestral Guardian",
+      "name": "先祖守卫道途",
+      "source": "XGE",
+      "page": 9,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "先祖守卫",
+      "subclassSource": "XGE",
+      "level": 3,
+      "entries": [
+        "一些野蛮人尊重他们先祖的文化。这些部落教导那些战士们，那些古老的先驱者乃存在于世的全知全能者，它们会引导生者，保卫生者。当一个踏上这条道途的野蛮人狂暴时，它们得以接触到精魂世界，并互换这些守卫之魂施以援助。",
+        "这些借助先祖守卫之力的野蛮人能够更好的为守护部族与盟友而战。为了巩固与先祖守卫的联系，踏上这条道途的野蛮人都会在身上纹上特制的纹身，以颂扬先祖的功绩。这些纹身讲述了他们战胜可怕怪物 和其他可怕对手的传奇故事。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "先祖护卫|野蛮人||先祖守卫|XGE|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Ancestral Protectors",
+      "name": "先祖护卫",
+      "source": "XGE",
+      "page": 9,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "先祖守卫",
+      "subclassSource": "XGE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "从你在3级时选择此道途开始，你进入狂暴时一名精魂战士将出现在你身旁。狂暴期间，在每个你的回合中你攻击命中的第一个生物将成为这名精魂战士的目标，战士将阻挠目标对它人的攻击。直到你的下一个回合开始前，战士的目标对你以外的目标发动的攻击检定具有劣势，而若其在一次攻击中击中了除你以外的生物，该生物对那次攻击的伤害具有抗性。你的狂暴结束时，此效果也随之提前结束。"
+      ]
+    },
+    {
+      "ENG_name": "Spirit Shield",
+      "name": "精魂之盾",
+      "source": "XGE",
+      "page": 9,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "先祖守卫",
+      "subclassSource": "XGE",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "从6级开始，卫士之魂会帮助你为你的盟友提供超自然保护。狂暴期间，若一个处于你周围30尺内的、你能看到的其他生物受到伤害时，你可以用反应来为其降低{@dice 2d6}点的伤害。",
+        "当你此职业上达到特定等级后，你将可以减免更多的伤害：10级后{@dice 3d6}，14级后{@dice 4d6}。"
+      ]
+    },
+    {
+      "ENG_name": "Consult the Spirits",
+      "name": "问道精魂",
+      "source": "XGE",
+      "page": 9,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "先祖守卫",
+      "subclassSource": "XGE",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "在10级时，你得到了和你的先祖之魂进行交流的能力。当你想这么做时，你可以施展 {@spell 卜筮术} 或{@spell 鹰眼术} ，且无需法术位与材料成分。这两个法术的施法属性为感知。以此施展的 {@spell 鹰眼术}中，作为法术描述中提及的球形探测器的代替，这个法术会在指定位置创造一个无形的先祖之魂。",
+        "一旦你使用这个特性施展了任一法术，直到你完成一次短休或长休为止你都不能再次使用这一特性。"
+      ]
+    },
+    {
+      "ENG_name": "Vengeful Ancestors",
+      "name": "仇魂先祖",
+      "source": "XGE",
+      "page": 9,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "先祖守卫",
+      "subclassSource": "XGE",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "在14级时，你的先祖之魂变得强大到足以打击伤害你所保护之人的敌人。当你使用 精魂之盾Spirit Shield 保护生物、降低一次攻击的伤害时，攻击者还将受到精魂之盾所降低伤害等量的力场伤害。"
+      ]
+    },
+    {
+      "ENG_name": "Desert",
+      "name": "荒漠",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 3,
+      "entries": [
+        "此效应激活时，你的灵光中所有其他生物都会受到2点火焰伤害。当你在这个职业达到特定等级后，这一灵光的伤害将增加：在5级后变为3点，10级后4点，15级后5点，20级后6点。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Storm Herald",
+      "name": "风暴先驱道途",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 3,
+      "entries": [
+        "所有野蛮人都内含愤怒。他们的狂暴让他们得到了强大的力量、耐力、与速度。而那些追随风暴先驱道途的野蛮人则学会了将他们的狂暴转化为环绕着自身的原初魔法灵光。当处于狂暴之下，这条道途的野蛮人深入自然，创造出强大的魔法效果。",
+        "典型的精英风暴先驱，会和德鲁伊、游侠以及其他发誓保护自然的人一起受训。但也有一些会在被暴风摧毁的房屋中，在极寒的世界冰原上，又或者灼热的沙漠最深处磨砺自己。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "风暴灵光|野蛮人||风暴先声|XGE|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Sea",
+      "name": "海洋",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 3,
+      "entries": [
+        "当此效果被激活时，你可以选择灵光范围内一个你能看见的其他生物。目标必须进行一次敏捷豁免检定。若豁免失败，目标受到{@damage 1d6}闪电伤害，豁免成功则伤害减半。当你在此职业达到特定等级时伤害提升：10级时提升至{@damage 2d6}，15级时{@damage 3d6}，20级时{@damage 4d6}。"
+      ]
+    },
+    {
+      "ENG_name": "Tundra",
+      "name": "冻原",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 3,
+      "entries": [
+        "当这个效果被激活时，寒冰精魂加护于灵光中每个你选择的生物，令他们得以忍受伤害。它们获得2点临时生命值。当你在这个职业达到特定等级后，这一灵光给予的临时生命值将增加：在5级后变为3点，10级后变为4点，15级后变为5点，20级后变为6点。"
+      ]
+    },
+    {
+      "ENG_name": "Storm Aura",
+      "name": "风暴灵光",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "自3级起，在你狂暴期间，你会散发出一阵魔法性的灵光。它以你为中心向四周延展10尺，灵光无法穿透被{@quickref 掩护||3||全身掩护}或覆盖的地方。",
+        "这一灵光在你进入狂暴时会激活一种效应，而你在后续的每个自己的回合中也可以用一个附赠动作再次来激活该效应。从以下三种环境中选择其一，你选择的环境类型将决定你灵光激活时会产生的效应。每当你此职业的等级获得提升时，你可以更换你选择的环境。",
+        "如果你灵光的效应需要生物进行豁免，其豁免DC等同于 8+你的熟练加值+你的体质调整值。",
+        {
+          "type": "options",
+          "entries": [
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "荒漠|野蛮人|PHB|风暴先声|XGE|3"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "海洋|野蛮人|PHB|风暴先声|XGE|3"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "冻原|野蛮人|PHB|风暴先声|XGE|3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Desert",
+      "name": "荒漠",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 6,
+      "entries": [
+        "你获得火焰伤害的抗性，且不会受到 炎热Extreme Heat 的效应影响（其记载于《城主手册》中）。此外，你可以以一个动作，触碰一个未被他人穿戴或携带的易燃物体来点燃它。"
+      ]
+    },
+    {
+      "ENG_name": "Sea",
+      "name": "海洋",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 6,
+      "entries": [
+        "你获得闪电伤害的抗性，与在水下呼吸的能力。你还将获得30尺的游泳速度。"
+      ]
+    },
+    {
+      "ENG_name": "Tundra",
+      "name": "冻原",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 6,
+      "entries": [
+        "你获得寒冷伤害的抗性，且不会受到 严寒Extreme Cold 的效应影响（其记载于《城主手册》中）。此外，你可以以一个动作，触碰水体并将5尺立方的水冻结成冰，这种冰将会在1分钟后融化。如果该立方空间中有任何生物，这一动作将会失败。"
+      ]
+    },
+    {
+      "ENG_name": "Storm Soul",
+      "name": "风暴之魂",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "在6级时，不论你是否散发着灵光，风暴都能为你带来增益。这一增益效果基于你在 风暴灵光Storm Aura 特性中所选择的环境类型。",
+        {
+          "type": "options",
+          "entries": [
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "荒漠|野蛮人|PHB|风暴先声|XGE|6"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "海洋|野蛮人|PHB|风暴先声|XGE|6"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "冻原|野蛮人|PHB|风暴先声|XGE|6"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Shielding Storm",
+      "name": "风暴之盾",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "在10级时，你学会了运用你对风暴的掌控力来保护你的盟友。处于你灵光内的、由你选择的生物也将同样受益于你 风暴之魂 Storm Soul 特性所带来的伤害抗性。"
+      ]
+    },
+    {
+      "ENG_name": "Desert",
+      "name": "荒漠",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 14,
+      "entries": [
+        "当处于你灵光中的生物在一次攻击命中你后，你可以立刻用你的反应迫使该生物进行一次敏捷豁免。豁免失败则受到等同于你野蛮人等级半数点火焰伤害。"
+      ]
+    },
+    {
+      "ENG_name": "Sea",
+      "name": "海洋",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 14,
+      "entries": [
+        "任何处于你灵光中的生物若被你以一次攻击击中，你可以用你的反应迫使该生物进行一次力量豁免。豁免失败时，它将如同被波浪拍打般应击{@condition 倒地}。"
+      ]
+    },
+    {
+      "ENG_name": "Tundra",
+      "name": "冻原",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 14,
+      "entries": [
+        "每当你激活你的 风暴灵光Storm Aura 时，你可以选择一个处于灵光里的你可见的生物。该生物必须通过一次力量豁免。豁免失败时，魔法的冰霜将它覆盖，使其速度降为0，持续直至你的下一个回合开始。"
+      ]
+    },
+    {
+      "ENG_name": "Raging Storm",
+      "name": "狂怒风暴",
+      "source": "XGE",
+      "page": 10,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "风暴先声",
+      "subclassSource": "XGE",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "在14级时，你能引导的风暴之力变得更加强大，足以打击你的敌人。你获得基于你在 风暴灵光Storm Aura 特性中所选择的环境类型的增益。",
+        {
+          "type": "options",
+          "entries": [
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "荒漠|野蛮人|PHB|风暴先声|XGE|14"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "海洋|野蛮人|PHB|风暴先声|XGE|14"
+            },
+            {
+              "type": "refSubclassFeature",
+              "subclassFeature": "冻原|野蛮人|PHB|风暴先声|XGE|14"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Path of the Zealot",
+      "name": "狂热者道途",
+      "source": "XGE",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XGE",
+      "level": 3,
+      "entries": [
+        "一些神灵鼓励的追随者们投身于残酷的战斗狂怒中。这些野蛮人是狂热的战士，他们引导自己的愤怒转化为强大的神赐力量。",
+        "在D&D世界中有许多神都会鼓励自己的追随者寻求狂热者道途。最著名的是费伦的 坦帕斯Tempus ，以及灰鹰的 海克斯托Hextor 和 厄瑞斯努Erythnul 。一般来说，那些培养狂热者的神往往是偏向于战斗、破坏和暴力等神职。当然，它们不一定全是邪恶的，还是有少数例外是善良的。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "神性之怒|野蛮人||狂热者|XGE|3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "神之勇者|野蛮人||狂热者|XGE|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Divine Fury",
+      "name": "神性之怒",
+      "source": "XGE",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XGE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "从3级选择此道途时开始，你可以将神性之怒引导至武器攻击中。当你处于狂暴状态时，每回合你的第一次武器攻击命中的生物将受到额外伤害，数值为{@damage 1d6} + 你野蛮人等级的一半。额外伤害类型为暗蚀或光耀；你获得此特性时选择伤害类型。"
+      ]
+    },
+    {
+      "ENG_name": "Warrior of the Gods",
+      "name": "神之勇者",
+      "source": "XGE",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XGE",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "在3级时，你的灵魂被无尽的战斗所烙印。若一个法术只具有让你起死回生（而非令你变为不死生物）的效果，例如法术 {@spell 死者复活}，则施法者在对你施展这一法术时不需要材料成分。"
+      ]
+    },
+    {
+      "ENG_name": "Fanatical Focus",
+      "name": "专心炽志",
+      "source": "XGE",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XGE",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "在6级时，驱使你愤怒的神力也能庇护你免遭干扰。狂暴期间，若你豁免检定失败，你可以重新投掷该豁免检定，但你必须接受重骰后的结果。你每次狂暴中只能使用此能力一次。"
+      ]
+    },
+    {
+      "ENG_name": "Zealous Presence",
+      "name": "狂热威仪",
+      "source": "XGE",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XGE",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "在10级时，你学会了引导神力，让其他人也被你的狂热所感染。以一个附赠动作，你愤怒的怒吼并释放出一道蕴含神圣能量的战吼。选择你周围60尺范围内至多10个能听到你吼叫声的其他生物，直到你的下个回合开始前，他们进行的攻击检定与豁免检定获得优势。",
+        "必须完成一次长休才能再次使用该特性。"
+      ]
+    },
+    {
+      "ENG_name": "Rage beyond Death",
+      "name": "怒不畏死",
+      "source": "XGE",
+      "page": 11,
+      "className": "野蛮人",
+      "classSource": "PHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XGE",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "从14级开始，驱使你狂暴的神力允许你忽视致命的打击。",
+        "狂暴期间，具有0点生命值并不会使你陷入{@condition 昏迷} 。不过你仍然需要进行死亡豁免，你在0生命值下受到伤害时依旧计算豁免失败次数。然而，若你因为未通过死亡豁免检定而即将死去时，只要你仍处于狂暴状态，你将拒绝死亡。而如果你的狂暴结束后你仍保持0点生命值，那么你将死亡。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Berserker",
+      "name": "狂战士道途",
+      "source": "XPHB",
+      "page": 54,
+      "srd52": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "entries": [
+        "{@i 以心头强烈的愤怒进入狂暴}",
+        "那些踏上狂战士道途的野蛮人以暴力的方式直接诠释狂暴。狂战士之道代表着不受约束的狂怒，他们于混乱的战斗中兴奋忘我，将自身完全交托于狂暴操控。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "狂怒|野蛮人|XPHB|狂战士|XPHB|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Frenzy",
+      "name": "狂怒",
+      "source": "XPHB",
+      "page": 54,
+      "srd52": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "header": 2,
+      "entries": [
+        "狂暴激活期间，在你使用鲁莽攻击的回合中，你基于力量的攻击首次命中时，对目标造成额外伤害。投掷等于你狂暴伤害加值数量的d6，将它们相加，即是你造成的额外伤害。额外伤害类型与此次攻击所使用的武器或{@variantrule 徒手打击|XPHB}造成的伤害类型相同。"
+      ]
+    },
+    {
+      "ENG_name": "Mindless Rage",
+      "name": "无我狂暴",
+      "source": "XPHB",
+      "page": 54,
+      "srd52": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "XPHB",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "狂暴激活期间，你具有{@condition 魅惑|XPHB}与{@condition 恐慌|XPHB}状态的{@variantrule 免疫|XPHB}。当你进入狂暴时，若你已陷入{@condition 魅惑|XPHB}或{@condition 恐慌|XPHB}，你陷入的这些状态立即结束。"
+      ]
+    },
+    {
+      "ENG_name": "Retaliation",
+      "name": "报偿",
+      "source": "XPHB",
+      "page": 54,
+      "srd52": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "XPHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "当一名位于你 5 尺内的生物对你造成伤害时，你能够以{@variantrule 反应|XPHB}使用武器或{@variantrule 徒手打击|XPHB}对其发动一次近战攻击。"
+      ]
+    },
+    {
+      "ENG_name": "Intimidating Presence",
+      "name": "威慑之姿",
+      "source": "XPHB",
+      "page": 54,
+      "srd52": true,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂战士",
+      "subclassSource": "XPHB",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "以一个{@variantrule 附赠动作|XPHB}，你可以用你那令人魂消胆丧的面相，在原初之力的辅助下将恐惧打入他者内心。当你如此做时，每个位于以你为源点的 30 尺{@variantrule 光环 [效应区域]|XPHB|光环}区域内你所选择的生物必须进行一次感知豁免检定（{@dc 8} + 你的力量调整值 + 你的{@variantrule 熟练|XPHB|熟练加值}）。豁免失败则陷入{@condition 恐慌|XPHB}状态，持续 1 分钟。陷入{@condition 恐慌|XPHB}的生物在其每个回合结束时重复豁免，成功则终止其身上的该效应。",
+        "此特性一经使用，直至完成{@variantrule 长休|XPHB}你都无法再次使用。你也可以消耗一次狂暴使用次数（无需动作）来重置此特性的使用权。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Wild Heart",
+      "name": "兽心道途",
+      "source": "XPHB",
+      "page": 55,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "兽心",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "entries": [
+        "{@i 与动物世界一同漫步}",
+        "跟随兽心道途的野蛮人将自身视作动物们的家人。他们学习与动物交流的魔法手段，他们的狂暴赋予他们超自然的力量来增强与动物们的联系。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "动物交谈|野蛮人|XPHB|兽心|XPHB|3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "兽性狂暴|野蛮人|XPHB|兽心|XPHB|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Animal Speaker",
+      "name": "动物交谈",
+      "source": "XPHB",
+      "page": 55,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "兽心",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "header": 2,
+      "entries": [
+        "你可以施展法术{@spell 野兽感官|XPHB}与{@spell 动物交谈|XPHB}，仅限仪式施展。感知是你这些法术的施法属性。"
+      ]
+    },
+    {
+      "ENG_name": "Rage of the Wilds",
+      "name": "兽性狂暴",
+      "source": "XPHB",
+      "page": 55,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "兽心",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "header": 2,
+      "entries": [
+        "你的狂暴解放来自动物的原初之力。每当你激活狂暴时，你从下列选项中选择一项。",
+        {
+          "ENG_name": "Bear",
+          "name": "熊",
+          "type": "entries",
+          "entries": [
+            "狂暴激活期间，你具有除力场、心灵、暗蚀、光耀外所有伤害类型的{@variantrule 抗性|XPHB}。"
+          ]
+        },
+        {
+          "ENG_name": "Eagle",
+          "name": "鹰",
+          "type": "entries",
+          "entries": [
+            "当你激活狂暴时，作为你进入狂暴的{@variantrule 附赠动作|XPHB}的一部分，你可以同时执行{@action 撤离|XPHB}与{@action 疾走|XPHB}动作。狂暴激活期间，你也能够以一个{@variantrule 附赠动作|XPHB}同时执行这两个动作。"
+          ]
+        },
+        {
+          "ENG_name": "Wolf",
+          "name": "狼",
+          "type": "entries",
+          "entries": [
+            "狂暴激活期间，你的盟友对位于你 5 尺内的敌人进行的攻击检定具有{@variantrule 优势|XPHB}。"
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Aspect of the Wilds",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "entries": [
+        "你从下列选项中自选一项能力获得。当你完成一次{@variantrule 长休|XPHB}时，你可以改变你的选择。",
+        {
+          "ENG_name": "Owl",
+          "name": "枭",
+          "type": "entries",
+          "entries": [
+            "你具有 60 尺黑暗视觉。如果你已经具有{@sense 黑暗视觉|XPHB}，你的{@sense 黑暗视觉|XPHB}范围增加 60 尺。 "
+          ]
+        },
+        {
+          "ENG_name": "Panther",
+          "name": "豹",
+          "type": "entries",
+          "entries": [
+            "你具有等于你{@variantrule 速度|XPHB}的{@variantrule 攀爬速度|XPHB}。 "
+          ]
+        },
+        {
+          "ENG_name": "Salmon",
+          "name": "鲑",
+          "type": "entries",
+          "entries": [
+            "你具有等于你{@variantrule 速度|XPHB}的{@variantrule 游泳速度|XPHB}。"
+          ]
+        }
+      ],
+      "header": 2,
+      "level": 6,
+      "name": "兽之形貌",
+      "page": 55,
+      "source": "XPHB",
+      "subclassShortName": "兽心",
+      "subclassSource": "XPHB",
+      "translator": "不全书"
+    },
+    {
+      "ENG_name": "Nature Speaker",
+      "name": "自然语者",
+      "source": "XPHB",
+      "page": 55,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "兽心",
+      "subclassSource": "XPHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "你可以施展法术{@spell 问道自然|XPHB}，仅限{@variantrule 仪式|XPHB}施展。感知是你该法术的施法属性。"
+      ]
+    },
+    {
+      "ENG_name": "Power of the Wilds",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "entries": [
+        "每当你激活狂暴时，你从下列选项中选择一项。",
+        {
+          "ENG_name": "Falcon",
+          "name": "猎鹰",
+          "type": "entries",
+          "entries": [
+            "狂暴激活期间，只要你没有着装任何护甲，你就具有等于你{@variantrule 速度|XPHB}的{@variantrule 飞行速度|XPHB}。"
+          ]
+        },
+        {
+          "ENG_name": "Lion",
+          "name": "雄狮",
+          "type": "entries",
+          "entries": [
+            "狂暴激活期间，任何位于你 5 尺内的敌人不以你（或另一个选择该项能力的野蛮人）为目标的攻击检定具有{@variantrule 劣势|XPHB}。 "
+          ]
+        },
+        {
+          "ENG_name": "Ram",
+          "name": "角羊",
+          "type": "entries",
+          "entries": [
+            "狂暴激活期间，当你的近战攻击命中一名体型不超过大型的生物时，你可以令其陷入{@condition 倒地|XPHB}状态。"
+          ]
+        }
+      ],
+      "header": 2,
+      "level": 14,
+      "name": "兽力威能",
+      "page": 55,
+      "source": "XPHB",
+      "subclassShortName": "兽心",
+      "subclassSource": "XPHB",
+      "translator": "不全书"
+    },
+    {
+      "ENG_name": "Path of the World Tree",
+      "name": "世界树道途",
+      "source": "XPHB",
+      "page": 56,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "世界树",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "entries": [
+        "{@i 追寻多元宇宙的根系和枝杈}",
+        "追随世界树道途的野蛮人以狂暴的力量与宇宙之树尤格德拉希尔连接。尤格德拉希尔在外层位面中生长，将每个外层位面与物质位面一一相连。世界树道途的野蛮人利用树的魔力来保持活力，并将其作为次元旅行的手段。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "圣树活力|野蛮人|XPHB|世界树|XPHB|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Vitality of the Tree",
+      "name": "圣树活力",
+      "source": "XPHB",
+      "page": 56,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "世界树",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "header": 2,
+      "entries": [
+        "你的狂暴浸润着世界树的生命力。你获得以下增益：",
+        {
+          "type": "entries",
+          "entries": [
+            {
+              "ENG_name": "Vitality Surge",
+              "name": "活力之涌",
+              "type": "entries",
+              "entries": [
+                "当你激活狂暴时，你获得等于你野蛮人等级的{@variantrule 临时生命值|XPHB}。"
+              ]
+            },
+            {
+              "ENG_name": "Life-Giving Force",
+              "name": "赐命之源",
+              "type": "entries",
+              "entries": [
+                "你的狂暴激活期间，在你的每个回合开始时，你可以赋予位于你 10 尺内的另一名生物{@variantrule 临时生命值|XPHB}。投掷等于你狂暴伤害加值数量的d6，将它们相加，即是该生物获得的{@variantrule 临时生命值|XPHB}。当你的狂暴结束时，剩余的{@variantrule 临时生命值|XPHB}将会消失。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "ENG_name": "Branches of the Tree",
+      "name": "灵树枝杈",
+      "source": "XPHB",
+      "page": 56,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "世界树",
+      "subclassSource": "XPHB",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "你的狂暴激活期间，每当你可见的位于你 30 尺内的生物的回合开始时，你能够以{@variantrule 反应|XPHB}在其周围召唤世界树的灵体枝条。目标必须成功通过一次力量豁免（{@dc 8} + 你的力量调整值 + 你的{@variantrule 熟练|XPHB|熟练加值}），否则将被传送到位于你5尺内的你可见的未占据空间内或距离你最近的你可见的未占据空间内。目标被你传送后，你可以令其{@variantrule 速度|XPHB}降为 0，持续至当前回合结束。"
+      ]
+    },
+    {
+      "ENG_name": "Battering Roots",
+      "name": "根击千钧",
+      "source": "XPHB",
+      "page": 56,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "世界树",
+      "subclassSource": "XPHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "世界树的卷须将你的武器延长。你的回合内，你持用的任何{@filter 具有重型或多用词条的近战武器|items|type=近战武器|property=重型;两用}的触及增加 10 尺。当你在你的回合内以该武器命中时，除了激活这把武器本身具有的其他精通词条外，你还可以激活{@itemMastery 推离|XPHB}或{@itemMastery 失衡|XPHB}精通词条。"
+      ]
+    },
+    {
+      "ENG_name": "Travel Along the Tree",
+      "name": "世界树之奇旅",
+      "source": "XPHB",
+      "page": 56,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "世界树",
+      "subclassSource": "XPHB",
+      "level": 14,
+      "header": 2,
+      "entries": [
+        "当你激活狂暴时，你可以传送至多 60 尺的距离，到一处你可见的未占据空间中。在你的狂暴激活期间，你也能够以一个{@variantrule 附赠动作|XPHB}来进行传送。",
+        "此外，每次狂暴期间仅一次，你可以使传送的距离提升至 150 尺，并可以选择带上至多 6 个位于你 10 尺内的自愿生物同你一起传送。每个其他生物都将被传送至位于你目的地 10 尺内的你选择的未占据空间中。"
+      ]
+    },
+    {
+      "ENG_name": "Path of the Zealot",
+      "name": "狂热者道途",
+      "source": "XPHB",
+      "page": 57,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "entries": [
+        "{@i 与神结合的至高愉悦狂暴体验}",
+        "走上狂热者道途的野蛮人会得到某个神明或某个神系的恩惠。这些野蛮人将他们的狂暴视为神圣结合的至高愉悦，并借此获得力量。狂热者野蛮人常是他们的神明或神系座下牧师或信者的盟友。",
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "神性之怒|野蛮人|XPHB|狂热者|XPHB|3"
+        },
+        {
+          "type": "refSubclassFeature",
+          "subclassFeature": "神之勇者|野蛮人|XPHB|狂热者|XPHB|3"
+        }
+      ]
+    },
+    {
+      "ENG_name": "Divine Fury",
+      "name": "神性之怒",
+      "source": "XPHB",
+      "page": 57,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "你可以引导神性的怒火，将其注入打击之中。你的狂暴激活期间，你的每个回合中你首次以武器或{@variantrule 徒手打击|XPHB}命中的生物将受到等于{@dice 1d6} + 你野蛮人等级的一半（向下取整）的额外伤害。额外伤害的伤害类型为光耀或暗蚀，在每次造成伤害时由你选择伤害类型。"
+      ]
+    },
+    {
+      "ENG_name": "Warrior of the Gods",
+      "name": "神之勇者",
+      "source": "XPHB",
+      "page": 57,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XPHB",
+      "level": 3,
+      "header": 1,
+      "entries": [
+        "某个神圣实体对你施以援手以确保你总能继续战斗。你获得一个有着 4 枚d12的治疗池，你可以用其中的骰子治愈自身。以一个{@variantrule 附赠动作|XPHB}，你可以消耗治疗池中任意枚骰子来恢复你的{@variantrule 生命值|XPHB}。投掷所有你消耗的骰子，将它们相加，即是你以此恢复的生命值。",
+        "当你完成一次{@variantrule 长休|XPHB}时，你的治疗池重获所有已消耗的骰子。",
+        "治疗池中骰子的最大数量将会在你到达特定野蛮人等级时增加，分别为 6 级时增加至 5 枚，12 级时增加至 6 枚，17 级时增加至 7 枚。"
+      ]
+    },
+    {
+      "ENG_name": "Fanatical Focus",
+      "name": "专心炽志",
+      "source": "XPHB",
+      "page": 57,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XPHB",
+      "level": 6,
+      "header": 2,
+      "entries": [
+        "每次狂暴期间仅一次，若你失败于某次豁免检定，你可以重骰这次检定并在检定中获得等于你的狂暴伤害加值的加值，你必须使用重骰后的结果。"
+      ]
+    },
+    {
+      "ENG_name": "Zealous Presence",
+      "name": "狂热威仪",
+      "source": "XPHB",
+      "page": 57,
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XPHB",
+      "level": 10,
+      "header": 2,
+      "entries": [
+        "以一个{@variantrule 附赠动作|XPHB}，你以满腔神圣能量发出战吼。选择至多十名位于你 60 尺内的生物，直至你的下个回合开始，他们的攻击检定和豁免检定具有{@variantrule 优势|XPHB}。",
+        "此特性一经使用，直至完成{@variantrule 长休|XPHB}你都无法再次使用。你也可以消耗一次狂暴使用次数（无需动作）来重置此特性的使用权。"
+      ]
+    },
+    {
+      "ENG_name": "Rage of the Gods",
+      "className": "野蛮人",
+      "classSource": "XPHB",
+      "entries": [
+        "当你激活狂暴时，你可以呈现出圣斗士姿态。圣斗士姿态持续1分钟，且在你{@variantrule 生命值|XPHB}降至0时提前结束。此特性一经使用，直至完成{@variantrule 长休|XPHB}你都无法再次使用。",
+        "处于圣斗士姿态期间，你获得以下增益。",
+        {
+          "ENG_name": "Flight",
+          "name": "飞翔",
+          "type": "entries",
+          "entries": [
+            "你具有等于你{@variantrule 速度|XPHB}的{@variantrule 飞行速度|XPHB}，并且可以悬浮。"
+          ]
+        },
+        {
+          "ENG_name": "Resistance",
+          "name": "抗性",
+          "type": "entries",
+          "entries": [
+            "你具有对暗蚀、心灵和光耀伤害的{@variantrule 抗性|XPHB}。"
+          ]
+        },
+        {
+          "ENG_name": "Revivification",
+          "name": "回春",
+          "type": "entries",
+          "entries": [
+            "当位于你30尺内的一名生物的{@variantrule 生命值|XPHB}将要降至0时，你能够以{@variantrule 反应|XPHB}消耗一次狂暴使用次数，令目标的{@variantrule 生命值|XPHB}变为等于你野蛮人等级的值。"
+          ]
+        }
+      ],
+      "header": 2,
+      "level": 14,
+      "name": "神之狂暴",
+      "page": 57,
+      "source": "XPHB",
+      "subclassShortName": "狂热者",
+      "subclassSource": "XPHB",
+      "translator": "不全书"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "dnd2024-character-builder",
+  "scripts": {
+    "dev": "node scripts/predev.mjs && next dev",
+    "build": "node scripts/build-static.mjs",
+    "build:pages": "node scripts/build-static.mjs --pages",
+    "start": "node scripts/preview-static.mjs",
+    "preview": "node scripts/preview-static.mjs",
+    "verify:static": "node scripts/verify-static.mjs",
+    "lint": "next lint",
+    "test": "vitest run",
+    "audit:classes": "vitest run src/source/__tests__/live-class-diagnostics.integration.test.ts"
+  },
+  "dependencies": {
+    "lucide-react": "^1.8.0",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "zod": "^4.3.6",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "@types/node": "^25.6.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.4",
+    "postcss": "^8.5.10",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5"
+  }
+}

@@ -1,0 +1,177 @@
+.builderLayout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-light);
+}
+
+/* Progress Bar - 收敛至工作台宽度 */
+.progress {
+  max-width: var(--container-workbench-max-width, 1280px);
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--space-md) var(--space-lg) 0;
+}
+
+.progress__bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  position: relative;
+}
+
+.progress__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+  cursor: default;
+}
+
+.progress__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-circle);
+  background: var(--color-border-dark);
+  transition: all var(--transition-medium);
+  position: relative;
+  z-index: 2;
+}
+
+.progress__dot--active {
+  background: var(--color-gold-bright);
+  box-shadow: var(--shadow-gold-glow);
+}
+
+.progress__dot--done {
+  background: var(--color-gold-bright);
+}
+
+.progress__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--color-text-secondary);
+  margin-top: 6px;
+  text-align: center;
+  font-family: var(--font-family);
+  line-height: 1.33;
+  transition: color var(--transition-fast);
+}
+
+.progress__label--active {
+  color: var(--color-gold-bright);
+  font-weight: 700;
+}
+
+.progress__label--done {
+  color: var(--color-text-primary);
+}
+
+.progress__line {
+  position: absolute;
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--color-border-dark);
+  z-index: 1;
+}
+
+.progress__lineFill {
+  height: 100%;
+  background: var(--color-gold-bright);
+  transition: width var(--transition-slow);
+}
+
+/* Content Area - 规范留白与最大宽度 */
+.builder__content {
+  flex: 1;
+  width: 100%;
+  max-width: var(--container-workbench-max-width, 1280px);
+  margin: 0 auto;
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+}
+
+.builder__stepTitle {
+  font-size: var(--font-size-page-title, 26px);
+  font-weight: 700;
+  font-family: var(--font-family-serif);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+}
+
+/* Footer Navigation - 宽度跟随内容区并收敛留白 */
+.builder__footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--color-bg-surface);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid var(--color-border-dark);
+  padding: var(--space-md) var(--space-lg);
+  z-index: 100;
+}
+
+.builder__footerInner {
+  max-width: var(--container-workbench-max-width, 1280px);
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.builder__footerInfo {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family);
+  letter-spacing: -0.12px;
+}
+
+@media (max-width: 768px) {
+  .progress {
+    padding: var(--space-sm) var(--space-md) 0;
+  }
+  .builder__content {
+    padding: var(--space-md);
+  }
+  .builder__footer {
+    padding: var(--space-sm) var(--space-md);
+  }
+}
+
+/* 建卡流程桌面紧凑版：宽度与文字变量仅作用于桌面。 */
+@media (min-width: 1100px) {
+  .builderLayout {
+    --font-size-page-title: 21px;
+    --font-size-section-title: 16px;
+    --font-size-card-title: 13px;
+    --font-size-body: 13px;
+    --font-size-secondary: 12px;
+    --font-size-caption: 11px;
+    font-size: 13px;
+  }
+
+  .progress,
+  .builder__content,
+  .builder__footerInner {
+    max-width: 1680px;
+  }
+
+  .progress {
+    padding-top: 12px;
+  }
+
+  .builder__content {
+    padding: 16px 24px;
+  }
+
+  .builder__footer {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}

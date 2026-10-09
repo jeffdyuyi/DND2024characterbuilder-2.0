@@ -1,0 +1,145 @@
+.horizontalContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border-dark);
+  z-index: 50;
+}
+
+.slotHeader {
+  padding: 6px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-dark);
+}
+
+.slotHeaderText {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.scrollList {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 12px 24px;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollList::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scrollList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollList::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.scrollList::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.slotCardWrapper {
+  flex: 0 0 200px;
+  position: relative;
+}
+
+.slotCardWrapper :global([class*="OptionCard_card__"]) {
+  padding: 10px 12px !important;
+  border-radius: 10px !important;
+}
+
+.slotCardWrapper :global([class*="OptionCard_card__title"]) {
+  font-size: 14px !important;
+  margin-bottom: 2px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 20px;
+}
+
+.slotCardWrapper :global([class*="OptionCard_card__subtitle"]) {
+  font-size: 11px !important;
+}
+
+.selectedFeatLabel {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--color-primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Override OptionCard padding for horizontal layout if needed */
+.slotCardWrapper :global(.OptionCard_card__G3L_U) {
+  height: 100%;
+  margin: 0;
+}
+
+.unboundToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding: 4px 12px;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+
+.unboundToggle:hover {
+  background: rgba(197, 160, 89, 0.08);
+}
+
+.toggleTrack {
+  width: 32px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--color-border-dark);
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggleTrackActive {
+  background: var(--color-gold-bright);
+}
+
+.toggleThumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-text-on-dark, #ffffff);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.toggleThumbActive {
+  left: 16px;
+}
+
+.toggleLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  transition: color 0.2s;
+}
+
+.toggleLabelActive {
+  color: var(--color-gold-bright);
+}

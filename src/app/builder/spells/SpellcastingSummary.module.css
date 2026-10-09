@@ -1,0 +1,80 @@
+/* SpellcastingSummary – 竖版侧边栏样式 */
+
+.summaryBar {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--color-bg-dark);
+  border-right: 1px solid var(--color-border-dark);
+  padding: 24px 20px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  height: 100%;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.statCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border-dark);
+}
+
+.statLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-family-serif);
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-gold-bright);
+}
+
+.abilityValue {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-gold-bright);
+}
+
+.slotsCell {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+.slotBadge {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-dark);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  transition: var(--transition-smooth);
+}
+
+.slotBadge:hover {
+  border-color: var(--color-border-gold);
+  box-shadow: var(--shadow-subtle);
+}
+
+.slotRing {
+  color: var(--color-text-secondary);
+}
+
+.slotCount {
+  color: var(--color-gold-bright);
+  font-size: 14px;
+  font-weight: 700;
+}

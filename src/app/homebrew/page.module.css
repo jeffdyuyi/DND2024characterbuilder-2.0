@@ -1,0 +1,491 @@
+.container {
+  min-height: 100vh;
+  background: var(--color-bg-light, #0b0c10);
+  color: var(--color-text-primary, #f0e6d2);
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  max-width: var(--container-workbench-max-width, 1280px);
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px var(--space-lg);
+  flex: 1;
+}
+
+.headerSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-family: var(--font-family-serif, serif);
+  font-size: var(--font-size-page-title, 26px);
+  font-weight: 700;
+  color: var(--color-gold-bright, #e6c278);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.subtitle {
+  font-size: var(--font-size-secondary, 13px);
+  color: var(--color-text-secondary, #9aa0b8);
+}
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-body, 14px);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btnOutline {
+  background: var(--color-bg-surface, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  color: var(--color-text-primary, #f0e6d2);
+}
+
+.btnOutline:hover {
+  background: var(--color-bg-surface-elevated, rgba(197, 160, 89, 0.15));
+  color: var(--color-gold-bright, #e6c278);
+  border-color: var(--color-gold-bright, rgba(197, 160, 89, 0.5));
+}
+
+.btnPrimary {
+  background: linear-gradient(135deg, var(--color-gold-bright) 0%, var(--color-gold-accent) 100%);
+  border: 1px solid var(--color-gold-bright);
+  color: #0b0c10;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.btnPrimary:hover {
+  background: linear-gradient(135deg, #f3db9f 0%, var(--color-gold-bright) 100%);
+  transform: translateY(-1px);
+}
+
+.tabBar {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.tabItem {
+  padding: 8px 16px;
+  font-size: var(--font-size-secondary, 13px);
+  font-weight: 500;
+  color: var(--color-text-secondary, #9aa0b8);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabItem:hover {
+  color: var(--color-text-primary, #ffffff);
+}
+
+.tabItemActive {
+  color: var(--color-gold-bright, #e6c278) !important;
+  border-bottom-color: var(--color-gold-bright, #e6c278) !important;
+  font-weight: 600;
+}
+
+.filterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg-surface, rgba(18, 22, 34, 0.8));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  width: 280px;
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-text-primary, #ffffff);
+  font-size: 14px;
+  width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: var(--color-bg-surface, rgba(18, 22, 34, 0.85));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  border-color: var(--color-gold-bright, #e6c278);
+  box-shadow: var(--shadow-subtle);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cardTitle {
+  font-family: var(--font-family);
+  font-size: var(--font-size-card-title, 15px);
+  font-weight: 600;
+  color: var(--color-gold-bright, #e6c278);
+}
+
+.cardSubtitle {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary, #9aa0b8);
+  margin-top: 2px;
+}
+
+.badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--color-bg-light, rgba(197, 160, 89, 0.15));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.3));
+  color: var(--color-gold-bright, #e6c278);
+  font-weight: 500;
+}
+
+.cardDesc {
+  font-size: 0.85rem;
+  color: var(--color-text-primary, #f0e6d2);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.15));
+  padding-top: 12px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+  color: var(--color-text-secondary, #9aa0b8);
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.iconBtn:hover {
+  background: var(--color-bg-surface-elevated, rgba(197, 160, 89, 0.15));
+  color: var(--color-gold-bright, #e6c278);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  background: var(--color-bg-surface, rgba(18, 22, 34, 0.8));
+  border: 1px solid var(--color-border-gold, rgba(197, 160, 89, 0.2));
+  border-radius: 16px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: var(--color-text-secondary, #9aa0b8);
+  margin-bottom: 16px;
+}
+
+.emptyTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-gold-bright, #e6c278);
+  margin-bottom: 8px;
+}
+
+.emptySub {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary, #9aa0b8);
+  max-width: 440px;
+}
+
+/* 资源包管理面板样式 (对标 4E-NEXT，全面支持亮/暗主题) */
+.packControlPanel {
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-lg, 12px);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-card);
+}
+
+.packInfoGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* 自定义卡包下拉组件：彻底解决原生 select 在不同系统下的反色与蓝色高亮问题 */
+.customSelectWrapper {
+  position: relative;
+  display: inline-block;
+  min-width: 240px;
+}
+
+.customSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: var(--color-bg-surface-elevated);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text-primary);
+  padding: 8px 14px;
+  border-radius: var(--radius-md, 8px);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-subtle);
+}
+
+.customSelectTrigger:hover {
+  border-color: var(--color-gold-bright);
+}
+
+.triggerText {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevronIcon {
+  transition: transform 0.2s ease;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.customSelectMenu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  min-width: 260px;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  z-index: 50;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.customSelectOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  color: var(--color-text-primary);
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  border-bottom: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.05));
+}
+
+.customSelectOption:last-child {
+  border-bottom: none;
+}
+
+.customSelectOption:hover {
+  background: var(--color-bg-surface-elevated);
+  color: var(--color-gold-bright);
+}
+
+.customSelectOptionActive {
+  background: var(--color-bg-surface-elevated);
+  color: var(--color-gold-bright);
+  font-weight: 600;
+}
+
+.optionMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.optionVersion {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-subtle);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.optionDisabledTag {
+  font-size: 11px;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.packMetaBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--color-bg-surface-elevated);
+  border: 1px solid var(--color-border-gold);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill, 9999px);
+}
+
+.packToggleSwitch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.switchTrack {
+  width: 38px;
+  height: 20px;
+  background: var(--color-border-dark);
+  border-radius: 9999px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.switchTrackActive {
+  background: #22c55e;
+}
+
+.switchThumb {
+  width: 14px;
+  height: 14px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: all 0.2s ease;
+}
+
+.switchThumbActive {
+  transform: translateX(18px);
+}
+
+.packBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.storageBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface-elevated);
+  padding: 5px 10px;
+  border-radius: var(--radius-pill, 6px);
+  border: 1px solid var(--color-border-dark);
+}
+
+.cardFooterActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+

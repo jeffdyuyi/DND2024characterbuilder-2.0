@@ -1,0 +1,127 @@
+{
+  "auditDate": "2026-10-09",
+  "command": "RUN_LIVE_CLASS_AUDIT=1 npm run audit:classes -- --disableConsoleIntercept",
+  "sources": {
+    "fiveetoolsCn": {
+      "entries": 2536,
+      "expectedFiles": 15,
+      "loadedFiles": 15,
+      "warnings": []
+    },
+    "homebrew": {
+      "manifestRevision": "fetched-1791509766532",
+      "files": 453,
+      "entries": 26611,
+      "loadedFiles": 453,
+      "warningCount": 49,
+      "warningSamples": [
+        "找不到 _copy 来源 \"Aberrant Mind::TCE::Sorcerer::PHB::Aberrant Mind::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Clockwork Soul::TCE::Sorcerer::PHB::Clockwork Soul::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Divine Soul::XGE::Sorcerer::PHB::Divine Soul::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Draconic Bloodline::PHB::Sorcerer::PHB::Draconic::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Shadow Magic::XGE::Sorcerer::PHB::Shadow::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Storm Sorcery::XGE::Sorcerer::PHB::Storm::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Wild Magic::PHB::Sorcerer::PHB::Wild::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Orchard Origin::OrchardSorcReflourished::Sorcerer::PHB::Orchard::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Reanimator::XUA2025HorrorSubclasses::Artificer::XUA2025EberronUpdates::Reanimator::::\"，已跳过合并，保留当前条目",
+        "找不到 _copy 来源 \"Drakewarden::FTD::Ranger::PHB::Drakewarden::::\"，已跳过合并，保留当前条目"
+      ]
+    }
+  },
+  "catalog": {
+    "classes": 239,
+    "subclasses": 2253,
+    "classFeatures": 5431,
+    "subclassFeatures": 14510
+  },
+  "diagnostics": {
+    "unresolvedReferenceCount": 145,
+    "unresolvedReferencesBySource": {
+      "5etools-cn": 17,
+      "homebrew-tjliqy": 128
+    },
+    "unresolvedReferenceSamples": [
+      "5etools-cn:class:phb:cleric:subclassFeature:Channel Divinity: Divine Inspiration|PHB|Art|ECCAAD|2",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Draconic Bloodline|Sorcerer|PHB|Draconic|PHB|1",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Elemental Affinity|Sorcerer|PHB|Draconic|PHB|6",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Dragon Wings|Sorcerer|PHB|Draconic|PHB|14",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Draconic Presence|Sorcerer|PHB|Draconic|PHB|18",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Shadow Magic|Sorcerer|PHB|Shadow|XGE|1",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Hound of Ill Omen|Sorcerer|PHB|Shadow|XGE|6",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Shadow Walk|Sorcerer|PHB|Shadow|XGE|14",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Umbral Form|Sorcerer|PHB|Shadow|XGE|18",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Storm Sorcery|Sorcerer|PHB|Storm|XGE|1",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Heart of the Storm|Sorcerer|PHB|Storm|XGE|6",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Storm's Fury|Sorcerer|PHB|Storm|XGE|14",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Wind Soul|Sorcerer|PHB|Storm|XGE|18",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Wild Magic|Sorcerer|PHB|Wild|PHB|1",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Bend Luck|Sorcerer|PHB|Wild|PHB|6",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Controlled Chaos|Sorcerer|PHB|Wild|PHB|14",
+      "5etools-cn:class:phb:sorcerer:subclassFeature:Spell Bombardment|Sorcerer|PHB|Wild|PHB|18",
+      "homebrew-tjliqy:class:edruid:druid:classFeature:Cantrip Versatility|Druid||1|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:edruid:druid:classFeature:Proficiency Versatility|Druid||4|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:edruid:druid:classFeature:Proficiency Versatility|Druid||8|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:edruid:druid:classFeature:Proficiency Versatility|Druid||12|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:edruid:druid:classFeature:Proficiency Versatility|Druid||16|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:edruid:druid:classFeature:Proficiency Versatility|Druid||19|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Spell Versatility|Sorcerer|PHB|1|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Font of Magic Options|Sorcerer|PHB|2|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Metamagic Options|Sorcerer|PHB|3|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Proficiency Versatility|Sorcerer|PHB|4|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Proficiency Versatility|Sorcerer|PHB|8|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Proficiency Versatility|Sorcerer|PHB|12|UAClassFeatureVariants",
+      "homebrew-tjliqy:class:sorcererrevitalized:sorcerer%2C-revitalized:classFeature:Proficiency Versatility|Sorcerer|PHB|16|UAClassFeatureVariants"
+    ],
+    "choiceParsingCount": 3470,
+    "choiceParsingBySource": {
+      "5etools-cn": 839,
+      "homebrew-tjliqy": 2631
+    },
+    "genericChoiceCount": 259,
+    "unresolvedChoiceCount": 3211,
+    "genericChoiceSamples": [
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:phb:aspect-of-the-beast:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E5%9B%BE%E8%85%BE%E6%AD%A6%E8%80%85%7Cphb:6",
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:phb:totemic-attunement:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E5%9B%BE%E8%85%BE%E6%AD%A6%E8%80%85%7Cphb:14",
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:xge:storm-soul:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E9%A3%8E%E6%9A%B4%E5%85%88%E5%A3%B0%7Cxge:6",
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:xge:raging-storm:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E9%A3%8E%E6%9A%B4%E5%85%88%E5%A3%B0%7Cxge:14",
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:homebrew-tjliqy:subclassfeature:llbarb:awakened-bloodline:barbarian%7Cphb%7Ctitan%7Cllbarb:10",
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:homebrew-tjliqy:subclassfeature:pathofthesymbiote:warshaper:barbarian%7Cphb%7Csymbiote%7Cpathofthesymbiote:6",
+      "5etools-cn:class:phb:barbarian:feature-choice-generic:homebrew-tjliqy:subclassfeature:pathofthedragon:draconic-mastery:barbarian%7Cphb%7Cdragon%7Cpathofthedragon:14",
+      "5etools-cn:class:xphb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:phb:aspect-of-the-beast:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E5%9B%BE%E8%85%BE%E6%AD%A6%E8%80%85%7Cphb:6",
+      "5etools-cn:class:xphb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:phb:totemic-attunement:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E5%9B%BE%E8%85%BE%E6%AD%A6%E8%80%85%7Cphb:14",
+      "5etools-cn:class:xphb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:xge:storm-soul:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E9%A3%8E%E6%9A%B4%E5%85%88%E5%A3%B0%7Cxge:6",
+      "5etools-cn:class:xphb:barbarian:feature-choice-generic:5etools-cn:subclassfeature:xge:raging-storm:%E9%87%8E%E8%9B%AE%E4%BA%BA%7Cphb%7C%E9%A3%8E%E6%9A%B4%E5%85%88%E5%A3%B0%7Cxge:14",
+      "5etools-cn:class:xphb:cleric:feature-choice-generic:5etools-cn:classfeature:xphb:divine-order:%E7%89%A7%E5%B8%88%7Cxphb:1",
+      "5etools-cn:class:phb:druid:feature-choice-generic:homebrew-tjliqy:subclassfeature:ll%3Adc:abundant-harvest:druid%7Cphb%7Csower%7Cll%3Adc:10",
+      "5etools-cn:class:xphb:druid:feature-choice-generic:5etools-cn:classfeature:xphb:primal-order:%E5%BE%B7%E9%B2%81%E4%BC%8A%7Cxphb:1",
+      "5etools-cn:class:xphb:druid:feature-choice-generic:5etools-cn:classfeature:xphb:elemental-fury:%E5%BE%B7%E9%B2%81%E4%BC%8A%7Cxphb:7",
+      "5etools-cn:class:phb:fighter:feature-choice-generic:5etools-cn:subclassfeature:tce:telekinetic-adept:%E6%88%98%E5%A3%AB%7Cphb%7C%E7%81%B5%E8%83%BD%E6%AD%A6%E5%A3%AB%7Ctce:7",
+      "5etools-cn:class:phb:fighter:feature-choice-generic:homebrew-tjliqy:subclassfeature:witsubcl:intense-signs:fighter%7Cphb%7Cwitcher%7Cwitsubcl:15",
+      "5etools-cn:class:phb:fighter:feature-choice-generic:homebrew-tjliqy:subclassfeature:witsubcl:professional-witcher:fighter%7Cphb%7Cwitcher%7Cwitsubcl:18",
+      "5etools-cn:class:xphb:fighter:feature-choice-generic:5etools-cn:subclassfeature:tce:telekinetic-adept:%E6%88%98%E5%A3%AB%7Cphb%7C%E7%81%B5%E8%83%BD%E6%AD%A6%E5%A3%AB%7Ctce:7",
+      "5etools-cn:class:phb:monk:feature-choice-generic:5etools-cn:subclassfeature:xge:tipsy-sway:%E6%AD%A6%E5%83%A7%7Cphb%7C%E9%86%89%E6%8B%B3%7Cxge:6"
+    ],
+    "unresolvedChoiceSamples": [
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:artificer-specialist:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:3",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:ability-score-improvement:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:4",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:artificer-specialist-feature:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:5",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:ability-score-improvement:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:8",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:artificer-specialist-feature:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:9",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:spell-storing-item:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:11",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:ability-score-improvement:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:12",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:artificer-specialist-feature:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:15",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:ability-score-improvement:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:16",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:classfeature:tce:ability-score-improvement:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce:19",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:5etools-cn:subclassfeature:tce:arcane-jolt:%E5%A5%87%E6%A2%B0%E5%B8%88%7Ctce%7C%E6%88%98%E5%9C%B0%E5%8C%A0%E5%B8%88%7Ctce:9",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:tmsa:omnifabrication:artificer%7Ctce%7Cthe-mad-scientist%7Ctmsa:5",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:asdfs:reanimate-dead:artificer%7Ctce%7Creanimator%7Casdfs:9",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:llasio:strange-evolution:artificer%7Ctce%7Cbiomancer%7Cllasio:9",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:llasio:chronothief:artificer%7Ctce%7Cchronothief%7Cllasio:3",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:llasio:master-forgewright:artificer%7Ctce%7Cforgewright%7Cllasio:15",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:llasio:arcane-conduit:artificer%7Ctce%7Cmachinist%7Cllasio:5",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:llasio:automated-army:artificer%7Ctce%7Cmachinist%7Cllasio:5",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:sgtteh-ame:death-lightning:artificer%7Ctce%7Cmortis-engineer%7Csgtteh-ame:5",
+      "5etools-cn:class:tce:artificer:feature-choice-unresolved:homebrew-tjliqy:subclassfeature:aero:versatile-fuel-application:artificer%7Ctce%7Caeronaut%7Caero:9"
+    ]
+  }
+}
