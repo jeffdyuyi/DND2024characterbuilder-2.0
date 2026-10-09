@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -253,6 +254,7 @@ const OptionCardInline: React.FC<{
 };
 
 export default function ClassDetailPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, updateActiveCharacter, loadCharacter } = useCharacterStore();
@@ -281,7 +283,7 @@ export default function ClassDetailPage() {
   const primaryClassEntry = currentClasses[0];
   const classDefinition = useMemo(
     () => getClassDefinition(primaryClassEntry?.classId),
-    [primaryClassEntry?.classId],
+    [primaryClassEntry?.classId, choices],
   );
   const selectedClassId = primaryClassEntry?.classId;
 
@@ -320,7 +322,7 @@ export default function ClassDetailPage() {
         })
         .sort((a, b) => a.level - b.level),
     };
-  }, [classDefinition, primaryClassEntry]);
+  }, [classDefinition, primaryClassEntry, choices]);
 
   const totalLevel = currentClasses.reduce((acc, c) => acc + c.level, 0);
 
@@ -408,13 +410,13 @@ export default function ClassDetailPage() {
     if (!character) return profs;
     // ... logic for pre-selected profs ...
     return Array.from(new Set(profs));
-  }, [character]);
+  }, [character, choices]);
 
   const allProficiencies = useMemo(() => {
     if (!character)
       return { weapons: [], armor: [], skills: [], tools: [], languages: [], saves: [] };
     return computeProficiencies(character);
-  }, [character]);
+  }, [character, choices]);
 
   const renderChoice = (
     id: string,
@@ -440,32 +442,32 @@ export default function ClassDetailPage() {
         if (category === 'weaponMastery') {
           options = Object.keys(WEAPON_MAP);
         } else if (category === 'tool') {
-          options = ALL_TOOLS;
+          options = choices.getCatalogTools();
         } else {
           options = ALL_SKILLS;
         }
       } else if (keyword === 'Any Tool' || keyword === '任何工具') {
-        options = ALL_TOOLS;
+        options = choices.getCatalogTools();
       } else if (
         keyword === 'Any Musical Instrument' ||
         keyword === '任何乐器' ||
         keyword === '乐器'
       ) {
-        options = MUSICAL_INSTRUMENTS;
+        options = choices.getCatalogTools('Musical');
       } else if (keyword === 'Any Gaming Set' || keyword === '任何游戏套装') {
-        options = GAMING_SETS;
+        options = choices.getCatalogTools('Gaming');
       } else if (
         keyword === "Artisan's Tools" ||
         keyword === 'Artisan Tools' ||
         keyword === '工匠工具'
       ) {
-        options = ARTISAN_TOOLS;
+        options = choices.getCatalogTools('Artisan');
       } else if (
         keyword === 'Any Language' ||
         keyword === '任何语言' ||
         (keyword === 'Any' && category === 'language')
       ) {
-        options = allLanguages.map((l) => l.id);
+        options = choices.getCatalogLanguages().map((l) => l.id);
       }
     }
 
@@ -494,7 +496,8 @@ export default function ClassDetailPage() {
           ?.split(':')[1]
           ?.toLowerCase();
 
-        resolvedOptions = getCatalogSpells()
+        resolvedOptions = choices
+          .getCatalogSpells()
           .filter((s) => {
             const clsMatch =
               targetSets.length === 0 ||
@@ -529,7 +532,7 @@ export default function ClassDetailPage() {
 
       if (hasGenericKeyword) {
         const keywords = resolvedOptions;
-        const allFeatsList = getCatalogFeats();
+        const allFeatsList = choices.getCatalogFeats();
         let pool = allFeatsList;
 
         // 如果指定了特定类别的关键字，则进行过滤
@@ -647,14 +650,17 @@ export default function ClassDetailPage() {
         const typePart = parts.find((p: string) => p.startsWith('type:'))?.split(':')[1];
         if (typePart) {
           const types = typePart.split(',').map((t: string) => t.trim());
-          resolvedOptions = allLanguages.filter((l) => types.includes(l.type)).map((l) => l.id);
+          resolvedOptions = choices
+            .getCatalogLanguages()
+            .filter((l) => types.includes(l.type))
+            .map((l) => l.id);
         }
       } else {
-        resolvedOptions = allLanguages.map((l) => l.id);
+        resolvedOptions = choices.getCatalogLanguages().map((l) => l.id);
       }
     }
 
-    const finalOptions = resolvedOptions;
+    const finalOptions = choices.filterOptions(resolvedOptions, category);
 
     // ── 查重逻辑 (Exclusion) ──────────────────────────────────────────
     // 聚合所有来源的选择项：种族、背景、职业
@@ -1333,50 +1339,55 @@ export default function ClassDetailPage() {
                         gap: '20px',
                       }}
                     >
-                      {classDefinition.subClassInfo.options.map((sub: SubClass) => {
-                        const subclassId = sub.catalogId || sub.nameEn || sub.name;
-                        const isSelected =
-                          primaryClassEntry.subclassId === subclassId ||
-                          primaryClassEntry.subclassId === sub.nameEn;
-                        return (
-                          <div
-                            key={subclassId}
-                            onClick={() => handleSelectSubclass(subclassId)}
-                            style={{
-                              padding: '24px',
-                              borderRadius: '16px',
-                              background: isSelected ? 'rgba(197, 160, 89, 0.1)' : '#fff',
-                              border: isSelected ? '2px solid #0071e3' : '1px solid #e5e5e7',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s ease',
-                              boxShadow: isSelected ? '0 8px 24px rgba(0,113,227,0.12)' : 'none',
-                            }}
-                          >
+                      {choices
+                        .filterNested(
+                          classDefinition.subClassInfo.options,
+                          primaryClassEntry?.classId,
+                        )
+                        .map((sub: SubClass) => {
+                          const subclassId = sub.catalogId || sub.nameEn || sub.name;
+                          const isSelected =
+                            primaryClassEntry.subclassId === subclassId ||
+                            primaryClassEntry.subclassId === sub.nameEn;
+                          return (
                             <div
+                              key={subclassId}
+                              onClick={() => handleSelectSubclass(subclassId)}
                               style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                marginBottom: '12px',
+                                padding: '24px',
+                                borderRadius: '16px',
+                                background: isSelected ? 'rgba(197, 160, 89, 0.1)' : '#fff',
+                                border: isSelected ? '2px solid #0071e3' : '1px solid #e5e5e7',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                boxShadow: isSelected ? '0 8px 24px rgba(0,113,227,0.12)' : 'none',
                               }}
                             >
                               <div
                                 style={{
-                                  width: '22px',
-                                  height: '22px',
-                                  borderRadius: '50%',
-                                  border: isSelected ? '7px solid #0071e3' : '2px solid #d2d2d7',
-                                  boxSizing: 'border-box',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '12px',
+                                  marginBottom: '12px',
                                 }}
-                              />
-                              <div style={{ fontSize: '18px', fontWeight: 700 }}>{sub.name}</div>
+                              >
+                                <div
+                                  style={{
+                                    width: '22px',
+                                    height: '22px',
+                                    borderRadius: '50%',
+                                    border: isSelected ? '7px solid #0071e3' : '2px solid #d2d2d7',
+                                    boxSizing: 'border-box',
+                                  }}
+                                />
+                                <div style={{ fontSize: '18px', fontWeight: 700 }}>{sub.name}</div>
+                              </div>
+                              <div style={{ fontSize: '14px', color: '#515154', lineHeight: 1.6 }}>
+                                <MarkdownText text={sub.description} variant="clean" />
+                              </div>
                             </div>
-                            <div style={{ fontSize: '14px', color: '#515154', lineHeight: 1.6 }}>
-                              <MarkdownText text={sub.description} variant="clean" />
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                     </div>
                   </div>
                 )}

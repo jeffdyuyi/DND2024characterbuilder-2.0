@@ -1,3 +1,4 @@
+import type { CatalogQueryOptions } from '../types';
 /**
  * Catalog Spell Adapter
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18、§51
@@ -8,7 +9,7 @@
  * 3. 维护稳定 ID 与旧版 ID 的双向别名索引。
  */
 
-import { CatalogEntry, SpellCatalogEntry, Edition } from '../types';
+import { CatalogEntry, SpellCatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
 import { Spell } from '@/types/spell';
 import { translateClass } from '@/engine/terminology';
@@ -96,11 +97,11 @@ export function catalogEntryToSpell(entry: CatalogEntry): Spell {
  * 获取 Catalog 中注册的所有法术
  * 合并策略：按英文原名/规范化标识去重，5etools 来源优先，Legacy 作为兜底
  */
-export function getCatalogSpells(options?: {
-  edition?: Edition;
-  source?: string;
-  allowHomebrew?: boolean;
-}): Spell[] {
+export function getCatalogSpells(
+  options?: CatalogQueryOptions & {
+    allowHomebrew?: boolean;
+  },
+): Spell[] {
   const entries = defaultCatalog.list('spell', options);
   const spells: Spell[] = [];
   const seenKeys = new Set<string>();

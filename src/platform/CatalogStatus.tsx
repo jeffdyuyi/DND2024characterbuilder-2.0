@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import ResourceCacheManager from './ResourceCacheManager';
 import { Database } from 'lucide-react';
 import { useCatalog } from './CatalogProvider';
 import styles from './CatalogStatus.module.css';
 
 export default function CatalogStatus({ compact = false }: { compact?: boolean }) {
-  const { stats, refreshCatalog } = useCatalog();
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { stats } = useCatalog();
   const label = {
     idle: '待加载',
     loading: '加载中',
@@ -16,15 +15,6 @@ export default function CatalogStatus({ compact = false }: { compact?: boolean }
     complete: '完整',
     error: '失败',
   }[stats.status];
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshCatalog();
-    } catch (error) {
-      console.error('[CatalogStatus] 刷新规则资源失败:', error);
-      setIsRefreshing(false);
-    }
-  };
   return (
     <details className={`${styles.status} ${compact ? styles.compact : ''}`}>
       <summary aria-label={`数据状态：${label}`} title={compact ? `数据状态：${label}` : undefined}>
@@ -54,10 +44,8 @@ export default function CatalogStatus({ compact = false }: { compact?: boolean }
             {source.message && <div className={styles.message}>{source.message}</div>}
           </div>
         ))}
-        <p className={styles.refreshHint}>仅清除规则资源缓存，保留角色存档。</p>
-        <button onClick={handleRefresh} disabled={stats.status === 'loading' || isRefreshing}>
-          {isRefreshing ? '正在刷新…' : '刷新规则资源'}
-        </button>
+        <p className={styles.refreshHint}>查看下载缓存、同步资源或清理过期文件。</p>
+        <ResourceCacheManager />
       </div>
     </details>
   );

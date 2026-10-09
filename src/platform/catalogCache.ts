@@ -1,165 +1,200 @@
-/**
- * IndexedDB 缓存管理器
- * 对应《5etools全量数据接入与引擎保留实施路线图》Phase A-1
- *
- * 数据库名：dnd-catalog-v1
- * 键：完整请求 URL
- * 缓存有效期：7 天 (CACHE_TTL_MS)
- * 环境兜底：在 SSR 或 Node.js (Vitest) 无 window.indexedDB 环境下自动降级为内存 Map
- */
-
 export interface CacheRecord {
   body: unknown;
   revision: string;
   cachedAt: number;
   schemaVersion?: number;
 }
-
 interface StoredEntry extends CacheRecord {
   url: string;
 }
-
 export const DB_NAME = 'dnd-catalog-v1';
 export const DB_VERSION = 1;
 export const STORE_NAME = 'entries';
-export const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 天
+export const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const CACHE_SCHEMA_VERSION = 1;
-
-/** Node/SSR 内存兜底存储 */
 const memoryFallback = new Map<string, CacheRecord>();
+const writeFailures = new Map<string, string>();
 
-function getIndexedDB(): IDBFactory | null {
-  if (typeof window !== 'undefined' && window.indexedDB) {
-    return window.indexedDB;
-  }
-  if (typeof globalThis !== 'undefined' && (globalThis as any).indexedDB) {
-    return (globalThis as any).indexedDB;
-  }
-  return null;
+function getIndexedDB(): IDBFactory | undefined {
+  return typeof globalThis.indexedDB === 'undefined' ? undefined : globalThis.indexedDB;
 }
-
 function openDatabase(): Promise<IDBDatabase> {
-  const idb = getIndexedDB();
-  if (!idb) {
-    return Promise.reject(new Error('IndexedDB is not available in current environment.'));
-  }
-
   return new Promise((resolve, reject) => {
+    const idb = getIndexedDB();
+    if (!idb) {
+      reject(new Error('当前环境不支持 IndexedDB'));
+      return;
+    }
     const request = idb.open(DB_NAME, DB_VERSION);
-
+    let blocked = false;
     request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'url' });
-      }
+      if (!request.result.objectStoreNames.contains(STORE_NAME))
+        request.result.createObjectStore(STORE_NAME, { keyPath: 'url' });
     };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error || new Error('Failed to open IndexedDB'));
+    request.onblocked = () => {
+      blocked = true;
+      reject(new Error('资源数据库被其他标签页占用，请关闭旧页面后重试'));
+    };
+    request.onsuccess = () => {
+      if (blocked) {
+        request.result.close();
+        return;
+      }
+      resolve(request.result);
+    };
+    request.onerror = () => reject(request.error || new Error('无法打开资源数据库'));
   });
 }
 
-/**
- * 校验缓存记录是否在有效期内
- */
-export function isCacheValid(record: CacheRecord, ttlMs: number = CACHE_TTL_MS): boolean {
-  if (!record || typeof record.cachedAt !== 'number') return false;
+/** 请求成功不代表事务提交成功；所有连接都在事务结束后关闭。 */
+async function transaction<T>(
+  mode: IDBTransactionMode,
+  action: (store: IDBObjectStore) => IDBRequest<T>,
+): Promise<T> {
+  const db = await openDatabase();
+  try {
+    return await new Promise<T>((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, mode);
+      let result: T;
+      tx.oncomplete = () => resolve(result);
+      tx.onabort = () => reject(tx.error || new Error('资源缓存事务已中止'));
+      tx.onerror = () => reject(tx.error || new Error('资源缓存事务失败'));
+      const request = action(tx.objectStore(STORE_NAME));
+      request.onsuccess = () => {
+        result = request.result;
+      };
+    });
+  } finally {
+    db.close();
+  }
+}
+
+export function isCacheValid(record: CacheRecord, ttlMs = CACHE_TTL_MS): boolean {
+  if (!record || !Number.isFinite(record.cachedAt)) return false;
   if ((record.schemaVersion ?? CACHE_SCHEMA_VERSION) !== CACHE_SCHEMA_VERSION) return false;
-  return Date.now() - record.cachedAt < ttlMs;
+  const age = Date.now() - record.cachedAt;
+  return age >= 0 && age < ttlMs;
 }
-
-/**
- * 读取缓存
- */
 export async function readCache(url: string): Promise<CacheRecord | null> {
-  const idb = getIndexedDB();
-  if (!idb) {
-    return memoryFallback.get(url) || null;
-  }
-
+  if (!getIndexedDB()) return memoryFallback.get(url) || null;
   try {
-    const db = await openDatabase();
-    return await new Promise<CacheRecord | null>((resolve) => {
-      const tx = db.transaction(STORE_NAME, 'readonly');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.get(url);
-
-      req.onsuccess = () => {
-        const result = req.result as StoredEntry | undefined;
-        if (!result) {
-          resolve(null);
-          return;
-        }
-        resolve({
-          body: result.body,
-          revision: result.revision,
-          cachedAt: result.cachedAt,
-          schemaVersion: result.schemaVersion,
-        });
-      };
-
-      req.onerror = () => {
-        resolve(null);
-      };
-    });
-  } catch (err) {
-    console.warn(`[catalogCache] 读取 IndexedDB 失败，降级读取内存: ${url}`, err);
+    return (
+      (await transaction<StoredEntry | undefined>('readonly', (store) => store.get(url))) ||
+      memoryFallback.get(url) ||
+      null
+    );
+  } catch {
     return memoryFallback.get(url) || null;
   }
 }
-
-/**
- * 写入缓存
- */
 export async function writeCache(url: string, record: CacheRecord): Promise<void> {
-  // 无论 IndexedDB 是否成功，内存兜底保持一份
   memoryFallback.set(url, record);
-
-  const idb = getIndexedDB();
-  if (!idb) return;
-
+  if (!getIndexedDB()) return;
   try {
-    const db = await openDatabase();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const entry: StoredEntry = {
-        url,
-        body: record.body,
-        revision: record.revision,
-        cachedAt: record.cachedAt,
-        schemaVersion: record.schemaVersion ?? CACHE_SCHEMA_VERSION,
-      };
-      const req = store.put(entry);
-
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error || new Error('Failed to put record'));
-    });
-  } catch (err) {
-    console.warn(`[catalogCache] 写入 IndexedDB 失败: ${url}`, err);
+    await transaction('readwrite', (store) =>
+      store.put({ ...record, url, schemaVersion: record.schemaVersion ?? CACHE_SCHEMA_VERSION }),
+    );
+    writeFailures.delete(url);
+  } catch (error) {
+    // 下载仍可在本次会话使用，但管理面板必须明确显示未落盘。
+    writeFailures.set(url, error instanceof Error ? error.message : String(error));
+    console.warn('[catalogCache] 缓存未持久保存，仅本次会话可用', error);
   }
 }
 
-/**
- * 清除所有缓存
- */
-export async function clearCache(): Promise<void> {
-  memoryFallback.clear();
-
-  const idb = getIndexedDB();
-  if (!idb) return;
-
-  try {
+export interface CacheFile {
+  url: string;
+  revision: string;
+  cachedAt: number;
+  bytes: number;
+  expired: boolean;
+}
+export interface CacheInventory {
+  storage: 'indexeddb' | 'memory';
+  files: CacheFile[];
+  writeFailures: { url: string; message: string }[];
+}
+function describe(url: string, record: CacheRecord): CacheFile {
+  return {
+    url,
+    revision: record.revision,
+    cachedAt: record.cachedAt,
+    bytes: new TextEncoder().encode(JSON.stringify(record.body) ?? '').byteLength,
+    expired: !isCacheValid(record),
+  };
+}
+export async function getCacheInventory(): Promise<CacheInventory> {
+  const files: CacheFile[] = [];
+  const persistent = Boolean(getIndexedDB());
+  if (persistent) {
     const db = await openDatabase();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.clear();
-
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error || new Error('Failed to clear objectStore'));
-    });
-  } catch (err) {
-    console.warn(`[catalogCache] 清空 IndexedDB 失败`, err);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        tx.oncomplete = () => resolve();
+        tx.onerror = tx.onabort = () => reject(tx.error || new Error('无法读取缓存清单'));
+        const request = tx.objectStore(STORE_NAME).openCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) return;
+          const entry = cursor.value as StoredEntry;
+          files.push(describe(entry.url, entry));
+          cursor.continue();
+        };
+      });
+    } finally {
+      db.close();
+    }
+  } else {
+    memoryFallback.forEach((record, url) => files.push(describe(url, record)));
   }
+  return {
+    storage: persistent ? 'indexeddb' : 'memory',
+    files: files.sort((a, b) => a.url.localeCompare(b.url)),
+    writeFailures: [...writeFailures].map(([url, message]) => ({ url, message })),
+  };
+}
+
+/** 只操作本项目 entries，不碰 localStorage 或其他数据库。失败必须传给调用者。 */
+export async function removeCacheFile(url: string): Promise<void> {
+  if (getIndexedDB()) await transaction('readwrite', (store) => store.delete(url));
+  memoryFallback.delete(url);
+  writeFailures.delete(url);
+}
+export async function clearCache(): Promise<void> {
+  if (getIndexedDB()) await transaction('readwrite', (store) => store.clear());
+  memoryFallback.clear();
+  writeFailures.clear();
+}
+export async function clearExpiredCache(): Promise<number> {
+  let count = 0;
+  if (getIndexedDB()) {
+    const db = await openDatabase();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.oncomplete = () => resolve();
+        tx.onerror = tx.onabort = () => reject(tx.error || new Error('清理过期缓存失败'));
+        const request = tx.objectStore(STORE_NAME).openCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) return;
+          if (!isCacheValid(cursor.value)) {
+            cursor.delete();
+            count++;
+          }
+          cursor.continue();
+        };
+      });
+    } finally {
+      db.close();
+    }
+  }
+  for (const [url, record] of memoryFallback)
+    if (!isCacheValid(record)) {
+      memoryFallback.delete(url);
+      writeFailures.delete(url);
+      if (!getIndexedDB()) count++;
+    }
+  return count;
 }

@@ -1,3 +1,5 @@
+import { filterNestedSourceChoices } from '../sourcePolicy';
+import type { CatalogQueryOptions } from '../types';
 /**
  * Catalog Species Adapter
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18、§51
@@ -9,7 +11,7 @@
  * 4. 维护稳定全局 ID 与旧版短 ID、英文名、中文名别名映射。
  */
 
-import { CatalogEntry, Edition } from '../types';
+import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
 import { Species, SubSpecies, Trait, AbilityScoreChoice } from '@/types/species';
 import { mergeOverlay } from '@/mechanics-overlay';
@@ -160,6 +162,8 @@ export function catalogEntryToSpecies(entry: CatalogEntry): Species {
           return expandedLineage.options.map((opt) => ({
             ...opt,
             source: opt.source || sub.source,
+            sourcePackId: sub.sourcePackId,
+            isHomebrew: sub.isHomebrew,
             overwrite: opt.overwrite || (subRaw as any)?.overwrite,
           }));
         }
@@ -362,15 +366,31 @@ export function catalogEntryToSubspecies(entry: CatalogEntry, parent?: any): Sub
  * 获取 Catalog 中注册的所有种族
  * 合并策略：按英文原名/规范化标识去重，5etools 来源优先，Legacy 作为兜底
  */
-export function getCatalogSpecies(options?: { edition?: Edition; source?: string }): Species[] {
+export function getCatalogSpecies(options?: CatalogQueryOptions): Species[] {
   const entries = defaultCatalog.list('race', options);
   const speciesList: Species[] = [];
   const seenKeys = new Set<string>();
+  const adaptChoice = (entry: CatalogEntry) => {
+    const definition = catalogEntryToSpecies(entry);
+    if (!options?.sourcePolicy || !definition.subSpecies) return definition;
+    return {
+      ...definition,
+      subSpecies: {
+        ...definition.subSpecies,
+        options: filterNestedSourceChoices(
+          definition.subSpecies.options,
+          entry,
+          defaultCatalog,
+          options.sourcePolicy,
+        ),
+      },
+    };
+  };
 
   // 1. 优先放入 5etools / homebrew 条目
   for (const entry of entries) {
     if (entry.sourcePackId !== 'legacy') {
-      const sp = catalogEntryToSpecies(entry);
+      const sp = adaptChoice(entry);
       const key = `${entry.source}:${(sp.nameEn || sp.name).toLowerCase().replace(/[-_\s]+/g, '')}`;
       seenKeys.add(key);
       speciesList.push(sp);
@@ -380,7 +400,7 @@ export function getCatalogSpecies(options?: { edition?: Edition; source?: string
   // 2. 补充放入 Legacy 条目
   for (const entry of entries) {
     if (entry.sourcePackId === 'legacy') {
-      const sp = catalogEntryToSpecies(entry);
+      const sp = adaptChoice(entry);
       const key = `${entry.source}:${(sp.nameEn || sp.name).toLowerCase().replace(/[-_\s]+/g, '')}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
@@ -395,8 +415,11 @@ export function getCatalogSpecies(options?: { edition?: Edition; source?: string
 /**
  * 获取 Catalog 中注册的亚种/血系
  */
-export function getCatalogSubspecies(parentRaceName?: string): SubSpecies[] {
-  const entries = defaultCatalog.list('subrace');
+export function getCatalogSubspecies(
+  parentRaceName?: string,
+  options?: CatalogQueryOptions,
+): SubSpecies[] {
+  const entries = defaultCatalog.list('subrace', options);
   const subs: SubSpecies[] = [];
 
   for (const entry of entries) {

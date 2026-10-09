@@ -1,3 +1,5 @@
+import { filterNestedSourceChoices } from '../sourcePolicy';
+import type { CatalogQueryOptions } from '../types';
 /**
  * Catalog Class & Subclass Adapter
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18、§51
@@ -9,7 +11,7 @@
  * 4. 维护稳定全局 ID 与原有类名、英名、中文名别名映射。
  */
 
-import { CatalogEntry, Edition } from '../types';
+import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
 import { ClassData } from '@/types/class';
 import { mergeOverlay } from '@/mechanics-overlay';
@@ -191,6 +193,8 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
         parentName.includes(subParent)
       ) {
         subOptions.push({
+          catalogId: mergedSub.id,
+          source: mergedSub.source,
           name: mergedSub.name,
           nameEn: mergedSub.englishName || mergedSub.name,
           description: mergedSub.description || '',
@@ -246,15 +250,31 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
  * 获取 Catalog 中注册的所有职业
  * 合并策略：按英文原名/规范化标识去重，5etools 来源优先，Legacy 作为兜底
  */
-export function getCatalogClasses(options?: { edition?: Edition; source?: string }): ClassData[] {
+export function getCatalogClasses(options?: CatalogQueryOptions): ClassData[] {
   const entries = defaultCatalog.list('class', options);
   const classes: ClassData[] = [];
   const seenKeys = new Set<string>();
+  const adaptChoice = (entry: CatalogEntry) => {
+    const definition = catalogEntryToClass(entry);
+    if (!options?.sourcePolicy || !definition.subClassInfo) return definition;
+    return {
+      ...definition,
+      subClassInfo: {
+        ...definition.subClassInfo,
+        options: filterNestedSourceChoices(
+          definition.subClassInfo.options,
+          entry,
+          defaultCatalog,
+          options.sourcePolicy,
+        ),
+      },
+    };
+  };
 
   // 1. 优先放入 5etools / homebrew 条目
   for (const entry of entries) {
     if (entry.sourcePackId !== 'legacy') {
-      const cls = catalogEntryToClass(entry);
+      const cls = adaptChoice(entry);
       const key = `${entry.source}:${(cls.nameEn || cls.name).toLowerCase().replace(/[-_\s]+/g, '')}`;
       seenKeys.add(key);
       classes.push(cls);
@@ -264,7 +284,7 @@ export function getCatalogClasses(options?: { edition?: Edition; source?: string
   // 2. 补充放入 Legacy 条目
   for (const entry of entries) {
     if (entry.sourcePackId === 'legacy') {
-      const cls = catalogEntryToClass(entry);
+      const cls = adaptChoice(entry);
       const key = `${entry.source}:${(cls.nameEn || cls.name).toLowerCase().replace(/[-_\s]+/g, '')}`;
       if (!seenKeys.has(key)) {
         seenKeys.add(key);
@@ -281,10 +301,10 @@ export function getCatalogClasses(options?: { edition?: Edition; source?: string
  */
 export function getCatalogSubclasses(
   parentClassName?: string,
-  options?: { edition?: Edition; source?: string; parentSource?: string },
+  options?: CatalogQueryOptions & { parentSource?: string },
 ): CatalogEntry[] {
   const entries = defaultCatalog
-    .list('subclass', { source: options?.source })
+    .list('subclass', { source: options?.source, sourcePolicy: options?.sourcePolicy })
     .filter(
       (entry) =>
         !options?.edition ||

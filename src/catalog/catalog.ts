@@ -3,7 +3,8 @@
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §18
  */
 
-import { CatalogEntry, CatalogService, EntryKind, Edition } from './types';
+import { CatalogEntry, CatalogService, EntryKind, CatalogQueryOptions } from './types';
+import { createSourcePredicate } from './sourcePolicy';
 
 export class InMemoryCatalogService implements CatalogService {
   /** 稳定 ID -> 条目映射 */
@@ -56,13 +57,15 @@ export class InMemoryCatalogService implements CatalogService {
     return undefined;
   }
 
-  public list(kind: EntryKind, options?: { edition?: Edition; source?: string }): CatalogEntry[] {
+  public list(kind: EntryKind, options?: CatalogQueryOptions): CatalogEntry[] {
     const all = this.entriesByKind.get(kind) || [];
-    if (!options?.edition && !options?.source) {
+    if (!options?.edition && !options?.source && !options?.sourcePolicy) {
       return all;
     }
 
+    const allows = createSourcePredicate(options?.sourcePolicy);
     return all.filter((item) => {
+      if (!allows(item)) return false;
       if (options.edition && options.edition !== 'both') {
         if (item.edition !== 'both' && item.edition !== options.edition) {
           return false;
@@ -77,7 +80,7 @@ export class InMemoryCatalogService implements CatalogService {
 
   public search(
     query: string,
-    options?: { kind?: EntryKind; edition?: Edition; limit?: number },
+    options?: CatalogQueryOptions & { kind?: EntryKind; limit?: number },
   ): CatalogEntry[] {
     const q = query.trim().toLowerCase();
     if (!q) return [];
@@ -92,7 +95,10 @@ export class InMemoryCatalogService implements CatalogService {
     const limit = options?.limit ?? 50;
     const results: CatalogEntry[] = [];
 
+    const allows = createSourcePredicate(options?.sourcePolicy);
     for (const item of pool) {
+      if (!allows(item)) continue;
+      if (options?.source && item.source.toLowerCase() !== options.source.toLowerCase()) continue;
       if (options?.edition && options.edition !== 'both') {
         if (item.edition !== 'both' && item.edition !== options.edition) {
           continue;

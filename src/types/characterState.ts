@@ -1,3 +1,5 @@
+import type { SourceSelection } from './sourceSelection';
+
 export interface AbilityScores {
   str: number;
   dex: number;
@@ -123,6 +125,7 @@ export interface CharacterState {
   playerName: string;
   avatarUrl?: string;
   allowHomebrew?: boolean; // 【第三方扩展 / Homebrew 开关】
+  sourceSelection?: SourceSelection; // 角色级书籍范围；缺省兼容旧存档，不改变规则版本。
 
   // Step 1: Species
   speciesId?: string;

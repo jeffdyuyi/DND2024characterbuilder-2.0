@@ -1,3 +1,4 @@
+import type { CatalogQueryOptions } from '../types';
 /**
  * Catalog Item & Equipment Adapter
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18、§51
@@ -8,7 +9,7 @@
  * 3. 维护稳定全局 ID 与旧版短 ID、英文名、中文名别名映射。
  */
 
-import { CatalogEntry, Edition } from '../types';
+import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
 import type { AnyItem } from '@/types/equipment';
 import { makeEntryId, inferEditionFromSource } from '../identity';
@@ -257,11 +258,11 @@ export function isMagicItemDefinition(item: AnyItem | undefined): boolean {
  * 获取 Catalog 中注册的所有装备与物品
  * 合并策略：按英文原名/规范化标识去重，5etools 来源优先，Legacy 作为兜底
  */
-export function getCatalogItems(options?: {
-  edition?: Edition;
-  source?: string;
-  kind?: string;
-}): AnyItem[] {
+export function getCatalogItems(
+  options?: CatalogQueryOptions & {
+    kind?: string;
+  },
+): AnyItem[] {
   const entries = [
     ...defaultCatalog.list('item', options),
     ...defaultCatalog.list('baseitem', options),

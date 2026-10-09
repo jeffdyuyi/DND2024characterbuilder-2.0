@@ -17,6 +17,27 @@ const config = (overrides: Record<string, unknown> = {}) => ({
 });
 
 describe('公共数据源高可用链路', () => {
+  it('强制同步失败保留已有离线缓存', async () => {
+    const url = `${baseUrl}/data/test.json`;
+    await writeCache(url, { body: { value: 1 }, revision: 'old', cachedAt: Date.now() });
+    const source = new FiveEToolsCnSource(
+      config(),
+      vi.fn().mockRejectedValue(new Error('offline')) as any,
+    );
+    await expect(source.fetchJson('data/test.json', { refresh: true })).rejects.toThrow();
+    expect((await readCache(url))?.revision).toBe('old');
+  });
+
+  it('损坏的新响应不会覆盖旧缓存', async () => {
+    const url = `${baseUrl}/data/test.json`;
+    await writeCache(url, { body: { value: 1 }, revision: 'old', cachedAt: Date.now() });
+    const source = new FiveEToolsCnSource(
+      config(),
+      vi.fn().mockImplementation(async () => new Response('{invalid')) as any,
+    );
+    await expect(source.fetchJson('data/test.json', { refresh: true })).rejects.toThrow();
+    expect((await readCache(url))?.body).toEqual({ value: 1 });
+  });
   beforeEach(async () => {
     await clearCache();
     vi.restoreAllMocks();

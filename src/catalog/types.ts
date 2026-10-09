@@ -3,6 +3,14 @@
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18
  */
 
+import type { CharacterSourcePolicy } from '@/types/sourceSelection';
+
+export interface CatalogQueryOptions {
+  edition?: Edition;
+  source?: string;
+  sourcePolicy?: CharacterSourcePolicy;
+}
+
 export type EntryKind =
   | 'class'
   | 'subclass'
@@ -104,12 +112,12 @@ export interface CatalogService {
   get(id: string): CatalogEntry | undefined;
 
   /** 按类型列出条目，支持按规则版本过滤 */
-  list(kind: EntryKind, options?: { edition?: Edition; source?: string }): CatalogEntry[];
+  list(kind: EntryKind, options?: CatalogQueryOptions): CatalogEntry[];
 
   /** 全局/分类型搜索 */
   search(
     query: string,
-    options?: { kind?: EntryKind; edition?: Edition; limit?: number },
+    options?: CatalogQueryOptions & { kind?: EntryKind; limit?: number },
   ): CatalogEntry[];
 
   /** 注册单个条目 (用于动态加载或 Homebrew 扩充) */

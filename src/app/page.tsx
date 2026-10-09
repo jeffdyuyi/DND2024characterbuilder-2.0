@@ -1,5 +1,6 @@
 'use client';
 
+import SourceBookPicker, { SourceBookSettings } from '@/components/SourceBookPicker';
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Upload, Scroll, Copy, Trash2 } from 'lucide-react';
@@ -13,6 +14,7 @@ import { getSpeciesDefinition, getClassDefinition } from '@/engine/characterData
 export default function CharacterLibrary() {
   const router = useRouter();
   const { characters, createCharacter, deleteCharacter, cloneCharacter } = useCharacterStore();
+  const [sourceSettings, setSourceSettings] = useState<SourceBookSettings>({});
   const [showCreateMenu, setShowCreateMenu] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +42,7 @@ export default function CharacterLibrary() {
   }
 
   const handleCreate = () => {
-    const id = createCharacter();
+    const id = createCharacter(sourceSettings);
     if (!id) {
       console.error('Failed to create character ID');
       return;
@@ -148,6 +150,7 @@ export default function CharacterLibrary() {
               >
                 开始新的冒险
               </div>
+              <SourceBookPicker value={sourceSettings} onChange={setSourceSettings} />
               <div className={styles.charCard__confirmActions}>
                 <PillButton
                   size="md"

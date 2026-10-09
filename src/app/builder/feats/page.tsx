@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -34,6 +35,7 @@ import styles from '../species/page.module.css';
 import featsStyles from './feats.module.css';
 
 export default function FeatsPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, updateActiveCharacter, loadCharacter } = useCharacterStore();
@@ -61,9 +63,12 @@ export default function FeatsPage() {
 
   const background = useMemo(
     () => (character ? getBackgroundDefinition(character) : null),
-    [character],
+    [character, choices],
   );
-  const species = useMemo(() => (character ? getSpeciesDefinition(character) : null), [character]);
+  const species = useMemo(
+    () => (character ? getSpeciesDefinition(character) : null),
+    [character, choices],
+  );
 
   // Identify all potential feat slots
   const featSlots = useMemo(() => {
@@ -175,7 +180,7 @@ export default function FeatsPage() {
     });
 
     return slots;
-  }, [character, background, species]);
+  }, [character, background, species, choices]);
 
   const activeSlot =
     featSlots.find((s) => s.id === selectedSlotId) || (featSlots.length > 0 ? featSlots[0] : null);
@@ -183,7 +188,7 @@ export default function FeatsPage() {
   const activeChoices = useMemo(() => {
     if (!activeSlot || !character) return null;
     return character.featSelections?.[activeSlot.id] || null;
-  }, [character, activeSlot]);
+  }, [character, activeSlot, choices]);
 
   // Calculate existing proficiencies (excluding current selections in THIS slot)
   const baseProficiencies = useMemo<{
@@ -230,7 +235,7 @@ export default function FeatsPage() {
       languages: langMap,
       expertise: expertiseMap,
     };
-  }, [character, activeSlot]);
+  }, [character, activeSlot, choices]);
 
   const baseAbilityData = useMemo(() => {
     if (!character || !activeSlot) return null;
@@ -256,7 +261,7 @@ export default function FeatsPage() {
     });
 
     return computeAbilityScores(tempState as any);
-  }, [character, activeSlot, featSlots]);
+  }, [character, activeSlot, featSlots, choices]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('All');
@@ -265,12 +270,12 @@ export default function FeatsPage() {
   const [isOriginFeatUnbound, setIsOriginFeatUnbound] = useState(false);
 
   const allFeats = useMemo(() => {
-    return getCatalogFeats();
-  }, [catalogStatus]);
+    return choices.getCatalogFeats();
+  }, [catalogStatus, choices]);
 
   const allSpells = useMemo(() => {
-    return getCatalogSpells();
-  }, [catalogStatus]);
+    return choices.getCatalogSpells();
+  }, [catalogStatus, choices]);
 
   const filteredFeats = useMemo(() => {
     if (!activeSlot || !character) return [];
@@ -335,7 +340,7 @@ export default function FeatsPage() {
         isOccupied,
       };
     });
-  }, [activeSlot, activeCategoryFilter, activeSourceFilter, searchQuery, character]);
+  }, [activeSlot, activeCategoryFilter, activeSourceFilter, searchQuery, character, choices]);
 
   const handleSelectFeat = (featId: string, force: boolean = false) => {
     if (!activeSlot || !character) return;
@@ -374,12 +379,12 @@ export default function FeatsPage() {
   const selectedFeatData = useMemo(() => {
     if (!activeSlot?.currentFeatId) return null;
     const searchId = activeSlot.currentFeatId.toLowerCase();
-    return allFeats.find((f) => {
+    return getCatalogFeats().find((f) => {
       const fId = f.id.toLowerCase();
       const fName = f.nameEn.toLowerCase();
       return fId === searchId || fName === searchId || searchId.startsWith(fName + ' (');
     });
-  }, [activeSlot]);
+  }, [activeSlot, choices]);
 
   // Clear spell preview when switching slots or feats
   useEffect(() => {
@@ -452,7 +457,7 @@ export default function FeatsPage() {
           <div className={featsStyles.scrollList}>
             {featSlots.map((slot) => {
               const isSelected = activeSlot?.id === slot.id;
-              const currentFeat = allFeats.find((f) => {
+              const currentFeat = getCatalogFeats().find((f) => {
                 const searchId = slot.currentFeatId?.toLowerCase() || '';
                 const fId = f.id.toLowerCase();
                 const fName = f.nameEn.toLowerCase();
@@ -1106,7 +1111,7 @@ export default function FeatsPage() {
                               : selectedFeatData.mechanics.toolProficiencies;
                             const options =
                               profs.options.includes('Any') || profs.options.includes('any')
-                                ? ALL_TOOLS
+                                ? choices.getCatalogTools()
                                 : profs.options;
 
                             return (
@@ -1115,7 +1120,7 @@ export default function FeatsPage() {
                                   工具熟练 (选 {profs.count}):
                                 </p>
                                 <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                  {options.map((tool: string) => {
+                                  {choices.filterOptions(options, 'tool').map((tool: string) => {
                                     const existingSource = baseProficiencies.tools[tool];
                                     const isSelected = activeChoices?.tools?.includes(tool);
                                     const isDisabled = !isSelected && !!existingSource;
@@ -1177,7 +1182,7 @@ export default function FeatsPage() {
                               : [];
                             const toolOptions = includesTools
                               ? pool.options.includes('Any') || pool.options.includes('any')
-                                ? ALL_TOOLS
+                                ? choices.getCatalogTools()
                                 : pool.options
                               : [];
 
@@ -1272,57 +1277,59 @@ export default function FeatsPage() {
                                       工具
                                     </p>
                                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                                      {toolOptions.map((tool: string) => {
-                                        const existingSource = baseProficiencies.tools[tool];
-                                        const isSelected = activeChoices?.tools?.includes(tool);
-                                        const isDisabled =
-                                          !isSelected &&
-                                          (!!existingSource || totalSelected >= pool.count);
+                                      {choices
+                                        .filterOptions(toolOptions, 'tool')
+                                        .map((tool: string) => {
+                                          const existingSource = baseProficiencies.tools[tool];
+                                          const isSelected = activeChoices?.tools?.includes(tool);
+                                          const isDisabled =
+                                            !isSelected &&
+                                            (!!existingSource || totalSelected >= pool.count);
 
-                                        return (
-                                          <div key={tool} style={{ position: 'relative' }}>
-                                            <PillButton
-                                              size="sm"
-                                              variant={isSelected ? 'primary' : 'outline'}
-                                              disabled={isDisabled}
-                                              onClick={() => {
-                                                if (isDisabled) return;
-                                                const currentTools = activeChoices?.tools || [];
-                                                if (isSelected) {
-                                                  handleUpdateFeatChoice(activeSlot.id, {
-                                                    tools: currentTools.filter((t) => t !== tool),
-                                                  });
-                                                } else {
-                                                  if (totalSelected >= pool.count) return;
-                                                  handleUpdateFeatChoice(activeSlot.id, {
-                                                    tools: [...currentTools, tool],
-                                                  });
-                                                }
-                                              }}
-                                              style={{
-                                                opacity: isDisabled ? 0.5 : 1,
-                                                cursor: isDisabled ? 'not-allowed' : 'pointer',
-                                              }}
-                                            >
-                                              {translateProficiency(tool)}
-                                              {existingSource && !isSelected && (
-                                                <span
-                                                  style={{
-                                                    fontSize: '9px',
-                                                    marginLeft: 4,
-                                                    padding: '1px 4px',
-                                                    background: '#eee',
-                                                    borderRadius: 4,
-                                                    color: '#666',
-                                                  }}
-                                                >
-                                                  {existingSource.split(':')[0]}
-                                                </span>
-                                              )}
-                                            </PillButton>
-                                          </div>
-                                        );
-                                      })}
+                                          return (
+                                            <div key={tool} style={{ position: 'relative' }}>
+                                              <PillButton
+                                                size="sm"
+                                                variant={isSelected ? 'primary' : 'outline'}
+                                                disabled={isDisabled}
+                                                onClick={() => {
+                                                  if (isDisabled) return;
+                                                  const currentTools = activeChoices?.tools || [];
+                                                  if (isSelected) {
+                                                    handleUpdateFeatChoice(activeSlot.id, {
+                                                      tools: currentTools.filter((t) => t !== tool),
+                                                    });
+                                                  } else {
+                                                    if (totalSelected >= pool.count) return;
+                                                    handleUpdateFeatChoice(activeSlot.id, {
+                                                      tools: [...currentTools, tool],
+                                                    });
+                                                  }
+                                                }}
+                                                style={{
+                                                  opacity: isDisabled ? 0.5 : 1,
+                                                  cursor: isDisabled ? 'not-allowed' : 'pointer',
+                                                }}
+                                              >
+                                                {translateProficiency(tool)}
+                                                {existingSource && !isSelected && (
+                                                  <span
+                                                    style={{
+                                                      fontSize: '9px',
+                                                      marginLeft: 4,
+                                                      padding: '1px 4px',
+                                                      background: '#eee',
+                                                      borderRadius: 4,
+                                                      color: '#666',
+                                                    }}
+                                                  >
+                                                    {existingSource.split(':')[0]}
+                                                  </span>
+                                                )}
+                                              </PillButton>
+                                            </div>
+                                          );
+                                        })}
                                     </div>
                                   </div>
                                 )}
@@ -1954,9 +1961,9 @@ export default function FeatsPage() {
                               ? selectedFeatData.mechanics.languageProficiencies
                               : [selectedFeatData.mechanics.languageProficiencies];
                             return profReqs.map((prof, pIdx) => {
-                              const options = allLanguages.filter(
-                                (l) => langCategory === 'All' || l.type === langCategory,
-                              );
+                              const options = choices
+                                .getCatalogLanguages()
+                                .filter((l) => langCategory === 'All' || l.type === langCategory);
 
                               return (
                                 <div key={pIdx}>

@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 import { resolveBackgroundEquipmentChoices } from '@/engine/backgroundEquipment';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -1348,6 +1349,7 @@ function ShopItemRow({
 }
 
 export default function EquipmentPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, updateActiveCharacter, loadCharacter } = useCharacterStore();
@@ -1360,17 +1362,17 @@ export default function EquipmentPage() {
 
   const primaryClass = useMemo(
     () => (character ? getPrimaryClassDefinition(character) : undefined),
-    [character],
+    [character, choices],
   );
   const background = useMemo(
     () => (character ? getBackgroundDefinition(character) : undefined),
-    [character],
+    [character, choices],
   );
 
   const classPackageOptions = useMemo(() => {
     if (!primaryClass) return [];
     return expandEquipmentOptions(primaryClass.startingEquipment.choiceA);
-  }, [primaryClass]);
+  }, [primaryClass, choices]);
 
   const selectedPackage =
     character?.selectedClassPackage ||
@@ -1412,7 +1414,7 @@ export default function EquipmentPage() {
   };
 
   const shopItems = useMemo(() => {
-    const catalogItems = getCatalogItems();
+    const catalogItems = choices.getCatalogItems();
     const all = catalogItems;
     const filteredBase = all.filter((item) => (item as any).type !== '货币');
 
@@ -1437,7 +1439,7 @@ export default function EquipmentPage() {
       if (shopCategory === 'vehicle') return cat === 'vehicle';
       return cat === 'other';
     });
-  }, [shopCategory, weaponTypeFilter, weaponRangeFilter]);
+  }, [shopCategory, weaponTypeFilter, weaponRangeFilter, choices]);
 
   const applyEquipmentState = React.useCallback(
     (params: {
@@ -1490,7 +1492,7 @@ export default function EquipmentPage() {
         startingEquipmentSynced: true,
       });
     },
-    [character, background, selectedPackage, classPackageOptions, updateActiveCharacter],
+    [character, background, selectedPackage, classPackageOptions, updateActiveCharacter, choices],
   );
 
   // 自动同步/初始化起始装备
@@ -1677,12 +1679,12 @@ export default function EquipmentPage() {
     { id: 'other', label: '其他', icon: <Box size={18} /> },
   ];
 
-  const armorOptions = getCatalogItems().filter(
-    (item: any) => item.armorCategory && item.armorCategory !== 'Shield',
-  ) as Armor[];
-  const shieldOptions = getCatalogItems().filter(
-    (item: any) => item.armorCategory === 'Shield',
-  ) as Armor[];
+  const armorOptions = choices
+    .getCatalogItems()
+    .filter((item: any) => item.armorCategory && item.armorCategory !== 'Shield') as Armor[];
+  const shieldOptions = choices
+    .getCatalogItems()
+    .filter((item: any) => item.armorCategory === 'Shield') as Armor[];
 
   const totalLevel = useMemo(
     () => character?.classes?.reduce((sum, c) => sum + (c.level || 0), 0) || 0,

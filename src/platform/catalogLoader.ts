@@ -416,7 +416,7 @@ class CatalogLoaderService {
    * 运行时总调度入口
    */
   public async init(options?: { force?: boolean; fromCacheRefresh?: boolean }): Promise<void> {
-    if (this.initPromise && !options?.force) {
+    if (this.initPromise) {
       return this.initPromise;
     }
 

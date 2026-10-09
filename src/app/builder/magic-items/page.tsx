@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -12,6 +13,7 @@ import { InventoryEntry } from '@/types/characterState';
 import styles from '../species/page.module.css';
 
 export default function MagicItemsPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, loadCharacter, updateActiveCharacter } = useCharacterStore();
@@ -19,7 +21,10 @@ export default function MagicItemsPage() {
   const character = id ? characters[id] : null;
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string>();
-  const items = useMemo(() => getCatalogItems().filter(isMagicItemDefinition), [status]);
+  const items = useMemo(
+    () => choices.getCatalogItems().filter(isMagicItemDefinition),
+    [status, choices],
+  );
   const filteredItems = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return items;
@@ -28,8 +33,8 @@ export default function MagicItemsPage() {
         .toLowerCase()
         .includes(normalized),
     );
-  }, [items, query]);
-  const selected = items.find((item) => item.id === selectedId) || filteredItems[0];
+  }, [items, query, choices]);
+  const selected = getCatalogItems().find((item) => item.id === selectedId) || filteredItems[0];
 
   const detailsPanelRef = useRef<HTMLDivElement>(null);
 
@@ -41,7 +46,7 @@ export default function MagicItemsPage() {
 
   const attunement = getAttunementStatus(character);
   const addItem = () => {
-    if (!selected) return;
+    if (!selected || !items.some((item) => item.id === selected.id)) return;
     const entry: InventoryEntry = {
       id:
         typeof crypto !== 'undefined' && crypto.randomUUID
@@ -99,6 +104,7 @@ export default function MagicItemsPage() {
               </p>
               <ItemDetailContent item={selected} category={(selected as any).category} />
               <button
+                disabled={!items.some((item) => item.id === selected.id)}
                 onClick={addItem}
                 style={{ marginTop: 24, padding: '10px 18px', borderRadius: 8, cursor: 'pointer' }}
               >

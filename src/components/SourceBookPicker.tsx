@@ -1,0 +1,227 @@
+'use client';
+
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  defaultCatalog,
+  getLoadedSourceBooks,
+  sourceBookKey,
+  validateSourceSelection,
+} from '@/catalog';
+import { getSourceDisplayName } from '@/config/sourceMapping';
+import type { SourceSelection, SourceBook } from '@/types/sourceSelection';
+import { useCatalog } from '@/platform/CatalogProvider';
+import { getCatalogStats, loadHomebrewAll } from '@/platform/catalogLoader';
+import styles from './SourceBookPicker.module.css';
+
+export interface SourceBookSettings {
+  sourceSelection?: SourceSelection;
+  allowHomebrew?: boolean;
+}
+
+export default function SourceBookPicker({
+  value,
+  onChange,
+}: {
+  value: SourceBookSettings;
+  onChange: (value: { sourceSelection: SourceSelection; allowHomebrew: boolean }) => void;
+}) {
+  const { stats, isComplete } = useCatalog();
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const dialog = useRef<HTMLDialogElement>(null);
+  let selection: SourceSelection;
+  try {
+    selection = validateSourceSelection(value.sourceSelection || { mode: 'all' });
+  } catch {
+    selection = { mode: 'selected', books: [] };
+  }
+  const loaded = useMemo(() => getLoadedSourceBooks(defaultCatalog), [stats]);
+  const books = [...loaded];
+  if (selection.mode === 'selected')
+    for (const book of selection.books) {
+      if (!books.some((b) => sourceBookKey(b) === sourceBookKey(book))) {
+        books.push({
+          ...book,
+          isHomebrew: book.sourcePackId.startsWith('homebrew'),
+          entryCount: 0,
+        });
+      }
+    }
+  const selectedKeys = new Set(
+    selection.mode === 'selected' ? selection.books.map(sourceBookKey) : books.map(sourceBookKey),
+  );
+  const summary = selection.mode === 'all' ? '全部允许书籍' : `已选 ${selection.books.length} 本书`;
+  const update = (sourceSelection: SourceSelection, allowHomebrew = Boolean(value.allowHomebrew)) =>
+    onChange({ sourceSelection, allowHomebrew });
+  const toggle = (book: SourceBook, checked: boolean) => {
+    const current = selection.mode === 'selected' ? selection.books : books;
+    update({
+      mode: 'selected',
+      books: checked
+        ? [...current, book]
+        : current.filter((b) => sourceBookKey(b) !== sourceBookKey(book)),
+    });
+  };
+  const loadBrew = async () => {
+    if (loading) return;
+    setLoading(true);
+    setError('');
+    try {
+      await loadHomebrewAll();
+      const result = getCatalogStats().sources.homebrew;
+      if (result.state === 'partial' || result.state === 'error' || result.state === 'empty') {
+        setError('第三方书目尚不完整，已成功载入的资源仍可使用；可重试或查看侧栏数据状态。');
+      }
+    } catch {
+      setError('第三方资源加载失败，可重试；已有选择会保留。');
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (open) dialog.current?.showModal();
+  }, [open]);
+  return (
+    <>
+      <button
+        type="button"
+        className={styles.trigger}
+        onClick={(event) => {
+          event.stopPropagation();
+          setOpen(true);
+        }}
+        aria-haspopup="dialog"
+      >
+        本角色可用资料 · {summary} · 第三方{value.allowHomebrew ? '开' : '关'}
+      </button>
+      {open &&
+        createPortal(
+          <dialog
+            ref={dialog}
+            className={styles.dialog}
+            aria-labelledby="source-books-title"
+            onClose={() => setOpen(false)}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.header}>
+              <h2 id="source-books-title">本角色可用资料</h2>
+              <button
+                type="button"
+                onClick={() => dialog.current?.close()}
+                aria-label="关闭书籍选择"
+              >
+                关闭
+              </button>
+            </div>
+            <p>
+              控制建卡候选范围。关闭书籍不会删除已有选择，也不会清除缓存；2014 与 2024
+              规则仍可分别选择。
+            </p>
+            <div className={styles.controls}>
+              <label>
+                <input
+                  type="radio"
+                  name="source-mode"
+                  checked={selection.mode === 'all'}
+                  onChange={() => update({ mode: 'all' })}
+                />
+                全部允许（含后续加载书籍）
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="source-mode"
+                  checked={selection.mode === 'selected'}
+                  onChange={() =>
+                    update({
+                      mode: 'selected',
+                      books: loaded.filter((b) => !b.isHomebrew || value.allowHomebrew),
+                    })
+                  }
+                />
+                指定书籍
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={Boolean(value.allowHomebrew)}
+                  onChange={(event) => {
+                    update(selection, event.target.checked);
+                    if (event.target.checked) void loadBrew();
+                  }}
+                />
+                第三方扩展 / Homebrew
+              </label>
+            </div>
+            <div className={styles.controls}>
+              <input
+                type="search"
+                aria-label="搜索书籍"
+                placeholder="搜索书名或出处代码"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              <button type="button" onClick={() => update({ mode: 'selected', books: [] })}>
+                清空书籍选择
+              </button>
+            </div>
+            <p>书目来自当前已加载资源。勾选书籍只改变可用范围，不代表单独下载或删除该书。</p>
+            {!isComplete && (
+              <p role="status">资源尚未全部就绪，书目会随加载更新；未载入的已选书籍会保留。</p>
+            )}
+            {loading && <p role="status">正在加载第三方资源…</p>}
+            {error && (
+              <p role="alert">
+                {error}
+                <button type="button" disabled={loading} onClick={() => void loadBrew()}>
+                  重试
+                </button>
+              </p>
+            )}
+            <div className={styles.books}>
+              {[false, true].map((brew) => (
+                <fieldset key={String(brew)} disabled={brew && !value.allowHomebrew}>
+                  <legend>{brew ? '第三方资料' : '官方资料'}</legend>
+                  {books
+                    .filter(
+                      (book) =>
+                        book.isHomebrew === brew &&
+                        `${getSourceDisplayName(book.source)} ${book.source} ${book.sourcePackId}`
+                          .toLowerCase()
+                          .includes(query.toLowerCase()),
+                    )
+                    .map((book) => (
+                      <label className={styles.book} key={sourceBookKey(book)}>
+                        <input
+                          type="checkbox"
+                          checked={selectedKeys.has(sourceBookKey(book))}
+                          onChange={(event) => toggle(book, event.target.checked)}
+                        />
+                        <span>
+                          {getSourceDisplayName(book.source)}{' '}
+                          <small>
+                            {book.source} · {book.sourcePackId} ·{' '}
+                            {book.entryCount ? `${book.entryCount} 条` : '尚未载入'}
+                          </small>
+                        </span>
+                      </label>
+                    ))}
+                </fieldset>
+              ))}
+              {books.length === 0 && <p>暂无已加载书籍，请等待数据加载。</p>}
+            </div>
+            <p className={styles.footer}>
+              {summary}；修改立即应用；新建时随角色保存。
+              <button type="button" onClick={() => dialog.current?.close()}>
+                完成
+              </button>
+            </p>
+          </dialog>,
+          document.body,
+        )}
+    </>
+  );
+}

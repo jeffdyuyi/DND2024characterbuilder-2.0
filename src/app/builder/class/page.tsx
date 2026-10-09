@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -240,6 +241,7 @@ const OptionCardInline: React.FC<{
 };
 
 export default function ClassPage() {
+  const choices = useBuilderChoices();
   const { status: catalogStatus } = useCatalog();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
@@ -269,7 +271,7 @@ export default function ClassPage() {
   const primaryClassEntry = currentClasses[0];
   const classDefinition = useMemo<any>(
     () => getClassDefinition(primaryClassEntry?.classId),
-    [primaryClassEntry?.classId],
+    [primaryClassEntry?.classId, choices],
   );
   const selectedClassId = primaryClassEntry?.classId;
 
@@ -284,7 +286,7 @@ export default function ClassPage() {
         spellcastingAbility: undefined,
       };
     return computeSpellcasting(character);
-  }, [character]);
+  }, [character, choices]);
 
   // 切换职业时，自动回滚详情面板到顶部
   useEffect(() => {
@@ -322,7 +324,9 @@ export default function ClassPage() {
                 !updatedClassSelections[choice.id] ||
                 updatedClassSelections[choice.id].length === 0
               ) {
-                updatedClassSelections[choice.id] = choice.defaultOptions;
+                const defaults = choices.filterOptions(choice.defaultOptions, choice.type);
+                if (defaults.length === 0) return;
+                updatedClassSelections[choice.id] = defaults;
                 hasChanges = true;
               }
             }
@@ -741,23 +745,25 @@ export default function ClassPage() {
         ?.trim();
 
       let isFeatFilter = false;
-      let filtered = getCatalogSpells() as any[];
+      let filtered = choices.getCatalogSpells() as any[];
 
       if (categoryFilter) {
         isFeatFilter = true;
         const categories = categoryFilter.split(',').map((v: string) => v.trim());
-        const featList = getCatalogFeats().filter((feat) => categories.includes(feat.category));
+        const featList = choices
+          .getCatalogFeats()
+          .filter((feat) => categories.includes(feat.category));
         options = featList.map((feat) => feat.id);
       } else if (typeFilter) {
         isFeatFilter = true;
         const types = typeFilter.split(',').map((v: string) => v.trim());
         const filteredTools: string[] = [];
         if (types.some((t: string) => t === '乐器' || t.toLowerCase().includes('musical')))
-          filteredTools.push(...MUSICAL_INSTRUMENTS);
+          filteredTools.push(...choices.getCatalogTools('Musical'));
         if (types.some((t: string) => t === '工匠工具' || t.toLowerCase().includes('artisan')))
-          filteredTools.push(...ARTISAN_TOOLS);
+          filteredTools.push(...choices.getCatalogTools('Artisan'));
         if (types.some((t: string) => t === '游戏' || t.toLowerCase().includes('gaming')))
-          filteredTools.push(...GAMING_SETS);
+          filteredTools.push(...choices.getCatalogTools('Gaming'));
         options = Array.from(new Set(filteredTools));
       } else {
         // Prepare class matchers
@@ -816,17 +822,17 @@ export default function ClassPage() {
         keyword === '任何技能'
       ) {
         if (category === 'weaponMastery') expandedOptions.push(...Object.keys(WEAPON_MAP));
-        else if (category === 'tool') expandedOptions.push(...ALL_TOOLS);
+        else if (category === 'tool') expandedOptions.push(...choices.getCatalogTools());
         else expandedOptions.push(...ALL_SKILLS);
       } else if (keyword === 'Any Tool' || keyword === '任何工具') {
-        expandedOptions.push(...ALL_TOOLS);
+        expandedOptions.push(...choices.getCatalogTools());
       } else if (
         lowKey === "artisan's tools" ||
         lowKey === 'artisan tools' ||
         lowKey === "artisan's tool" ||
         lowKey === '工匠工具'
       ) {
-        expandedOptions.push(...ARTISAN_TOOLS);
+        expandedOptions.push(...choices.getCatalogTools('Artisan'));
       } else if (
         lowKey === 'any musical instrument' ||
         lowKey === 'musical instrument' ||
@@ -834,7 +840,7 @@ export default function ClassPage() {
         keyword === '任何乐器' ||
         keyword === '乐器'
       ) {
-        expandedOptions.push(...MUSICAL_INSTRUMENTS);
+        expandedOptions.push(...choices.getCatalogTools('Musical'));
       } else if (
         lowKey === 'any gaming set' ||
         lowKey === 'gaming set' ||
@@ -842,28 +848,32 @@ export default function ClassPage() {
         keyword === '任何游戏套装' ||
         keyword === '游戏'
       ) {
-        expandedOptions.push(...GAMING_SETS);
+        expandedOptions.push(...choices.getCatalogTools('Gaming'));
       } else if (keyword === 'General Feat') {
         expandedOptions.push(
-          ...getCatalogFeats()
+          ...choices
+            .getCatalogFeats()
             .filter((f) => f.category === 'General')
             .map((f) => f.id),
         );
       } else if (keyword === 'Epic Boon') {
         expandedOptions.push(
-          ...getCatalogFeats()
+          ...choices
+            .getCatalogFeats()
             .filter((f) => f.category === 'Epic Boon')
             .map((f) => f.id),
         );
       } else if (keyword === 'Fighting Style Feat') {
         expandedOptions.push(
-          ...getCatalogFeats()
+          ...choices
+            .getCatalogFeats()
             .filter((f) => f.category === 'Fighting Style')
             .map((f) => f.id),
         );
       } else if (lowKey.includes('cantrips') || keyword.includes('戏法列表')) {
         expandedOptions.push(
-          ...getCatalogSpells()
+          ...choices
+            .getCatalogSpells()
             .filter(
               (s) =>
                 s.level === 0 &&
@@ -873,7 +883,8 @@ export default function ClassPage() {
         );
       } else if (lowKey.includes('1st level spells') || keyword.includes('1环法术列表')) {
         expandedOptions.push(
-          ...getCatalogSpells()
+          ...choices
+            .getCatalogSpells()
             .filter(
               (s) =>
                 s.level === 1 &&
@@ -886,7 +897,8 @@ export default function ClassPage() {
         keyword === '牧师、德鲁伊、法师法术列表'
       ) {
         expandedOptions.push(
-          ...getCatalogSpells()
+          ...choices
+            .getCatalogSpells()
             .filter(
               (s) =>
                 s.level <= 3 &&
@@ -944,7 +956,7 @@ export default function ClassPage() {
       resolvedOptions = [...ALL_SKILLS];
     }
 
-    const finalOptions = resolvedOptions;
+    const finalOptions = choices.filterOptions(resolvedOptions, category);
 
     if (category === 'skill' && (id.includes(':base:prof:skills') || id.includes(':prof:skills'))) {
       // 优先从 classSelections 中读取（新标准 ID 模式）
@@ -1172,10 +1184,10 @@ export default function ClassPage() {
     // ─────────────────────────────────────────────────────────────────
 
     if (category === 'language') {
-      const uniqueSources = Array.from(new Set(allLanguages.map((l) => l.source))).filter(
-        Boolean,
-      ) as string[];
-      const filteredLanguages = allLanguages.filter((l) => {
+      const uniqueSources = Array.from(
+        new Set(choices.getCatalogLanguages().map((l) => l.source)),
+      ).filter(Boolean) as string[];
+      const filteredLanguages = choices.getCatalogLanguages().filter((l) => {
         const categoryMatch = langCategory === 'All' || l.type === langCategory;
         const sourceMatch = langSource === 'All' || l.source === langSource;
 
@@ -1416,85 +1428,87 @@ export default function ClassPage() {
               gap: '16px',
             }}
           >
-            {classDefinition.subClassInfo?.options.map((sub: any) => {
-              const subclassId = sub.catalogId || sub.nameEn || sub.name;
-              const isChosen = chosen.includes(subclassId) || chosen.includes(sub.nameEn);
-              const descParts = sub.description.split('\n\n');
-              const subtitle = descParts.length > 1 ? descParts[0] : '';
-              const mainDesc =
-                descParts.length > 1 ? descParts.slice(1).join('\n\n') : sub.description;
+            {choices
+              .filterNested(classDefinition.subClassInfo?.options, primaryClassEntry?.classId)
+              .map((sub: any) => {
+                const subclassId = sub.catalogId || sub.nameEn || sub.name;
+                const isChosen = chosen.includes(subclassId) || chosen.includes(sub.nameEn);
+                const descParts = sub.description.split('\n\n');
+                const subtitle = descParts.length > 1 ? descParts[0] : '';
+                const mainDesc =
+                  descParts.length > 1 ? descParts.slice(1).join('\n\n') : sub.description;
 
-              return (
-                <div
-                  key={subclassId}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleClassSelection(
-                      id,
-                      subclassId,
-                      selection.numToChoose,
-                      category,
-                      finalOptions,
-                      preSelectedProficiencies,
-                    );
-                  }}
-                  style={{
-                    padding: '20px',
-                    borderRadius: '16px',
-                    background: isChosen ? 'rgba(197, 160, 89, 0.12)' : 'var(--color-bg-dark)',
-                    border: isChosen
-                      ? '2px solid var(--color-gold-bright)'
-                      : '1px solid var(--color-border-dark)',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    boxShadow: isChosen ? '0 4px 12px rgba(0, 113, 227, 0.15)' : 'none',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '12px',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        border: isChosen ? '6px solid #0071e3' : '2px solid #d2d2d7',
-                        boxSizing: 'border-box',
-                      }}
-                    />
-                    <div style={{ flex: 1 }}>
+                return (
+                  <div
+                    key={subclassId}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClassSelection(
+                        id,
+                        subclassId,
+                        selection.numToChoose,
+                        category,
+                        finalOptions,
+                        preSelectedProficiencies,
+                      );
+                    }}
+                    style={{
+                      padding: '20px',
+                      borderRadius: '16px',
+                      background: isChosen ? 'rgba(197, 160, 89, 0.12)' : 'var(--color-bg-dark)',
+                      border: isChosen
+                        ? '2px solid var(--color-gold-bright)'
+                        : '1px solid var(--color-border-dark)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isChosen ? '0 4px 12px rgba(0, 113, 227, 0.15)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div
                         style={{
-                          fontSize: '16px',
-                          fontWeight: 700,
-                          color: 'var(--color-text-primary)',
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          border: isChosen ? '6px solid #0071e3' : '2px solid #d2d2d7',
+                          boxSizing: 'border-box',
                         }}
-                      >
-                        {sub.name}{' '}
-                        <span style={{ fontSize: '12px', color: '#86868b', fontWeight: 400 }}>
-                          {sub.nameEn}
-                        </span>
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{
+                            fontSize: '16px',
+                            fontWeight: 700,
+                            color: 'var(--color-text-primary)',
+                          }}
+                        >
+                          {sub.name}{' '}
+                          <span style={{ fontSize: '12px', color: '#86868b', fontWeight: 400 }}>
+                            {sub.nameEn}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  {subtitle && (
-                    <div
-                      style={{
-                        fontSize: '13px',
-                        color: 'var(--color-text-primary)',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {subtitle}
+                    {subtitle && (
+                      <div
+                        style={{
+                          fontSize: '13px',
+                          color: 'var(--color-text-primary)',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {subtitle}
+                      </div>
+                    )}
+                    <div style={{ fontSize: '13px', color: '#515154', lineHeight: 1.6 }}>
+                      <MarkdownText text={mainDesc} variant="clean" />
                     </div>
-                  )}
-                  <div style={{ fontSize: '13px', color: '#515154', lineHeight: 1.6 }}>
-                    <MarkdownText text={mainDesc} variant="clean" />
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         ) : id.includes('invocation') ||
           id.includes('metamagic') ||
@@ -1802,7 +1816,9 @@ export default function ClassPage() {
 
   const generalFeats = useMemo(
     () =>
-      getCatalogFeats().filter((f) => f.category === 'General' || f.category === 'Fighting Style'),
+      choices
+        .getCatalogFeats()
+        .filter((f) => f.category === 'General' || f.category === 'Fighting Style'),
     [],
   );
 
@@ -1819,7 +1835,7 @@ export default function ClassPage() {
   // Grouping logic
   const classGroups = useMemo(() => {
     const groups: Record<string, any[]> = {};
-    const classList = getCatalogClasses();
+    const classList = choices.getCatalogClasses();
     classList.forEach((cls) => {
       const source = (cls as any).source || 'PHB2024';
       const groupName =
@@ -2296,25 +2312,31 @@ export default function ClassPage() {
                                 selId.includes('gaming');
 
                               if (isInstrument && isArtisanTool) {
-                                rawOptions = [...MUSICAL_INSTRUMENTS, ...ARTISAN_TOOLS];
+                                rawOptions = [
+                                  ...choices.getCatalogTools('Musical'),
+                                  ...choices.getCatalogTools('Artisan'),
+                                ];
                               } else if (isInstrument) {
-                                rawOptions = MUSICAL_INSTRUMENTS;
+                                rawOptions = choices.getCatalogTools('Musical');
                               } else if (isGamingSet) {
-                                rawOptions = GAMING_SETS;
+                                rawOptions = choices.getCatalogTools('Gaming');
                               } else if (isArtisanTool || selId.includes('tool')) {
-                                rawOptions = ARTISAN_TOOLS;
+                                rawOptions = choices.getCatalogTools('Artisan');
                               } else {
-                                rawOptions = ALL_TOOLS;
+                                rawOptions = choices.getCatalogTools();
                               }
 
                               // Deduplicate options based on translated display name
                               const seenDisplayNames = new Set<string>();
-                              const options = rawOptions.filter((opt) => {
-                                const displayName = translateProficiency(opt);
-                                if (!displayName || seenDisplayNames.has(displayName)) return false;
-                                seenDisplayNames.add(displayName);
-                                return true;
-                              });
+                              const options = choices
+                                .filterOptions(rawOptions, 'tool')
+                                .filter((opt) => {
+                                  const displayName = translateProficiency(opt);
+                                  if (!displayName || seenDisplayNames.has(displayName))
+                                    return false;
+                                  seenDisplayNames.add(displayName);
+                                  return true;
+                                });
 
                               return (
                                 <div key={selectionId}>

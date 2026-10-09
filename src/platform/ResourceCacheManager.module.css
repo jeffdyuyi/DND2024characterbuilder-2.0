@@ -1,0 +1,94 @@
+.dialog {
+  width: min(900px, calc(100vw - 32px));
+  max-height: 88vh;
+  overflow: auto;
+  padding: 22px;
+  margin: auto;
+  border: 1px solid var(--color-border-gold);
+  border-radius: 12px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface-elevated);
+  font-size: 14px;
+}
+.dialog::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+.dialog header,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.dialog header {
+  justify-content: space-between;
+}
+.dialog h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.dialog h3 {
+  font-size: 16px;
+  margin: 0 0 10px;
+}
+.dialog section {
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+.dialog p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.dialog button {
+  padding: 6px 10px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-gold);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.dialog button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dialog progress {
+  width: 100%;
+  accent-color: var(--color-gold-bright);
+}
+.dialog input {
+  width: 100%;
+  margin: 12px 0;
+  padding: 8px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-dark);
+  border-radius: 6px;
+}
+.source {
+  margin-bottom: 12px;
+}
+.files {
+  max-height: 320px;
+  overflow: auto;
+}
+.file {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-dark);
+}
+.file code {
+  display: block;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.file small {
+  overflow-wrap: anywhere;
+}
+.file button {
+  display: block;
+  margin-top: 8px;
+}

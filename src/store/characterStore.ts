@@ -4,13 +4,22 @@ import { safeLocalStorage } from '@/utils/safeStorage';
 import { CharacterState } from '@/types/characterState';
 import { defaultCatalog } from '@/catalog/catalog';
 import { migrateCharacterCatalogReferences } from '@/catalog/references';
+import type { SourceSelection } from '@/types/sourceSelection';
+import { validateSourceSelection } from '@/catalog/sourcePolicy';
 
 interface CharacterStore {
   characters: Record<string, CharacterState>;
   activeCharacterId: string | null;
 
   // Library Actions
-  createCharacter: () => string;
+  createCharacter: (sources?: {
+    sourceSelection?: SourceSelection;
+    allowHomebrew?: boolean;
+  }) => string;
+  updateCharacterSources: (
+    id: string,
+    sources: { sourceSelection: SourceSelection; allowHomebrew: boolean },
+  ) => void;
   loadCharacter: (id: string) => void;
   deleteCharacter: (id: string) => void;
   cloneCharacter: (id: string) => string;
@@ -84,14 +93,35 @@ export const useCharacterStore = create<CharacterStore>()(
       characters: {},
       activeCharacterId: null,
 
-      createCharacter: () => {
+      createCharacter: (sources) => {
         const id = generateId();
         const newChar = createEmptyCharacter(id);
+        if (sources?.sourceSelection)
+          newChar.sourceSelection = validateSourceSelection(sources.sourceSelection);
+        if (sources?.allowHomebrew !== undefined) newChar.allowHomebrew = sources.allowHomebrew;
         set((state) => ({
           characters: { ...state.characters, [id]: newChar },
           activeCharacterId: id,
         }));
         return id;
+      },
+
+      updateCharacterSources: (id, sources) => {
+        const sourceSelection = validateSourceSelection(sources.sourceSelection);
+        set((state) => {
+          const character = state.characters[id];
+          if (!character) return state;
+          return {
+            characters: {
+              ...state.characters,
+              [id]: {
+                ...character,
+                sourceSelection,
+                allowHomebrew: sources.allowHomebrew,
+              },
+            },
+          };
+        });
       },
 
       loadCharacter: (id) => {

@@ -1,6 +1,10 @@
 'use client';
 
 import React from 'react';
+import SourceBookPicker from '@/components/SourceBookPicker';
+import { getExcludedCharacterChoices } from '@/catalog/builderChoices';
+import { useCatalog } from '@/platform/CatalogProvider';
+import { getSourceDisplayName } from '@/config/sourceMapping';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import GlassNav from '@/components/GlassNav';
@@ -29,26 +33,13 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const charId = searchParams.get('id') || '';
 
-  const { characters, updateActiveCharacter } = useCharacterStore();
+  const { characters, updateCharacterSources } = useCharacterStore();
   const character = charId ? characters[charId] : null;
-  const [isHomebrewLoading, setIsHomebrewLoading] = React.useState(false);
-
-  const handleToggleHomebrew = async () => {
-    if (!character) return;
-    const nextVal = !character.allowHomebrew;
-    updateActiveCharacter({ allowHomebrew: nextVal });
-    if (nextVal) {
-      setIsHomebrewLoading(true);
-      try {
-        const { loadHomebrewAll } = await import('@/platform/catalogLoader');
-        await loadHomebrewAll();
-      } catch (err) {
-        console.warn('Homebrew 加载失败:', err);
-      } finally {
-        setIsHomebrewLoading(false);
-      }
-    }
-  };
+  const { stats } = useCatalog();
+  const excluded = React.useMemo(
+    () => (character ? getExcludedCharacterChoices(character) : []),
+    [character, stats],
+  );
 
   const filteredSteps = STEPS.filter((step) => {
     if (step.path === 'multiclass' && !character?.isMulticlassingEnabled) {
@@ -92,22 +83,6 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
         title={`步骤 ${stepIndex + 1} / ${filteredSteps.length}`}
         actions={
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            {character && (
-              <PillButton
-                size="sm"
-                variant={character.allowHomebrew ? 'primary' : 'outline'}
-                onClick={handleToggleHomebrew}
-                title={
-                  character.allowHomebrew
-                    ? '点击禁用第三方扩展 / Homebrew'
-                    : '点击启用第三方扩展 / Homebrew'
-                }
-              >
-                {isHomebrewLoading
-                  ? '扩展载入中...'
-                  : `第三方扩展 / Homebrew: ${character.allowHomebrew ? '开' : '关'}`}
-              </PillButton>
-            )}
             {charId && (
               <PillButton
                 size="sm"
@@ -121,6 +96,34 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
         }
       />
 
+      {character && (
+        <div style={{ padding: '12px 24px', borderBottom: '1px solid var(--color-border-dark)' }}>
+          <SourceBookPicker
+            value={character}
+            onChange={(value) => updateCharacterSources(charId, value)}
+          />
+          {character.sourceSelection?.mode === 'selected' &&
+            Array.isArray(character.sourceSelection.books) &&
+            character.sourceSelection.books.length === 0 && (
+              <p role="status">尚未允许任何书籍，请先选择可用资料。</p>
+            )}
+          {excluded.length > 0 && (
+            <details style={{ marginTop: 8, fontSize: 13 }}>
+              <summary>
+                有 {excluded.length}{' '}
+                项已选内容不在当前来源范围内，已保留；如需替换，请前往对应步骤。
+              </summary>
+              <ul>
+                {excluded.map((entry) => (
+                  <li key={entry.id}>
+                    {entry.name} · {getSourceDisplayName(entry.source)}
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
       {/* Progress Bar */}
       <div className={styles.progress}>
         <div className={styles.progress__bar}>

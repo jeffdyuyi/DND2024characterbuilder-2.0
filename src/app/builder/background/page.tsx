@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -104,6 +105,7 @@ const CollapsibleSection: React.FC<{ title: string; children: React.ReactNode }>
 };
 
 export default function BackgroundPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, updateActiveCharacter, loadCharacter } = useCharacterStore();
@@ -134,8 +136,8 @@ export default function BackgroundPage() {
   }, [character?.backgroundId]);
 
   const catalogBackgrounds = useMemo(() => {
-    return getCatalogBackgrounds();
-  }, [catalogStatus]);
+    return choices.getCatalogBackgrounds();
+  }, [catalogStatus, choices]);
 
   const selectedBackground = useMemo(() => {
     if (!character) return undefined;
@@ -146,7 +148,7 @@ export default function BackgroundPage() {
       ) ||
       catalogBackgrounds.find((b) => b.id === character.backgroundId)
     );
-  }, [character, catalogBackgrounds]);
+  }, [character, catalogBackgrounds, choices]);
 
   // Grouping logic
   const backgroundGroups = useMemo(() => {
@@ -162,7 +164,7 @@ export default function BackgroundPage() {
       groups[groupName].push(bg);
     });
     return groups;
-  }, [catalogBackgrounds]);
+  }, [catalogBackgrounds, choices]);
 
   const toggleGroup = (groupName: string) => {
     setExpandedSources((prev) =>
@@ -212,7 +214,7 @@ export default function BackgroundPage() {
       }
     }
     return selectedBackground;
-  }, [selectedBackground, character?.backgroundVariantId]);
+  }, [selectedBackground, character?.backgroundVariantId, choices]);
 
   const preSelectedLanguages = useMemo(() => {
     const langs: string[] = [];
@@ -247,9 +249,9 @@ export default function BackgroundPage() {
         selected.forEach((s) => {
           const sLow = s.toLowerCase();
           if (
-            ALL_GAME_LANGUAGES.some(
-              (pl) => pl.id.toLowerCase() === sLow || pl.nameEn.toLowerCase() === sLow,
-            )
+            choices
+              .getCatalogLanguages()
+              .some((pl) => pl.id.toLowerCase() === sLow || pl.nameEn.toLowerCase() === sLow)
           ) {
             langs.push(sLow);
           }
@@ -258,12 +260,12 @@ export default function BackgroundPage() {
     }
 
     return Array.from(new Set(langs));
-  }, [character]);
+  }, [character, choices]);
 
   const currentBackgroundDisplayName = useMemo(() => {
     if (!activeBackground) return '';
     return activeBackground.name;
-  }, [activeBackground]);
+  }, [activeBackground, choices]);
 
   const handleSelection = (choiceId: string, value: string, numToChoose: number = 1) => {
     if (!character) return;
@@ -353,17 +355,24 @@ export default function BackgroundPage() {
     );
     if (isAny) {
       if (category === 'language') {
-        options = ALL_GAME_LANGUAGES.filter((l) => {
-          const matchesCat = langCategory === 'All' || l.type === langCategory;
-          const hasSource = ALL_GAME_LANGUAGES.some(
-            (x) => (langCategory === 'All' || x.type === langCategory) && x.source === langSource,
-          );
-          const matchesSource = langSource === 'All' || !hasSource || l.source === langSource;
-          return matchesCat && matchesSource;
-        }).map((l) => l.id);
+        options = choices
+          .getCatalogLanguages()
+          .filter((l) => {
+            const matchesCat = langCategory === 'All' || l.type === langCategory;
+            const hasSource = choices
+              .getCatalogLanguages()
+              .some(
+                (x) =>
+                  (langCategory === 'All' || x.type === langCategory) && x.source === langSource,
+              );
+            const matchesSource = langSource === 'All' || !hasSource || l.source === langSource;
+            return matchesCat && matchesSource;
+          })
+          .map((l) => l.id);
       } else if (category === 'skill') options = ALL_SKILLS;
-      else options = getCatalogTools();
+      else options = choices.getCatalogTools();
     }
+    options = choices.filterOptions(options, category);
     const isComplete = chosen.length === selection.numToChoose;
 
     // 判断选项池是否跨越多个不同工具分类
@@ -518,9 +527,10 @@ export default function BackgroundPage() {
                 'All',
                 ...Array.from(
                   new Set(
-                    ALL_GAME_LANGUAGES.filter(
-                      (l) => langCategory === 'All' || l.type === langCategory,
-                    ).map((l) => l.source || 'Unknown'),
+                    choices
+                      .getCatalogLanguages()
+                      .filter((l) => langCategory === 'All' || l.type === langCategory)
+                      .map((l) => l.source || 'Unknown'),
                   ),
                 ),
               ].map((src) => (
@@ -538,21 +548,25 @@ export default function BackgroundPage() {
                     background:
                       langSource === src ||
                       (src === 'All' &&
-                        !ALL_GAME_LANGUAGES.some(
-                          (x) =>
-                            (langCategory === 'All' || x.type === langCategory) &&
-                            x.source === langSource,
-                        ))
+                        !choices
+                          .getCatalogLanguages()
+                          .some(
+                            (x) =>
+                              (langCategory === 'All' || x.type === langCategory) &&
+                              x.source === langSource,
+                          ))
                         ? '#34c759'
                         : 'transparent',
                     color:
                       langSource === src ||
                       (src === 'All' &&
-                        !ALL_GAME_LANGUAGES.some(
-                          (x) =>
-                            (langCategory === 'All' || x.type === langCategory) &&
-                            x.source === langSource,
-                        ))
+                        !choices
+                          .getCatalogLanguages()
+                          .some(
+                            (x) =>
+                              (langCategory === 'All' || x.type === langCategory) &&
+                              x.source === langSource,
+                          ))
                         ? 'white'
                         : '#86868b',
                     cursor: 'pointer',

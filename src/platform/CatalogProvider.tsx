@@ -11,7 +11,6 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useCharacterStore } from '@/store/characterStore';
-import { clearCache } from './catalogCache';
 import {
   CatalogStats,
   CatalogStatus,
@@ -72,10 +71,8 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
   };
 
   const handleCatalogRefresh = async () => {
-    // Catalog 使用独立 IndexedDB；角色存档位于 Local Storage，不在清理范围内。
-    await clearCache();
-    // 重载页面以清空内存 Catalog，随后初始化流程会从双远程数据源重新拉取。
-    window.location.reload();
+    // 成功下载后才替换对应缓存；失败文件保留旧副本。
+    await initCatalog({ force: true });
   };
 
   const isReady =

@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -77,6 +78,7 @@ const WEAPON_MAP: Record<string, string> = {
 const normalizeSkillId = (id: string) => id.replace(/\s+/g, '').toLowerCase();
 
 export default function MulticlassPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const charId = searchParams.get('id') || '';
   const {
@@ -103,7 +105,7 @@ export default function MulticlassPage() {
   const additionalClasses = currentClasses.slice(1);
   const totalLevel = currentClasses.reduce((acc, c) => acc + c.level, 0);
 
-  const abilityScores = useMemo(() => computeAbilityScores(character), [character]);
+  const abilityScores = useMemo(() => computeAbilityScores(character), [character, choices]);
 
   const updateActiveCharacter = (updates: any) => {
     if (charId) storeUpdateActiveCharacter(updates);
@@ -233,10 +235,10 @@ export default function MulticlassPage() {
     const selected = (character.classSelections || {})[choiceId] || [];
 
     if (category === 'language') {
-      const uniqueSources = Array.from(new Set(allLanguages.map((l) => l.source))).filter(
-        Boolean,
-      ) as string[];
-      const filteredLanguages = allLanguages.filter((l) => {
+      const uniqueSources = Array.from(
+        new Set(choices.getCatalogLanguages().map((l) => l.source)),
+      ).filter(Boolean) as string[];
+      const filteredLanguages = choices.getCatalogLanguages().filter((l) => {
         const categoryMatch = langCategory === 'All' || l.type === langCategory;
         const sourceMatch = langSource === 'All' || l.source === langSource;
 
@@ -563,20 +565,22 @@ export default function MulticlassPage() {
                             子职业选择 Subclass
                           </div>
                           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                            {def.subClassInfo.options.map((sc: any) => (
-                              <div
-                                key={sc.catalogId || sc.nameEn}
-                                className={`${styles.pill} ${mc.subclassId === sc.catalogId || mc.subclassId === sc.nameEn ? styles.pillActive : ''}`}
-                                onClick={() =>
-                                  handleSelectSubclass(
-                                    mc.classId,
-                                    sc.catalogId || sc.nameEn || sc.name,
-                                  )
-                                }
-                              >
-                                {sc.name}
-                              </div>
-                            ))}
+                            {choices
+                              .filterNested(def.subClassInfo.options, mc.classId)
+                              .map((sc: any) => (
+                                <div
+                                  key={sc.catalogId || sc.nameEn}
+                                  className={`${styles.pill} ${mc.subclassId === sc.catalogId || mc.subclassId === sc.nameEn ? styles.pillActive : ''}`}
+                                  onClick={() =>
+                                    handleSelectSubclass(
+                                      mc.classId,
+                                      sc.catalogId || sc.nameEn || sc.name,
+                                    )
+                                  }
+                                >
+                                  {sc.name}
+                                </div>
+                              ))}
                           </div>
                         </div>
                       )}
@@ -642,7 +646,8 @@ export default function MulticlassPage() {
                     gap: 12,
                   }}
                 >
-                  {getCatalogClasses()
+                  {choices
+                    .getCatalogClasses()
                     .filter(
                       (c: any) =>
                         !currentClasses.some(

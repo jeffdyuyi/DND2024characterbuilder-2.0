@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -45,6 +46,7 @@ const HybridProficiencyPicker: React.FC<HybridProficiencyPickerProps> = ({
   currentSelected,
   onChange,
 }) => {
+  const choices = useBuilderChoices();
   const [activeTab, setActiveTab] = useState<'skills' | 'tools'>('skills');
 
   const selectedSkills = currentSelected.filter((id) => ALL_SKILLS.includes(id));
@@ -125,7 +127,7 @@ const HybridProficiencyPicker: React.FC<HybridProficiencyPickerProps> = ({
 
       {/* 选项 PillButtons */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-        {(activeTab === 'skills' ? ALL_SKILLS : ALL_TOOLS).map((id) => {
+        {(activeTab === 'skills' ? ALL_SKILLS : choices.getCatalogTools()).map((id) => {
           const isChosen = currentSelected.includes(id);
           return (
             <PillButton
@@ -168,6 +170,7 @@ const TraitItem = ({
   children?: React.ReactNode;
   speciesId: string;
 }) => {
+  const choices = useBuilderChoices();
   const [featCategory, setFeatCategory] = useState<string>('All'); // 专长筛选分类 (All 表示全部分类)
   const [featSource, setFeatSource] = useState<string>('XPHB'); // 专长筛选来源 (默认 2024 玩家手册)
   const [langSource, setLangSource] = useState<string>('XPHB'); // 语言筛选来源 (默认 2024 玩家手册)
@@ -521,7 +524,7 @@ const TraitItem = ({
 
             if (isAny) {
               if (type === 'skill') optionsList = ALL_SKILLS;
-              else if (type === 'tool') optionsList = ALL_TOOLS;
+              else if (type === 'tool') optionsList = choices.getCatalogTools();
             }
 
             if (type === 'resistance') {
@@ -532,22 +535,27 @@ const TraitItem = ({
             if (type === 'language') {
               const effectiveLangSource =
                 langSource !== 'All' &&
-                ALL_GAME_LANGUAGES.some(
-                  (l) =>
-                    l.type === 'Standard' &&
-                    (l.source === langSource ||
-                      getSourceDisplayName(l.source || '') === langSource),
-                )
+                choices
+                  .getCatalogLanguages()
+                  .some(
+                    (l) =>
+                      l.type === 'Standard' &&
+                      (l.source === langSource ||
+                        getSourceDisplayName(l.source || '') === langSource),
+                  )
                   ? langSource
                   : 'All';
-              optionsList = ALL_GAME_LANGUAGES.filter(
-                (l) =>
-                  l.type === 'Standard' &&
-                  l.id !== 'common' &&
-                  (effectiveLangSource === 'All' ||
-                    l.source === effectiveLangSource ||
-                    getSourceDisplayName(l.source || '') === effectiveLangSource),
-              ).map((l) => l.id);
+              optionsList = choices
+                .getCatalogLanguages()
+                .filter(
+                  (l) =>
+                    l.type === 'Standard' &&
+                    l.id !== 'common' &&
+                    (effectiveLangSource === 'All' ||
+                      l.source === effectiveLangSource ||
+                      getSourceDisplayName(l.source || '') === effectiveLangSource),
+                )
+                .map((l) => l.id);
             }
 
             return (
@@ -624,9 +632,10 @@ const TraitItem = ({
                     {(() => {
                       const availableSources = Array.from(
                         new Set(
-                          ALL_GAME_LANGUAGES.filter((l) => l.type === 'Standard').map((l) =>
-                            getSourceDisplayName(l.source || 'Unknown'),
-                          ),
+                          choices
+                            .getCatalogLanguages()
+                            .filter((l) => l.type === 'Standard')
+                            .map((l) => getSourceDisplayName(l.source || 'Unknown')),
                         ),
                       );
                       return ['全部', ...availableSources].map((displayName) => (
@@ -645,9 +654,10 @@ const TraitItem = ({
                             else {
                               // 反向寻找第一个匹配该中文名的 source ID
                               const originalId =
-                                ALL_GAME_LANGUAGES.find(
-                                  (l) => getSourceDisplayName(l.source || '') === displayName,
-                                )?.source || displayName;
+                                choices
+                                  .getCatalogLanguages()
+                                  .find((l) => getSourceDisplayName(l.source || '') === displayName)
+                                  ?.source || displayName;
                               setLangSource(originalId);
                             }
                           }}
@@ -659,7 +669,7 @@ const TraitItem = ({
                   </div>
                 )}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {optionsList.map((opt: string) => {
+                  {choices.filterOptions(optionsList, type).map((opt: string) => {
                     const label =
                       type === 'resistance'
                         ? SPECIES_RESISTANCE_TRANSLATION[opt.toLowerCase()] || opt
@@ -755,7 +765,7 @@ const TraitItem = ({
                 const allowBrew = Boolean(character?.allowHomebrew);
                 if (s.filter) {
                   const filters = s.filter.split(';');
-                  let filtered = getCatalogSpells({ allowHomebrew: allowBrew }) as any[];
+                  let filtered = choices.getCatalogSpells({ allowHomebrew: allowBrew }) as any[];
 
                   filters.forEach((f: string) => {
                     const [key, val] = f.split(':');
@@ -784,7 +794,7 @@ const TraitItem = ({
                     }
                   });
                   if (optionsList.length > 0) {
-                    const catalogSpells = getCatalogSpells({ allowHomebrew: allowBrew });
+                    const catalogSpells = choices.getCatalogSpells({ allowHomebrew: allowBrew });
                     optionsList.forEach((id: string) => {
                       if (!filtered.some((sp) => sp.id === id)) {
                         const extra = catalogSpells.find((sp) => sp.id === id);
@@ -795,7 +805,7 @@ const TraitItem = ({
                   filteredSpells = filtered;
                   optionsList = filtered.map((sp: any) => sp.id);
                 } else if (optionsList.length > 0) {
-                  const catalogSpells = getCatalogSpells({ allowHomebrew: allowBrew });
+                  const catalogSpells = choices.getCatalogSpells({ allowHomebrew: allowBrew });
                   filteredSpells = optionsList
                     .map((id: string) => catalogSpells.find((sp) => sp.id === id))
                     .filter(Boolean);
@@ -1166,7 +1176,7 @@ const TraitItem = ({
                   const isTypeOrigin =
                     data.filter === 'type:origin' ||
                     (!isTypeAny && (!data.options || data.options.length === 0));
-                  const catalogFeats = getCatalogFeats();
+                  const catalogFeats = choices.getCatalogFeats();
 
                   let baseFeats = catalogFeats;
                   if (data.options && data.options.length > 0) {
@@ -1552,8 +1562,12 @@ const SubSpeciesSpellChoicePicker = ({
   allowHomebrew?: boolean;
   onToggleHomebrew?: () => void;
 }) => {
+  const choices = useBuilderChoices();
   const [sourceFilter, setSourceFilter] = useState<string>('2024 玩家手册');
-  const catalogSpells = useMemo(() => getCatalogSpells({ allowHomebrew }), [allowHomebrew]);
+  const catalogSpells = useMemo(
+    () => choices.getCatalogSpells({ allowHomebrew }),
+    [allowHomebrew, choices],
+  );
 
   const candidateSpells = useMemo(() => {
     let list: any[] = [];
@@ -1609,8 +1623,8 @@ const SubSpeciesSpellChoicePicker = ({
         })
         .filter(Boolean);
     }
-    return list;
-  }, [choice, catalogSpells]);
+    return list.filter((spell) => choices.allows(spell, ['spell']));
+  }, [choice, catalogSpells, choices]);
 
   const availableSources = useMemo(() => {
     return Array.from(
@@ -1621,19 +1635,19 @@ const SubSpeciesSpellChoicePicker = ({
       if (wA !== wB) return wA - wB;
       return a.localeCompare(b, 'zh-Hans-CN');
     });
-  }, [candidateSpells]);
+  }, [candidateSpells, choices]);
 
   const effectiveSourceFilter = useMemo(() => {
     if (sourceFilter === 'All') return 'All';
     if (availableSources.includes(sourceFilter)) return sourceFilter;
     return 'All';
-  }, [sourceFilter, availableSources]);
+  }, [sourceFilter, availableSources, choices]);
 
   const displaySpells = useMemo(() => {
     return effectiveSourceFilter === 'All'
       ? candidateSpells
       : candidateSpells.filter((sp) => getSourceDisplayName(sp.source) === effectiveSourceFilter);
-  }, [candidateSpells, effectiveSourceFilter]);
+  }, [candidateSpells, effectiveSourceFilter, choices]);
 
   const activeSpell = candidateSpells.find(
     (sp) => sp.id === activeSpellId || sp.name === activeSpellId,
@@ -1921,6 +1935,7 @@ const TraitSpellList = ({
 };
 
 export default function SpeciesPage() {
+  const choices = useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, updateActiveCharacter, loadCharacter } = useCharacterStore();
@@ -1942,8 +1957,8 @@ export default function SpeciesPage() {
   }, [character?.speciesId, character?.speciesSource]);
 
   const availableSpecies = useMemo(() => {
-    return getCatalogSpecies();
-  }, [catalogStats.sources.fiveetoolsCn.entries, catalogStats.sources.homebrew.entries]);
+    return choices.getCatalogSpecies();
+  }, [catalogStats.sources.fiveetoolsCn.entries, catalogStats.sources.homebrew.entries, choices]);
 
   const selectedSpecies = useMemo(
     () =>
@@ -1954,7 +1969,7 @@ export default function SpeciesPage() {
           ) ||
           availableSpecies.find((s) => s.id === character.speciesId)
         : undefined,
-    [character, availableSpecies],
+    [character, availableSpecies, choices],
   );
 
   // 计算当前种族最终生效的特质列表
@@ -2369,7 +2384,7 @@ export default function SpeciesPage() {
       }
     }
     return deduplicated;
-  }, [selectedSpecies, character?.subspeciesId]);
+  }, [selectedSpecies, character?.subspeciesId, choices]);
 
   // 计算最终生效的感官 (考虑亚种/特质带来的 senseUpgrade)
   const effectiveSenses = useMemo(() => {
@@ -2407,7 +2422,7 @@ export default function SpeciesPage() {
       }
     });
     return senses;
-  }, [selectedSpecies, effectiveTraits, character?.subspeciesId]);
+  }, [selectedSpecies, effectiveTraits, character?.subspeciesId, choices]);
 
   // 计算最终生效的速度 (考虑亚种/特质带来的 speedBonus)
   const effectiveSpeed = useMemo(() => {
@@ -2435,7 +2450,7 @@ export default function SpeciesPage() {
       }
     });
     return speed + appliedBonus;
-  }, [selectedSpecies, effectiveTraits, character?.subspeciesId]);
+  }, [selectedSpecies, effectiveTraits, character?.subspeciesId, choices]);
 
   const availableSources = useMemo(() => {
     return Array.from(new Set(availableSpecies.map((s) => s.source))).sort((a, b) => {
@@ -2444,7 +2459,7 @@ export default function SpeciesPage() {
       if (wA !== wB) return wA - wB;
       return a.localeCompare(b);
     });
-  }, [availableSpecies]);
+  }, [availableSpecies, choices]);
 
   if (!character) return <div className={styles.emptyState}>加载中...</div>;
 
@@ -2951,7 +2966,7 @@ export default function SpeciesPage() {
 
     // 按书籍来源对亚种选项进行分组聚合
     const sourceMap = new Map<string, SubSpecies[]>();
-    sub.options.forEach((opt) => {
+    choices.filterNested(sub.options, species.id).forEach((opt) => {
       const src = (opt.source || species.source || 'PHB').toUpperCase();
       if (!sourceMap.has(src)) {
         sourceMap.set(src, []);

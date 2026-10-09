@@ -1,3 +1,4 @@
+import type { CatalogQueryOptions } from '../types';
 /**
  * Catalog Feat Adapter
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18、§51
@@ -8,7 +9,7 @@
  * 3. 维护稳定全局 ID 与旧版短 ID、英文名、中文名别名映射。
  */
 
-import { CatalogEntry, Edition } from '../types';
+import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
 import { Feat } from '@/types/feat';
 
@@ -87,11 +88,11 @@ export function catalogEntryToFeat(entry: CatalogEntry): Feat {
  * 获取 Catalog 中注册的所有专长
  * 合并策略：按英文原名/规范化标识去重，5etools 来源优先，Legacy 作为兜底
  */
-export function getCatalogFeats(options?: {
-  edition?: Edition;
-  category?: string;
-  source?: string;
-}): Feat[] {
+export function getCatalogFeats(
+  options?: CatalogQueryOptions & {
+    category?: string;
+  },
+): Feat[] {
   const entries = defaultCatalog.list('feat', options);
   const feats: Feat[] = [];
   const seenKeys = new Set<string>();

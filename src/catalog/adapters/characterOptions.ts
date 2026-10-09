@@ -1,3 +1,4 @@
+import type { CatalogQueryOptions } from '../types';
 import { defaultCatalog } from '../catalog';
 import { CatalogEntry, EntryKind } from '../types';
 
@@ -51,13 +52,14 @@ export function catalogEntryToCharacterOption(entry: CatalogEntry): CharacterOpt
   };
 }
 
-export function getCatalogCharacterOptions(options?: {
-  kind?: CharacterOptionKind;
-  source?: string;
-}): CharacterOptionDefinition[] {
+export function getCatalogCharacterOptions(
+  options?: CatalogQueryOptions & {
+    kind?: CharacterOptionKind;
+  },
+): CharacterOptionDefinition[] {
   const kinds: EntryKind[] = options?.kind ? [options.kind] : [...CHARACTER_OPTION_KINDS];
   return kinds
-    .flatMap((kind) => defaultCatalog.list(kind, { source: options?.source }))
+    .flatMap((kind) => defaultCatalog.list(kind, options))
     .map(catalogEntryToCharacterOption)
     .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
 }
@@ -69,8 +71,13 @@ export function getCatalogCharacterOptions(options?: {
 export function getCatalogOptionalFeatures(
   featureType?: string,
   source?: string,
+  options?: CatalogQueryOptions,
 ): CharacterOptionDefinition[] {
-  const all = getCatalogCharacterOptions({ kind: 'optionalfeature', source });
+  const all = getCatalogCharacterOptions({
+    ...options,
+    kind: 'optionalfeature',
+    source: source ?? options?.source,
+  });
   if (!featureType) return all;
   const target = featureType.toUpperCase();
   return all.filter((opt) => opt.featureTypes.some((t) => t.toUpperCase() === target));

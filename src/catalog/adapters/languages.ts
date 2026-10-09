@@ -1,3 +1,4 @@
+import type { CatalogQueryOptions } from '../types';
 /**
  * Catalog Language Adapter
  * 统一将 CatalogEntry (5etools) 与本地兜底转为 UI 和规则引擎使用的 Language 接口。
@@ -50,7 +51,10 @@ export function catalogEntryToLanguage(entry: CatalogEntry): Language {
  * 获取全量语言清单
  * 融合 5etools Catalog 动态条目与本地权威兜底列表，确保语言库完整且中文译名不丢失。
  */
-export function getCatalogLanguages(): Language[] {
+export function getCatalogLanguages(options?: CatalogQueryOptions): Language[] {
+  if (options?.sourcePolicy || options?.source || options?.edition) {
+    return defaultCatalog.list('language', options).map(catalogEntryToLanguage);
+  }
   const map = new Map<string, Language>();
 
   // 1. 先载入本地完备的权威兜底字典 (覆盖所有 PHB/XPHB/方言/第三方语言，译名完备)

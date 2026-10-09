@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { getCatalogSpells } from '@/catalog';
@@ -328,6 +329,7 @@ interface SpellListProps {
 }
 
 export default function SpellList({ character }: SpellListProps) {
+  const choices = useBuilderChoices();
   const { status: catalogStatus } = useCatalog();
   const { updateActiveCharacter } = useCharacterStore();
   const [activeStepIndex, setActiveStepIndex] = useState(0);
@@ -353,7 +355,7 @@ export default function SpellList({ character }: SpellListProps) {
   const progressionSteps = useMemo(() => {
     if (!activeClassId) return [];
     return computeSpellProgression(character, activeClassId);
-  }, [character, activeClassId]);
+  }, [character, activeClassId, choices]);
 
   const currentStep = progressionSteps[activeStepIndex];
 
@@ -366,7 +368,7 @@ export default function SpellList({ character }: SpellListProps) {
       if (sel.replaced) set.add(sel.replaced);
     });
     return set;
-  }, [currentClassSelections]);
+  }, [currentClassSelections, choices]);
 
   const allSelectionsFromProgression = useMemo(() => {
     const cantrips: string[] = [];
@@ -392,7 +394,7 @@ export default function SpellList({ character }: SpellListProps) {
         });
     });
     return { cantrips, spells };
-  }, [currentClassSelections, replacedSpellIds]);
+  }, [currentClassSelections, replacedSpellIds, choices]);
 
   // 收集在当前等级之前已选的旧戏法（排除了在其他等级已被替换的戏法）
   const previousPreparedCantrips = useMemo(() => {
@@ -424,7 +426,7 @@ export default function SpellList({ character }: SpellListProps) {
     return Array.from(new Set(availableIds))
       .map((id) => getSpellDefinition(id))
       .filter(Boolean) as Spell[];
-  }, [currentClassSelections, currentStep]);
+  }, [currentClassSelections, currentStep, choices]);
 
   // 收集在当前等级之前已选的旧法术(1阶+)（排除了在其他等级已被替换的法术）
   const previousPreparedSpells = useMemo(() => {
@@ -457,7 +459,7 @@ export default function SpellList({ character }: SpellListProps) {
     return Array.from(new Set(availableIds))
       .map((id) => getSpellDefinition(id))
       .filter(Boolean) as Spell[];
-  }, [currentClassSelections, currentStep]);
+  }, [currentClassSelections, currentStep, choices]);
 
   const sel = currentStep
     ? currentClassSelections[currentStep.level] || { cantrips: [], spells: [], extra: {} }
@@ -577,8 +579,8 @@ export default function SpellList({ character }: SpellListProps) {
   const [sourceFilter, setSourceFilter] = useState<string | null>('2024 玩家手册');
 
   const allSpells = useMemo(() => {
-    return getCatalogSpells({ allowHomebrew: Boolean(character?.allowHomebrew) });
-  }, [catalogStatus, character?.allowHomebrew]);
+    return choices.getCatalogSpells({ allowHomebrew: Boolean(character?.allowHomebrew) });
+  }, [catalogStatus, character?.allowHomebrew, choices]);
 
   const availableSpellsForStep = useMemo(() => {
     if (!currentStep) return [];
@@ -635,7 +637,7 @@ export default function SpellList({ character }: SpellListProps) {
       if (!uniqueMap.has(s.id)) uniqueMap.set(s.id, s);
     });
     return Array.from(uniqueMap.values());
-  }, [currentStep, currentClassDef, allSpells]);
+  }, [currentStep, currentClassDef, allSpells, choices]);
 
   const availableSources = useMemo(() => {
     const s = new Set<string>();
@@ -648,16 +650,16 @@ export default function SpellList({ character }: SpellListProps) {
       if (wA !== wB) return wA - wB;
       return a.localeCompare(b, 'zh-Hans-CN');
     });
-  }, [availableSpellsForStep]);
+  }, [availableSpellsForStep, choices]);
 
   const filteredSpells = useMemo(() => {
     const effective = sourceFilter && availableSources.includes(sourceFilter) ? sourceFilter : null;
     if (!effective) return availableSpellsForStep;
     return availableSpellsForStep.filter((s) => translateSource(s.source) === effective);
-  }, [availableSpellsForStep, sourceFilter]);
+  }, [availableSpellsForStep, sourceFilter, choices]);
 
-  const innateSpells = useMemo(() => getInnateSpells(character), [character]);
-  const innateSpellIds = useMemo(() => innateSpells.map((s) => s.spellId), [innateSpells]);
+  const innateSpells = useMemo(() => getInnateSpells(character), [character, choices]);
+  const innateSpellIds = useMemo(() => innateSpells.map((s) => s.spellId), [innateSpells, choices]);
 
   const getSpellbookForWizard = useMemo(() => {
     if (currentClassDef?.nameEn !== 'Wizard') return [];
@@ -669,7 +671,7 @@ export default function SpellList({ character }: SpellListProps) {
         });
     });
     return book;
-  }, [currentClassSelections, currentClassDef]);
+  }, [currentClassSelections, currentClassDef, choices]);
 
   const isStepComplete = (index: number) => {
     const step = progressionSteps[index];

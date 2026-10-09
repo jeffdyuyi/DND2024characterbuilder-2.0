@@ -189,8 +189,8 @@ export class FiveEToolsCnSource implements RuleSource {
     const contentLength = Number(response.headers.get('Content-Length'));
     if (Number.isFinite(contentLength)) this.diagnostics.downloadedBytes += contentLength;
 
-    // 异步写入缓存（按 primaryUrl 存储作为规范 key）
-    writeCache(primaryUrl, {
+    // 等待缓存事务结束后再报告下载结束，管理面板可读取最终持久化状态。
+    await writeCache(primaryUrl, {
       body,
       revision,
       cachedAt: fetchedAt,

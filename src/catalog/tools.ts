@@ -1,3 +1,4 @@
+import type { CatalogQueryOptions } from './types';
 /**
  * 全量 5etools 工具集管理与提取服务 (Tools Service)
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §8、§9、§18
@@ -21,6 +22,8 @@ export interface CatalogToolEntry {
   source: string;
   isHomebrew?: boolean;
   aliasId?: string;
+  sourcePackId?: string;
+  catalogId?: string;
 }
 
 // 1. 全量官方工匠工具 (17种标准工匠工具)
@@ -220,7 +223,7 @@ export function invalidateCatalogToolCache(): void {
  * 严禁硬编码；严格过滤魔法物品变体；相同工具同时存在于多个来源 (如 2024 XPHB 与 2014 PHB) 时予以来源区分
  * 引入惰性单例缓存，在 Catalog 数据无变化时直接 O(1) 返回，保障真实用户端与开发端极致流畅
  */
-export function getCatalogToolEntries(): CatalogToolEntry[] {
+function getAllCatalogToolEntries(): CatalogToolEntry[] {
   const rawItems = defaultCatalog.list('item');
   const rawBaseItems = defaultCatalog.list('baseitem');
   const currentFingerprint = `${rawItems.length}:${rawBaseItems.length}`;
@@ -236,6 +239,7 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
     source: string;
     isHomebrew?: boolean;
     entryId?: string;
+    sourcePackId: string;
   }
 
   const rawEntries = [...rawItems, ...rawBaseItems];
@@ -265,7 +269,7 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
     const source = String(entry.source || raw.source || 'PHB').toUpperCase();
     const normKey = rawEn.toLowerCase().trim();
 
-    const dedupKey = `${normKey}:::${source}`;
+    const dedupKey = `${entry.sourcePackId}:::${normKey}:::${source}`;
     if (!dedupSet.has(dedupKey)) {
       dedupSet.add(dedupKey);
       candidates.push({
@@ -276,6 +280,7 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
         source,
         isHomebrew: entry.isHomebrew,
         entryId: entry.id,
+        sourcePackId: entry.sourcePackId,
       });
     }
   }
@@ -293,6 +298,7 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
           nameEn: id.charAt(0).toUpperCase() + id.slice(1),
           category: cat,
           source: 'PHB',
+          sourcePackId: 'legacy',
         });
       }
     }
@@ -317,7 +323,15 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
   const result: CatalogToolEntry[] = candidates.map((item) => {
     const multiSources = keySourcesMap.get(item.normKey)!.size > 1;
     const sourceDisplay = getSourceDisplayName(item.source);
-    const id = multiSources ? `${item.normKey}|${item.source.toLowerCase()}` : item.normKey;
+    const duplicateSource = candidates.some(
+      (other) => other !== item && other.normKey === item.normKey && other.source === item.source,
+    );
+    const id =
+      duplicateSource && item.entryId
+        ? item.entryId
+        : multiSources
+          ? `${item.normKey}|${item.source.toLowerCase()}`
+          : item.normKey;
     const name = multiSources ? `${item.name} [${sourceDisplay}]` : item.name;
 
     const cleanEntryId = item.entryId
@@ -332,6 +346,8 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
       nameEn: item.nameEn,
       category: item.category,
       source: item.source,
+      sourcePackId: item.sourcePackId,
+      catalogId: item.entryId,
       isHomebrew: item.isHomebrew,
       ...(cleanEntryId && cleanEntryId !== id && !cleanEntryId.includes('%')
         ? { aliasId: cleanEntryId }
@@ -360,8 +376,20 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
 /**
  * 动态从 5etools Catalog 获取指定类别的全量工具清单 (支持官方扩展书与第三方 Homebrew)
  */
-export function getCatalogTools(category?: ToolCategory): string[] {
-  const entries = getCatalogToolEntries();
+export function getCatalogToolEntries(options?: CatalogQueryOptions): CatalogToolEntry[] {
+  const entries = getAllCatalogToolEntries();
+  if (!options?.sourcePolicy && !options?.source && !options?.edition) return entries;
+  const allowedIds = new Set(
+    [...defaultCatalog.list('item', options), ...defaultCatalog.list('baseitem', options)].map(
+      (entry) => entry.id,
+    ),
+  );
+  // 限定书籍时只提供可核验出处的 Catalog 工具，不把本地兜底伪装成已加载书籍。
+  return entries.filter((entry) => entry.catalogId && allowedIds.has(entry.catalogId));
+}
+
+export function getCatalogTools(category?: ToolCategory, options?: CatalogQueryOptions): string[] {
+  const entries = getCatalogToolEntries(options);
   const filtered = category ? entries.filter((e) => e.category === category) : entries;
   const ids = new Set<string>();
   for (const e of filtered) {

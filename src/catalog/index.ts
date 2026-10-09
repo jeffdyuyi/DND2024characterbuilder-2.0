@@ -1,4 +1,5 @@
 export * from './types';
+export * from './sourcePolicy';
 export * from './identity';
 export * from './references';
 export * from './catalog';

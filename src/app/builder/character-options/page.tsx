@@ -1,4 +1,5 @@
 'use client';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -19,6 +20,7 @@ const FILTERS: Array<{ key: 'all' | CharacterOptionKind; label: string }> = [
 ];
 
 export default function CharacterOptionsPage() {
+  const choices = useBuilderChoices();
   const id = useSearchParams().get('id');
   const { characters, loadCharacter, updateActiveCharacter } = useCharacterStore();
   const { status } = useCatalog();
@@ -26,7 +28,7 @@ export default function CharacterOptionsPage() {
   const [filter, setFilter] = useState<'all' | CharacterOptionKind>('all');
   const [query, setQuery] = useState('');
   const [selectedId, setSelectedId] = useState<string>();
-  const all = useMemo(() => getCatalogCharacterOptions(), [status]);
+  const all = useMemo(() => choices.getCatalogCharacterOptions(), [status, choices]);
   const visible = useMemo(
     () =>
       all.filter((option) => {
@@ -39,9 +41,10 @@ export default function CharacterOptionsPage() {
             .includes(needle)
         );
       }),
-    [all, filter, query],
+    [all, filter, query, choices],
   );
-  const selected = all.find((option) => option.id === selectedId) || visible[0];
+  const selected =
+    getCatalogCharacterOptions().find((option) => option.id === selectedId) || visible[0];
 
   useEffect(() => {
     if (id) loadCharacter(id);
@@ -82,6 +85,19 @@ export default function CharacterOptionsPage() {
               </option>
             ))}
           </select>
+          {(character?.selectedCharacterOptionIds || [])
+            .filter((ref) => !all.some((option) => option.id === ref))
+            .map((ref) => (
+              <button
+                key={ref}
+                type="button"
+                onClick={() => setSelectedId(ref)}
+                style={{ display: 'block', marginBottom: 8 }}
+              >
+                已选（当前范围外）：
+                {getCatalogCharacterOptions().find((option) => option.id === ref)?.name || ref}
+              </button>
+            ))}
           {visible.map((option) => (
             <OptionCard
               key={option.id}
@@ -117,6 +133,9 @@ export default function CharacterOptionsPage() {
                 </p>
               )}
               <button
+                disabled={
+                  !chosen.includes(selected.id) && !all.some((option) => option.id === selected.id)
+                }
                 onClick={() => toggle(selected.id)}
                 style={{ marginTop: 20, padding: '10px 18px', borderRadius: 8 }}
               >
