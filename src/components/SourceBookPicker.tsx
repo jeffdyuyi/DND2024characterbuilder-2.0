@@ -32,6 +32,18 @@ export default function SourceBookPicker({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
+  const brewStatus = stats.sources.homebrew;
+  const brewBusy = loading || brewStatus.state === 'loading';
+  const brewStates: Record<string, string> = {
+    idle: '尚未加载',
+    loading: '加载中',
+    ready: '索引已就绪',
+    complete: '加载完成',
+    partial: '部分可用',
+    error: '加载失败',
+    empty: '无可用条目',
+    disabled: '数据源未启用',
+  };
   let selection: SourceSelection;
   try {
     selection = validateSourceSelection(value.sourceSelection || { mode: 'all' });
@@ -66,7 +78,7 @@ export default function SourceBookPicker({
     });
   };
   const loadBrew = async () => {
-    if (loading) return;
+    if (brewBusy) return;
     setLoading(true);
     setError('');
     try {
@@ -172,11 +184,46 @@ export default function SourceBookPicker({
             {!isComplete && (
               <p role="status">资源尚未全部就绪，书目会随加载更新；未载入的已选书籍会保留。</p>
             )}
-            {loading && <p role="status">正在加载第三方资源…</p>}
+            <section className={styles.brewStatus} aria-label="第三方资料加载状态">
+              <strong>第三方资料 · {brewStates[brewStatus.state] || brewStatus.state}</strong>
+              <p role="status">
+                {brewStatus.message ||
+                  (brewStatus.entries > 0
+                    ? '已载入资源可在下方选择。'
+                    : '尚未载入第三方内容。启用第三方只控制使用权限，书目需加载后生成。')}
+              </p>
+              <p>
+                文件成功 {brewStatus.loadedFiles}/{brewStatus.expectedFiles} · 失败{' '}
+                {brewStatus.failedFiles} · 已注册 {brewStatus.entries} 条
+              </p>
+              {brewStatus.state === 'loading' && brewStatus.expectedFiles > 0 && (
+                <progress
+                  aria-label="第三方文件处理进度"
+                  max={brewStatus.expectedFiles}
+                  value={brewStatus.loadedFiles + brewStatus.failedFiles}
+                />
+              )}
+              {!value.allowHomebrew && <p>本角色未启用第三方资料；已下载缓存仍会保留。</p>}
+              <button
+                type="button"
+                disabled={brewBusy || !value.allowHomebrew}
+                onClick={() => void loadBrew()}
+              >
+                {brewBusy
+                  ? '正在加载…'
+                  : brewStatus.state === 'error' || brewStatus.state === 'partial'
+                    ? '重试加载第三方资料'
+                    : '加载第三方资料（复用缓存）'}
+              </button>
+            </section>
             {error && (
               <p role="alert">
                 {error}
-                <button type="button" disabled={loading} onClick={() => void loadBrew()}>
+                <button
+                  type="button"
+                  disabled={brewBusy || !value.allowHomebrew}
+                  onClick={() => void loadBrew()}
+                >
                   重试
                 </button>
               </p>
@@ -184,31 +231,53 @@ export default function SourceBookPicker({
             <div className={styles.books}>
               {[false, true].map((brew) => (
                 <fieldset key={String(brew)} disabled={brew && !value.allowHomebrew}>
-                  <legend>{brew ? '第三方资料' : '官方资料'}</legend>
-                  {books
-                    .filter(
+                  <legend>
+                    {brew ? '第三方资料' : '官方资料'} ·{' '}
+                    {books.filter((book) => book.isHomebrew === brew).length} 本
+                  </legend>
+                  <div className={styles.grid}>
+                    {books
+                      .filter(
+                        (book) =>
+                          book.isHomebrew === brew &&
+                          `${getSourceDisplayName(book.source)} ${book.source} ${book.sourcePackId}`
+                            .toLowerCase()
+                            .includes(query.toLowerCase()),
+                      )
+                      .map((book) => (
+                        <label className={styles.book} key={sourceBookKey(book)}>
+                          <input
+                            type="checkbox"
+                            checked={selectedKeys.has(sourceBookKey(book))}
+                            onChange={(event) => toggle(book, event.target.checked)}
+                          />
+                          <span>
+                            {getSourceDisplayName(book.source)}{' '}
+                            <small>
+                              {book.source} · {book.sourcePackId} ·{' '}
+                              {book.entryCount ? `${book.entryCount} 条` : '尚未载入'}
+                            </small>
+                          </span>
+                        </label>
+                      ))}
+                  </div>
+                  {!books.some((book) => book.isHomebrew === brew) && (
+                    <p>
+                      {brew
+                        ? brewBusy
+                          ? '正在加载，下载与依赖解析完成后将在此生成书籍卡片。'
+                          : '尚无已加载的第三方书目，请查看上方状态并加载资料。'
+                        : '暂无已加载的官方书目。'}
+                    </p>
+                  )}
+                  {books.some((book) => book.isHomebrew === brew) &&
+                    !books.some(
                       (book) =>
                         book.isHomebrew === brew &&
                         `${getSourceDisplayName(book.source)} ${book.source} ${book.sourcePackId}`
                           .toLowerCase()
                           .includes(query.toLowerCase()),
-                    )
-                    .map((book) => (
-                      <label className={styles.book} key={sourceBookKey(book)}>
-                        <input
-                          type="checkbox"
-                          checked={selectedKeys.has(sourceBookKey(book))}
-                          onChange={(event) => toggle(book, event.target.checked)}
-                        />
-                        <span>
-                          {getSourceDisplayName(book.source)}{' '}
-                          <small>
-                            {book.source} · {book.sourcePackId} ·{' '}
-                            {book.entryCount ? `${book.entryCount} 条` : '尚未载入'}
-                          </small>
-                        </span>
-                      </label>
-                    ))}
+                    ) && <p>没有匹配的书籍，请调整搜索词。</p>}
                 </fieldset>
               ))}
               {books.length === 0 && <p>暂无已加载书籍，请等待数据加载。</p>}

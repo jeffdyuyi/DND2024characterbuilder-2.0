@@ -308,6 +308,7 @@ class CatalogLoaderService {
   }): Promise<void> {
     if (!this.homebrewLoader) return;
     this.sources.homebrew.state = 'loading';
+    this.sources.homebrew.message = '正在读取第三方资源索引…';
     this.notify();
     try {
       const manifest = await this.discoverHomebrew(options);
@@ -320,7 +321,7 @@ class CatalogLoaderService {
           loadedFiles: 0,
           expectedFiles: manifest.entries.length,
           entries: 0,
-          message: `扩展清单就绪（${manifest.entries.length} 个文件，按需即时载入）`,
+          message: `仅扩展索引就绪（${manifest.entries.length} 个文件）；请点击加载第三方资料下载并解析书目。`,
         });
         return;
       }
@@ -360,6 +361,11 @@ class CatalogLoaderService {
         .map((entry) => entry.path);
       const excludedFiles = manifest.entries.length - paths.length;
       this.sources.homebrew.expectedFiles = paths.length;
+      this.sources.homebrew.loadedFiles = 0;
+      this.sources.homebrew.failedFiles = 0;
+      this.sources.homebrew.message =
+        '正在下载第三方文件，下载后统一解析跨文件依赖；书目暂未生成。';
+      this.notify();
       if (paths.length === 0) {
         Object.assign(this.sources.homebrew, {
           state: 'empty',
@@ -370,7 +376,20 @@ class CatalogLoaderService {
         });
         return;
       }
-      const result = await this.homebrewLoader.loadClassFiles(paths, options);
+      const result = await this.homebrewLoader.loadClassFiles(paths, {
+        ...options,
+        onProgress: ({ loadedFiles, failedFiles, phase }) => {
+          Object.assign(this.sources.homebrew, {
+            loadedFiles,
+            failedFiles,
+            message:
+              phase === 'parse'
+                ? '文件下载阶段结束，正在解析条目与跨文件依赖；完成后更新书目。'
+                : `正在下载第三方文件：已处理 ${loadedFiles + failedFiles}/${paths.length}，失败 ${failedFiles}；下载后统一解析书目。`,
+          });
+          this.notify();
+        },
+      });
       this.counts.spells = this.catalog.list('spell').length;
       this.counts.classes = this.catalog.list('class').length;
       this.counts.subclasses = this.catalog.list('subclass').length;

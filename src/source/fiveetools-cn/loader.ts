@@ -387,20 +387,43 @@ export class FiveEToolsCnLoader {
   /** 加载外部清单发现的同构文件；支持一个文件中混合多个 5etools 顶层集合。 */
   public async loadClassFiles(
     paths: string[],
-    options?: { signal?: AbortSignal; refresh?: boolean },
+    options?: {
+      signal?: AbortSignal;
+      refresh?: boolean;
+      onProgress?: (progress: {
+        loadedFiles: number;
+        failedFiles: number;
+        phase: 'download' | 'parse';
+      }) => void;
+    },
   ): Promise<LoadSummary> {
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
     let loadedFiles = 0;
     let failedFiles = 0;
+    let downloaded = 0;
+    let downloadFailures = 0;
     const fetchedDocuments = await mapConcurrent(paths, FILE_FETCH_CONCURRENCY, async (path) => {
       try {
         const res = await this.client.fetchJson<Record<string, any[]>>(path, options);
+        downloaded++;
         return { ok: true as const, path, body: res.body, revision: res.revision };
       } catch (error) {
+        downloadFailures++;
         return { ok: false as const, path, error: error as Error };
+      } finally {
+        options?.onProgress?.({
+          loadedFiles: downloaded,
+          failedFiles: downloadFailures,
+          phase: 'download',
+        });
       }
+    });
+    options?.onProgress?.({
+      loadedFiles: downloaded,
+      failedFiles: downloadFailures,
+      phase: 'parse',
     });
     const documents: Array<{ path: string; body: Record<string, any[]>; revision?: string }> = [];
     for (const result of fetchedDocuments) {

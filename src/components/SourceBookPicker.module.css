@@ -92,3 +92,69 @@
 .books fieldset:disabled {
   opacity: 0.55;
 }
+
+/* 宽屏书籍卡网格；弹窗只保留一个滚动区域。 */
+.dialog {
+  width: min(1180px, calc(100vw - 32px));
+  max-height: 90dvh;
+  box-sizing: border-box;
+}
+.books {
+  max-height: none;
+  overflow: visible;
+}
+.books fieldset {
+  padding: 14px;
+  min-width: 0;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+.book {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+  background: var(--color-bg-surface);
+}
+.book:has(input:checked) {
+  border-color: var(--color-border-gold);
+  background: var(--color-bg-surface-elevated);
+}
+.book:focus-within {
+  outline: 2px solid var(--color-gold-bright);
+  outline-offset: 2px;
+}
+.book span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.book small {
+  margin-top: 6px;
+  line-height: 1.5;
+}
+.brewStatus {
+  padding: 12px 16px;
+  margin: 12px 0;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+}
+.brewStatus progress {
+  width: 100%;
+  accent-color: var(--color-gold-bright);
+}
+.dialog button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media (max-width: 540px) {
+  .dialog {
+    padding: 14px;
+    width: calc(100vw - 16px);
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
