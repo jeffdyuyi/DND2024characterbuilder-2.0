@@ -10,7 +10,10 @@ export interface FeatureChoiceParseResult {
 }
 
 function stripTags(value: string): string {
-  return value.replace(/\{@\w+\s+([^}]+)\}/g, (_, body: string) => body.split('|')[2] || body.split('|')[0]);
+  return value.replace(
+    /\{@\w+\s+([^}]+)\}/g,
+    (_, body: string) => body.split('|')[2] || body.split('|')[0],
+  );
 }
 
 function flattenText(value: unknown): string[] {
@@ -38,8 +41,17 @@ function optionLabel(value: unknown): string | undefined {
 
 function numberWord(value: string): number | undefined {
   const words: Record<string, number> = {
-    one: 1, two: 2, three: 3, four: 4, five: 5,
-    一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    一: 1,
+    二: 2,
+    两: 2,
+    三: 3,
+    四: 4,
+    五: 5,
   };
   const wordMatch = value.toLowerCase().match(/\b(one|two|three|four|five)\b|([一二两三四五])/);
   if (wordMatch) return words[wordMatch[1] || wordMatch[2]];
@@ -52,7 +64,8 @@ function numberWord(value: string): number | undefined {
 function inferChoiceType(text: string): FeatureChoice['type'] | undefined {
   const low = text.toLowerCase();
   if (/expertise|专精|双倍.*熟练|double (?:its|your) proficiency/i.test(low)) return 'expertise';
-  if (/weapon mastery|mastery propert|武器精通|精通属性|精通词条/i.test(low)) return 'weaponMastery';
+  if (/weapon mastery|mastery propert|武器精通|精通属性|精通词条/i.test(low))
+    return 'weaponMastery';
   if (/fighting style|战斗风格/i.test(low)) return 'fightingStyle';
   if (/language|语言/i.test(low)) return 'language';
   if (/skill proficien|技能熟练/i.test(low)) return 'skill';
@@ -77,10 +90,13 @@ function walkOptionNodes(value: unknown, output: Record<string, unknown>[]) {
 function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoice[] {
   const fullText = [entry.name, entry.englishName, entriesText].filter(Boolean).join(' ');
   const type = inferChoiceType(fullText);
-  if (!type || !/(choose|choice|select|选择|自选|任选|gain|获得|运用)/i.test(entriesText)) return [];
+  if (!type || !/(choose|choice|select|选择|自选|任选|gain|获得|运用)/i.test(entriesText))
+    return [];
 
   const countContext =
-    entriesText.match(/[^。.!！?？]{0,24}(?:choose|select|选择|自选|任选|gain|获得|运用)[^。.!！?？]{0,24}/i)?.[0] || entriesText;
+    entriesText.match(
+      /[^。.!！?？]{0,24}(?:choose|select|选择|自选|任选|gain|获得|运用)[^。.!！?？]{0,24}/i,
+    )?.[0] || entriesText;
   const count = numberWord(countContext) || 1;
   let filter: string | undefined;
   let options: string[] = [];
@@ -101,15 +117,17 @@ function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoi
     options = ['Any'];
   }
 
-  return [{
-    id: `cls:${entry.raw?.className || 'class'}:feat:${entry.id}:choice:0`,
-    type,
-    numToChoose: count,
-    options,
-    filter,
-    name: entry.name,
-    nameEn: entry.englishName,
-  }];
+  return [
+    {
+      id: `cls:${entry.raw?.className || 'class'}:feat:${entry.id}:choice:0`,
+      type,
+      numToChoose: count,
+      options,
+      filter,
+      name: entry.name,
+      nameEn: entry.englishName,
+    },
+  ];
 }
 
 /**
@@ -125,7 +143,9 @@ export function parseFeatureChoices(entry: CatalogEntry): FeatureChoiceParseResu
   walkOptionNodes(raw.entries, optionNodes);
 
   const choices = optionNodes.map((node, index): FeatureChoice => {
-    const options = (Array.isArray(node.entries) ? node.entries : []).map(optionLabel).filter((item): item is string => Boolean(item));
+    const options = (Array.isArray(node.entries) ? node.entries : [])
+      .map(optionLabel)
+      .filter((item): item is string => Boolean(item));
     return {
       id: `cls:${raw.className || 'class'}:feat:${entry.id}:choice:${index}`,
       type: inferredType || 'custom',

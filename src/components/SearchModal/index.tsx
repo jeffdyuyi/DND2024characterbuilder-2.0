@@ -24,7 +24,10 @@ export default function SearchModal({ isOpen, onClose, editionFilter }: SearchMo
   const updateActiveCharacter = useCharacterStore((state) => state.updateActiveCharacter);
 
   useEffect(() => {
-    const saved = (localStorage.getItem('dnd2024-rule-edition') as '5e' | '2024' | 'all') || editionFilter || '2024';
+    const saved =
+      (localStorage.getItem('dnd2024-rule-edition') as '5e' | '2024' | 'all') ||
+      editionFilter ||
+      '2024';
     setEdition(saved);
   }, [editionFilter]);
 
@@ -90,7 +93,7 @@ export default function SearchModal({ isOpen, onClose, editionFilter }: SearchMo
         if (!currentFeats.some((f) => f.featId === item.id)) {
           const mainClass = char.classes[0]?.classId || 'general';
           updateActiveCharacter({
-            selectedFeats: [...currentFeats, { classId: mainClass, level: 1, featId: item.id }]
+            selectedFeats: [...currentFeats, { classId: mainClass, level: 1, featId: item.id }],
           });
           alert(`已添加专长「${item.name}」至当前角色卡`);
         } else {
@@ -122,7 +125,12 @@ export default function SearchModal({ isOpen, onClose, editionFilter }: SearchMo
           <span className={styles.kbdHint}>ESC</span>
           <button
             onClick={onClose}
-            style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer' }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'rgba(255,255,255,0.5)',
+              cursor: 'pointer',
+            }}
           >
             <X size={18} />
           </button>
@@ -234,26 +242,27 @@ export default function SearchModal({ isOpen, onClose, editionFilter }: SearchMo
               <div className={styles.drawerTitle}>
                 {selectedItem.name} {selectedItem.nameEn ? `(${selectedItem.nameEn})` : ''}
               </div>
-              {activeCharacterId && (selectedItem.category === 'spell' || selectedItem.category === 'feat') && (
-                <button
-                  onClick={() => handleAddToCharacter(selectedItem)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '4px 12px',
-                    borderRadius: 6,
-                    background: 'rgba(212, 175, 55, 0.2)',
-                    border: '1px solid rgba(212, 175, 55, 0.4)',
-                    color: '#ffd700',
-                    fontSize: '0.8rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <PlusCircle size={14} />
-                  加入当前角色卡
-                </button>
-              )}
+              {activeCharacterId &&
+                (selectedItem.category === 'spell' || selectedItem.category === 'feat') && (
+                  <button
+                    onClick={() => handleAddToCharacter(selectedItem)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '4px 12px',
+                      borderRadius: 6,
+                      background: 'rgba(212, 175, 55, 0.2)',
+                      border: '1px solid rgba(212, 175, 55, 0.4)',
+                      color: '#ffd700',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <PlusCircle size={14} />
+                    加入当前角色卡
+                  </button>
+                )}
             </div>
             <div className={styles.drawerText}>{selectedItem.description}</div>
           </div>

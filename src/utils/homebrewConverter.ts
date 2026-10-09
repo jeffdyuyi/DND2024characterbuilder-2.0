@@ -76,8 +76,10 @@ export function exportPackToJSON(pack: HomebrewPack): string {
           version: pack.version || '1.0.0',
         },
       ],
-      dateCreated: Math.floor(new Date(pack.createdAt).getTime() / 1000) || Math.floor(Date.now() / 1000),
-      dateLastModified: Math.floor(new Date(pack.updatedAt).getTime() / 1000) || Math.floor(Date.now() / 1000),
+      dateCreated:
+        Math.floor(new Date(pack.createdAt).getTime() / 1000) || Math.floor(Date.now() / 1000),
+      dateLastModified:
+        Math.floor(new Date(pack.updatedAt).getTime() / 1000) || Math.floor(Date.now() / 1000),
     },
     // 5etools 兼容字段
     spell: d.spells.map((s) => ({
@@ -91,7 +93,9 @@ export function exportPackToJSON(pack: HomebrewPack): string {
       components: { v: true, s: true },
       duration: [{ type: 'instant' }],
       entries: [s.description || ''],
-      classes: { fromClassList: (s.classes || []).map((c: string) => ({ name: c, source: 'PHB' })) },
+      classes: {
+        fromClassList: (s.classes || []).map((c: string) => ({ name: c, source: 'PHB' })),
+      },
       _native: s,
     })),
     item: d.items.map((i) => ({
@@ -164,7 +168,11 @@ export function exportPackToJSON(pack: HomebrewPack): string {
 }
 
 /** 导出单张卡片为通用格式 JSON */
-export function exportSingleCardToJSON(category: keyof HomebrewDataState, entry: any, packName = '原创私设'): string {
+export function exportSingleCardToJSON(
+  category: keyof HomebrewDataState,
+  entry: any,
+  packName = '原创私设',
+): string {
   const payload = {
     version: '1.0.0',
     exportedAt: new Date().toISOString(),
@@ -387,8 +395,8 @@ export function parseImportedJSON(jsonStr: string): ConvertedPackResult {
           cr: String(m.cr || '1'),
           type: typeof m.type === 'string' ? m.type : m.type?.type || '类人生物',
           alignment: typeof m.alignment === 'string' ? m.alignment : '中立',
-          ac: Array.isArray(m.ac) ? m.ac[0] : (m.ac || 10),
-          hp: typeof m.hp === 'object' ? (m.hp?.average || 10) : (m.hp || 10),
+          ac: Array.isArray(m.ac) ? m.ac[0] : m.ac || 10,
+          hp: typeof m.hp === 'object' ? m.hp?.average || 10 : m.hp || 10,
           speed: '30 尺',
           stats: {
             str: m.str ?? 10,
@@ -550,7 +558,14 @@ export function parseImportedJSON(jsonStr: string): ConvertedPackResult {
   return {
     pack,
     summary: {
-      total: spells.length + monsters.length + items.length + feats.length + species.length + backgrounds.length + classes.length,
+      total:
+        spells.length +
+        monsters.length +
+        items.length +
+        feats.length +
+        species.length +
+        backgrounds.length +
+        classes.length,
       spells: spells.length,
       monsters: monsters.length,
       items: items.length,

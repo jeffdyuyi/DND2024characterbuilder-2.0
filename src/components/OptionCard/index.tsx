@@ -32,12 +32,16 @@ export default function OptionCard({
     .join(' ');
 
   return (
-    <div 
-      className={classes} 
-      onClick={disabled ? undefined : onClick} 
-      role="button" 
+    <div
+      className={classes}
+      onClick={disabled ? undefined : onClick}
+      role="button"
       tabIndex={disabled ? -1 : 0}
-      style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer', ...(!disabled && !selected ? {} : {}) }}
+      style={{
+        opacity: disabled ? 0.6 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...(!disabled && !selected ? {} : {}),
+      }}
     >
       <div className={styles.card__title}>{title}</div>
       {subtitle && <div className={styles.card__subtitle}>{subtitle}</div>}

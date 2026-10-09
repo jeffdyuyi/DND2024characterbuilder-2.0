@@ -78,7 +78,11 @@ export function CatalogProvider({ children }: { children: React.ReactNode }) {
     window.location.reload();
   };
 
-  const isReady = stats.status === 'ready' || stats.status === 'partial' || stats.status === 'complete' || stats.coreLoaded;
+  const isReady =
+    stats.status === 'ready' ||
+    stats.status === 'partial' ||
+    stats.status === 'complete' ||
+    stats.coreLoaded;
   const isComplete = stats.status === 'complete';
 
   return (

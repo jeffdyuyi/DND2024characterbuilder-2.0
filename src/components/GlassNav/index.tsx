@@ -43,14 +43,21 @@ export default function GlassNav({ title, backLabel, backHref, actions }: GlassN
           {/* 左侧：返回上级与页面标题 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             {backLabel && (
-              <button className={styles.glassNav__back} onClick={handleBack} title={`返回${backLabel}`}>
+              <button
+                className={styles.glassNav__back}
+                onClick={handleBack}
+                title={`返回${backLabel}`}
+              >
                 <ChevronLeft size={16} />
                 <span>{backLabel}</span>
               </button>
             )}
 
             {title && (
-              <h1 className={styles.glassNav__title} style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}>
+              <h1
+                className={styles.glassNav__title}
+                style={{ margin: 0, fontSize: '15px', fontWeight: 600 }}
+              >
                 {title}
               </h1>
             )}
@@ -58,25 +65,22 @@ export default function GlassNav({ title, backLabel, backHref, actions }: GlassN
 
           {/* 右侧：搜索框 + 页面专属操作 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            <div className={styles.searchTrigger} onClick={() => setIsSearchOpen(true)} title="快捷键 Ctrl+K 搜索全库资源">
+            <div
+              className={styles.searchTrigger}
+              onClick={() => setIsSearchOpen(true)}
+              title="快捷键 Ctrl+K 搜索全库资源"
+            >
               <Search size={14} />
               <span>搜索资源...</span>
               <kbd className={styles.searchTriggerKbd}>Ctrl+K</kbd>
             </div>
 
-            {actions && (
-              <div className={styles.glassNav__actions}>
-                {actions}
-              </div>
-            )}
+            {actions && <div className={styles.glassNav__actions}>{actions}</div>}
           </div>
         </div>
       </nav>
 
-      <SearchModal
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-      />
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }

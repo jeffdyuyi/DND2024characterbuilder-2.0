@@ -59,36 +59,46 @@ describe('职业特性通用选项解析器', () => {
   });
 
   it('AST options 优先保留原始选项和数量', () => {
-    const result = parseFeatureChoices(feature('Style Options', [
-      'Choose one Fighting Style.',
-      { type: 'options', count: 1, entries: [
-        { type: 'refOptionalfeature', optionalfeature: 'Archery|TEST' },
-        { type: 'refOptionalfeature', optionalfeature: 'Defense|TEST' },
-      ] },
-    ]));
+    const result = parseFeatureChoices(
+      feature('Style Options', [
+        'Choose one Fighting Style.',
+        {
+          type: 'options',
+          count: 1,
+          entries: [
+            { type: 'refOptionalfeature', optionalfeature: 'Archery|TEST' },
+            { type: 'refOptionalfeature', optionalfeature: 'Defense|TEST' },
+          ],
+        },
+      ]),
+    );
     expect(result.choices[0]).toMatchObject({
-      type: 'fightingStyle', numToChoose: 1, options: ['Archery', 'Defense'],
+      type: 'fightingStyle',
+      numToChoose: 1,
+      options: ['Archery', 'Defense'],
     });
     expect(result.diagnostics).toEqual([]);
   });
 
   it('AST options 解析 5etools 原生 refClassFeature (如牧师圣职 / 德鲁伊原初职能)', () => {
-    const result = parseFeatureChoices(feature('圣职', [
-      '你将自己投身于所选择的以下一项神圣的角色之中：',
-      {
-        type: 'entries',
-        entries: [
-          {
-            type: 'options',
-            count: 1,
-            entries: [
-              { type: 'refClassFeature', classFeature: '保护者|牧师|XPHB|1|XPHB' },
-              { type: 'refClassFeature', classFeature: '奇术使|牧师|XPHB|1|XPHB' },
-            ],
-          },
-        ],
-      },
-    ]));
+    const result = parseFeatureChoices(
+      feature('圣职', [
+        '你将自己投身于所选择的以下一项神圣的角色之中：',
+        {
+          type: 'entries',
+          entries: [
+            {
+              type: 'options',
+              count: 1,
+              entries: [
+                { type: 'refClassFeature', classFeature: '保护者|牧师|XPHB|1|XPHB' },
+                { type: 'refClassFeature', classFeature: '奇术使|牧师|XPHB|1|XPHB' },
+              ],
+            },
+          ],
+        },
+      ]),
+    );
     expect(result.choices[0]).toMatchObject({
       numToChoose: 1,
       options: ['保护者', '奇术使'],
@@ -97,8 +107,12 @@ describe('职业特性通用选项解析器', () => {
   });
 
   it('未识别的选择法条只记录诊断，不抛出异常', () => {
-    const result = parseFeatureChoices(feature('Strange Choice', ['Choose one omen known only to this ruleset.']));
+    const result = parseFeatureChoices(
+      feature('Strange Choice', ['Choose one omen known only to this ruleset.']),
+    );
     expect(result.choices).toEqual([]);
-    expect(result.diagnostics).toEqual(['feature-choice-unresolved:test:classFeature:Strange Choice']);
+    expect(result.diagnostics).toEqual([
+      'feature-choice-unresolved:test:classFeature:Strange Choice',
+    ]);
   });
 });

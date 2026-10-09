@@ -76,8 +76,7 @@ export default function HomebrewPage() {
   }, []);
 
   const currentPack: HomebrewPack | undefined =
-    homebrewState.packs.find((p) => p.id === homebrewState.activePackId) ||
-    homebrewState.packs[0];
+    homebrewState.packs.find((p) => p.id === homebrewState.activePackId) || homebrewState.packs[0];
 
   // 完整中文化分类表单 State
   const [formData, setFormData] = useState({
@@ -205,7 +204,7 @@ export default function HomebrewPage() {
     if (!currentPack) return;
     if (
       confirm(
-        `确定要删除资源包「${currentPack.name}」吗？\n该包内的所有自制卡片将被永久删除（若只剩最后一个包将重置为空包）。`
+        `确定要删除资源包「${currentPack.name}」吗？\n该包内的所有自制卡片将被永久删除（若只剩最后一个包将重置为空包）。`,
       )
     ) {
       homebrewState.deletePack(currentPack.id);
@@ -238,14 +237,26 @@ export default function HomebrewPage() {
   // 智能 Slug 自动生成与查重函数
   const generateSmartSlug = (nameStr: string, nameEnStr: string, explicitId: string): string => {
     if (explicitId && explicitId.trim()) {
-      return explicitId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-');
+      return explicitId
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '-')
+        .replace(/-+/g, '-');
     }
 
     let baseSlug = '';
     if (nameEnStr && nameEnStr.trim()) {
-      baseSlug = nameEnStr.trim().toLowerCase().replace(/[^a-z0-9\s_-]/g, '').replace(/\s+/g, '-');
+      baseSlug = nameEnStr
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\s_-]/g, '')
+        .replace(/\s+/g, '-');
     } else {
-      baseSlug = nameStr.trim().toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '').replace(/[\s\u4e00-\u9fa5]+/g, 'hb-item');
+      baseSlug = nameStr
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\u4e00-\u9fa5]/g, '')
+        .replace(/[\s\u4e00-\u9fa5]+/g, 'hb-item');
     }
 
     if (!baseSlug || baseSlug === 'hb-item') {
@@ -358,15 +369,18 @@ export default function HomebrewPage() {
         description: formData.description,
       } as any);
     } else if (activeTab === 'classes') {
-      homebrewState.addEntry('classes' as any, {
-        id: generatedId,
-        name: formData.name,
-        nameEn: formData.nameEn || formData.name,
-        source: 'HOMEBREW',
-        hitDie: formData.hitDie,
-        primaryAbility: formData.primaryAbility,
-        description: formData.description,
-      } as any);
+      homebrewState.addEntry(
+        'classes' as any,
+        {
+          id: generatedId,
+          name: formData.name,
+          nameEn: formData.nameEn || formData.name,
+          source: 'HOMEBREW',
+          hitDie: formData.hitDie,
+          primaryAbility: formData.primaryAbility,
+          description: formData.description,
+        } as any,
+      );
     }
 
     setIsModalOpen(false);
@@ -442,7 +456,7 @@ export default function HomebrewPage() {
       (item) =>
         item.name.toLowerCase().includes(q) ||
         (item.nameEn && item.nameEn.toLowerCase().includes(q)) ||
-        (item.description && item.description.toLowerCase().includes(q))
+        (item.description && item.description.toLowerCase().includes(q)),
     );
   };
 
@@ -560,7 +574,9 @@ export default function HomebrewPage() {
                     <div className={styles.optionMain}>
                       <span>🌐 全部已启用卡包汇总</span>
                     </div>
-                    {selectedPackFilter === 'all' && <Check size={14} color="var(--color-gold-bright)" />}
+                    {selectedPackFilter === 'all' && (
+                      <Check size={14} color="var(--color-gold-bright)" />
+                    )}
                   </div>
                 </div>
               )}
@@ -571,7 +587,11 @@ export default function HomebrewPage() {
                 <div
                   className={styles.packToggleSwitch}
                   onClick={() => homebrewState.togglePackEnabled(currentPack.id)}
-                  title={currentPack.enabled ? '点击停用（不参与规则创建与索引）' : '点击启用（参与角色创建）'}
+                  title={
+                    currentPack.enabled
+                      ? '点击停用（不参与规则创建与索引）'
+                      : '点击启用（参与角色创建）'
+                  }
                 >
                   <div
                     className={`${styles.switchTrack} ${currentPack.enabled ? styles.switchTrackActive : ''}`}
@@ -709,13 +729,17 @@ export default function HomebrewPage() {
                             targetPackId,
                             activeTab as any,
                             item.id,
-                            item.enabled === false ? true : false
+                            item.enabled === false ? true : false,
                           );
                         }
                       }}
                       title={item.enabled !== false ? '点击停用单卡' : '点击启用单卡'}
                     >
-                      {item.enabled !== false ? <Eye size={15} color="#22c55e" /> : <EyeOff size={15} color="#f87171" />}
+                      {item.enabled !== false ? (
+                        <Eye size={15} color="#22c55e" />
+                      ) : (
+                        <EyeOff size={15} color="#f87171" />
+                      )}
                     </button>
                     <button
                       className={styles.iconBtn}
@@ -730,7 +754,11 @@ export default function HomebrewPage() {
                         if (confirm(`确定要删除条目「${item.name}」吗？`)) {
                           const targetPackId = item.sourcePackId || currentPack?.id;
                           if (targetPackId) {
-                            homebrewState.deleteEntryFromPack(targetPackId, activeTab as any, item.id);
+                            homebrewState.deleteEntryFromPack(
+                              targetPackId,
+                              activeTab as any,
+                              item.id,
+                            );
                           } else {
                             homebrewState.deleteEntry(activeTab as any, item.id);
                           }
@@ -751,14 +779,24 @@ export default function HomebrewPage() {
       {/* 资源包元数据 Modal 弹窗 */}
       {isPackModalOpen && (
         <div className={styles.modalOverlay} onClick={() => setIsPackModalOpen(false)}>
-          <div className={styles.modalWindow} onClick={(e) => e.stopPropagation()} style={{ maxWidth: 480 }}>
+          <div
+            className={styles.modalWindow}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: 480 }}
+          >
             <div className={styles.modalHeader}>
               <div className={styles.modalTitle}>
                 {packModalMode === 'create' ? '新建原创第三方卡包' : '编辑卡包属性'}
               </div>
               <button
                 onClick={() => setIsPackModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                }}
               >
                 ×
               </button>
@@ -795,7 +833,9 @@ export default function HomebrewPage() {
                       className={styles.input}
                       placeholder="1.0.0"
                       value={packFormData.version}
-                      onChange={(e) => setPackFormData({ ...packFormData, version: e.target.value })}
+                      onChange={(e) =>
+                        setPackFormData({ ...packFormData, version: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -806,7 +846,9 @@ export default function HomebrewPage() {
                     rows={3}
                     placeholder="简要说明此卡包包含的战役背景、规则调整或适用战役..."
                     value={packFormData.description}
-                    onChange={(e) => setPackFormData({ ...packFormData, description: e.target.value })}
+                    onChange={(e) =>
+                      setPackFormData({ ...packFormData, description: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -837,7 +879,13 @@ export default function HomebrewPage() {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#fff', fontSize: 20, cursor: 'pointer' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                }}
               >
                 ×
               </button>
@@ -894,7 +942,9 @@ export default function HomebrewPage() {
                         <select
                           className={styles.select}
                           value={formData.level}
-                          onChange={(e) => setFormData({ ...formData, level: Number(e.target.value) })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, level: Number(e.target.value) })
+                          }
                         >
                           <option value={0}>戏法 (0 环)</option>
                           <option value={1}>1 环</option>
@@ -936,7 +986,9 @@ export default function HomebrewPage() {
                           className={styles.input}
                           placeholder="如：1 动作 / 1 附赠动作"
                           value={formData.castingTime}
-                          onChange={(e) => setFormData({ ...formData, castingTime: e.target.value })}
+                          onChange={(e) =>
+                            setFormData({ ...formData, castingTime: e.target.value })
+                          }
                         />
                       </div>
                       <div className={styles.formGroup}>
@@ -977,18 +1029,26 @@ export default function HomebrewPage() {
                     <div className={styles.formGroup}>
                       <label className={styles.label}>适用职业 (多选)</label>
                       <div className={styles.checkboxGroup}>
-                        {['吟游诗人', '牧师', '德鲁伊', '圣武士', '游侠', '术士', '邪术师', '法师', '奇械师'].map(
-                          (cls) => (
-                            <label key={cls} className={styles.checkboxLabel}>
-                              <input
-                                type="checkbox"
-                                checked={formData.classes.includes(cls)}
-                                onChange={() => toggleClassSelect(cls)}
-                              />
-                              {cls}
-                            </label>
-                          )
-                        )}
+                        {[
+                          '吟游诗人',
+                          '牧师',
+                          '德鲁伊',
+                          '圣武士',
+                          '游侠',
+                          '术士',
+                          '邪术师',
+                          '法师',
+                          '奇械师',
+                        ].map((cls) => (
+                          <label key={cls} className={styles.checkboxLabel}>
+                            <input
+                              type="checkbox"
+                              checked={formData.classes.includes(cls)}
+                              onChange={() => toggleClassSelect(cls)}
+                            />
+                            {cls}
+                          </label>
+                        ))}
                       </div>
                     </div>
                   </>
@@ -1069,7 +1129,9 @@ export default function HomebrewPage() {
                             type="number"
                             className={styles.statInput}
                             value={formData.str}
-                            onChange={(e) => setFormData({ ...formData, str: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, str: Number(e.target.value) })
+                            }
                           />
                         </div>
                         <div className={styles.statItem}>
@@ -1078,7 +1140,9 @@ export default function HomebrewPage() {
                             type="number"
                             className={styles.statInput}
                             value={formData.dex}
-                            onChange={(e) => setFormData({ ...formData, dex: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, dex: Number(e.target.value) })
+                            }
                           />
                         </div>
                         <div className={styles.statItem}>
@@ -1087,7 +1151,9 @@ export default function HomebrewPage() {
                             type="number"
                             className={styles.statInput}
                             value={formData.con}
-                            onChange={(e) => setFormData({ ...formData, con: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, con: Number(e.target.value) })
+                            }
                           />
                         </div>
                         <div className={styles.statItem}>
@@ -1096,7 +1162,9 @@ export default function HomebrewPage() {
                             type="number"
                             className={styles.statInput}
                             value={formData.int}
-                            onChange={(e) => setFormData({ ...formData, int: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, int: Number(e.target.value) })
+                            }
                           />
                         </div>
                         <div className={styles.statItem}>
@@ -1105,7 +1173,9 @@ export default function HomebrewPage() {
                             type="number"
                             className={styles.statInput}
                             value={formData.wis}
-                            onChange={(e) => setFormData({ ...formData, wis: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, wis: Number(e.target.value) })
+                            }
                           />
                         </div>
                         <div className={styles.statItem}>
@@ -1114,7 +1184,9 @@ export default function HomebrewPage() {
                             type="number"
                             className={styles.statInput}
                             value={formData.cha}
-                            onChange={(e) => setFormData({ ...formData, cha: Number(e.target.value) })}
+                            onChange={(e) =>
+                              setFormData({ ...formData, cha: Number(e.target.value) })
+                            }
                           />
                         </div>
                       </div>
@@ -1265,7 +1337,9 @@ export default function HomebrewPage() {
                         className={styles.input}
                         placeholder="如：敏捷, 体质, 感知"
                         value={formData.abilityScores}
-                        onChange={(e) => setFormData({ ...formData, abilityScores: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, abilityScores: e.target.value })
+                        }
                       />
                     </div>
                     <div className={styles.formGroup}>
@@ -1275,7 +1349,9 @@ export default function HomebrewPage() {
                         className={styles.input}
                         placeholder="如：警戒 / 幸运"
                         value={formData.featRecommendation}
-                        onChange={(e) => setFormData({ ...formData, featRecommendation: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, featRecommendation: e.target.value })
+                        }
                       />
                     </div>
                   </div>

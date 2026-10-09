@@ -13,31 +13,45 @@ interface MarkdownTextProps {
  * Supports: Bold, Italic, Inline Code, Unordered Lists, Ordered Lists, Paragraphs, Tables.
  * This component remains a pure renderer without internal interaction logic.
  */
-const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inline = false, variant = 'default' }) => {
+const MarkdownText: React.FC<MarkdownTextProps> = ({
+  text,
+  className,
+  style,
+  inline = false,
+  variant = 'default',
+}) => {
   if (!text) return null;
 
   // Inline parsing logic (Bold, Italic, Code)
   const parseInline = (inlineText: string) => {
     const parts = inlineText.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\))/g);
-    
+
     return parts.map((part, i) => {
       if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={i} style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>{part.slice(2, -2)}</strong>;
+        return (
+          <strong key={i} style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            {part.slice(2, -2)}
+          </strong>
+        );
       }
       if (part.startsWith('*') && part.endsWith('*')) {
-        return <em key={i} style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>{part.slice(1, -1)}</em>;
+        return (
+          <em key={i} style={{ fontStyle: 'italic', color: 'var(--color-text-secondary)' }}>
+            {part.slice(1, -1)}
+          </em>
+        );
       }
       if (part.startsWith('`') && part.endsWith('`')) {
         return (
-          <code 
-            key={i} 
-            style={{ 
-              background: 'rgba(0,0,0,0.05)', 
-              padding: '2px 4px', 
-              borderRadius: '4px', 
+          <code
+            key={i}
+            style={{
+              background: 'rgba(0,0,0,0.05)',
+              padding: '2px 4px',
+              borderRadius: '4px',
               fontSize: '0.9em',
               fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
-              color: '#d1211b' 
+              color: '#d1211b',
             }}
           >
             {part.slice(1, -1)}
@@ -47,10 +61,10 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
       const linkMatch = part.match(/^\[(.*?)\]\((.*?)\)$/);
       if (linkMatch) {
         return (
-          <a 
-            key={i} 
-            href={linkMatch[2]} 
-            target="_blank" 
+          <a
+            key={i}
+            href={linkMatch[2]}
+            target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--color-link-blue)', textDecoration: 'none' }}
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
@@ -65,33 +79,45 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
   };
 
   if (inline) {
-    return <span className={className} style={style}>{parseInline(text)}</span>;
+    return (
+      <span className={className} style={style}>
+        {parseInline(text)}
+      </span>
+    );
   }
 
   // Block parsing logic
   const lines = text.split(/\r?\n/);
   const blocks: React.ReactNode[] = [];
-  let currentList: { type: 'ul' | 'ol', items: string[] } | null = null;
+  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
 
   const flushList = (key: string | number) => {
     if (currentList) {
       const ListTag = currentList.type;
       blocks.push(
-        <ListTag 
-          key={`list-${key}`} 
-          style={{ 
-            paddingLeft: '1.8em', 
+        <ListTag
+          key={`list-${key}`}
+          style={{
+            paddingLeft: '1.8em',
             margin: '0.8em 0',
             listStyleType: currentList.type === 'ul' ? 'disc' : 'decimal',
-            color: 'var(--color-text-secondary)'
+            color: 'var(--color-text-secondary)',
           }}
         >
           {currentList.items.map((item, i) => (
             <li key={i} style={{ marginBottom: '0.4em', paddingLeft: '0.4em' }}>
-              <span style={{ color: 'var(--color-text-secondary)', lineHeight: '1.6', fontSize: '0.95rem' }}>{parseInline(item)}</span>
+              <span
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  lineHeight: '1.6',
+                  fontSize: '0.95rem',
+                }}
+              >
+                {parseInline(item)}
+              </span>
             </li>
           ))}
-        </ListTag>
+        </ListTag>,
       );
       currentList = null;
     }
@@ -100,7 +126,7 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const trimmed = line.trim();
-    
+
     // Unordered List (- or *)
     const ulMatch = line.match(/^[\s]*[-*][\s]+(.*)/);
     if (ulMatch) {
@@ -128,20 +154,24 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
     if (quoteMatch) {
       flushList(i);
       const content = quoteMatch[1];
-      
+
       const hMatch = content.match(/^(#{1,6})\s+(.*)/);
       const oMatch = content.match(/^(\d+)\.\s+(.*)/);
       const uMatch = content.match(/^[-*]\s+(.*)/);
-      
+
       let renderedContent;
       if (hMatch) {
         const level = hMatch[1].length;
         const Tag = `h${level}` as any;
-        renderedContent = <Tag style={{ margin: '0.2em 0', fontWeight: 700 }}>{parseInline(hMatch[2])}</Tag>;
+        renderedContent = (
+          <Tag style={{ margin: '0.2em 0', fontWeight: 700 }}>{parseInline(hMatch[2])}</Tag>
+        );
       } else if (oMatch) {
         renderedContent = (
           <div style={{ display: 'flex', gap: '8px', margin: '4px 0' }}>
-            <span style={{ fontWeight: 700, color: 'var(--color-apple-blue)', minWidth: '1.2em' }}>{oMatch[1]}.</span>
+            <span style={{ fontWeight: 700, color: 'var(--color-apple-blue)', minWidth: '1.2em' }}>
+              {oMatch[1]}.
+            </span>
             <span>{parseInline(oMatch[2])}</span>
           </div>
         );
@@ -158,21 +188,21 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
 
       const isClean = variant === 'clean';
       blocks.push(
-        <blockquote 
-          key={`quote-${i}`} 
-          style={{ 
-            borderLeft: isClean ? 'none' : '4px solid var(--color-apple-blue)', 
-            padding: isClean ? '4px 0 12px 0' : '12px 20px', 
-            margin: isClean ? '0.2em 0' : '0.6em 0', 
+        <blockquote
+          key={`quote-${i}`}
+          style={{
+            borderLeft: isClean ? 'none' : '4px solid var(--color-apple-blue)',
+            padding: isClean ? '4px 0 12px 0' : '12px 20px',
+            margin: isClean ? '0.2em 0' : '0.6em 0',
             color: isClean ? '#86868b' : '#424245',
             background: isClean ? 'transparent' : 'rgba(0, 113, 227, 0.03)',
             borderRadius: isClean ? '0' : '0 12px 12px 0',
             fontStyle: isClean ? 'italic' : 'normal',
-            lineHeight: '1.6'
+            lineHeight: '1.6',
           }}
         >
           {renderedContent}
-        </blockquote>
+        </blockquote>,
       );
       continue;
     }
@@ -180,7 +210,12 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
     // Horizontal Rule (---)
     if (trimmed === '---' || trimmed === '***' || trimmed === '___') {
       flushList(i);
-      blocks.push(<hr key={`hr-${i}`} style={{ border: 'none', borderTop: '1px solid #e5e5e7', margin: '1em 0' }} />);
+      blocks.push(
+        <hr
+          key={`hr-${i}`}
+          style={{ border: 'none', borderTop: '1px solid #e5e5e7', margin: '1em 0' }}
+        />,
+      );
       continue;
     }
 
@@ -207,11 +242,11 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
         headerStyles.borderBottom = '1px solid rgba(0, 113, 227, 0.1)';
         headerStyles.paddingBottom = '4px';
       }
-      
+
       blocks.push(
         <HeaderTag key={`h-${i}`} style={headerStyles}>
           {parseInline(headerMatch[3])}
-        </HeaderTag>
+        </HeaderTag>,
       );
       continue;
     }
@@ -221,40 +256,68 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
       const nextLine = lines[i + 1]?.trim();
       if (nextLine && nextLine.startsWith('|') && nextLine.includes('---')) {
         flushList(i);
-        
-        const cleanHeader = line.split('|').map(s => s.trim()).filter((s, idx, arr) => {
-          if (idx === 0 && s === '') return false;
-          if (idx === arr.length - 1 && s === '') return false;
-          return true;
-        });
 
-        const rows: string[][] = [];
-        let j = i + 2;
-        while (j < lines.length && lines[j].trim().startsWith('|')) {
-          const rowData = lines[j].split('|').map(s => s.trim()).filter((s, idx, arr) => {
+        const cleanHeader = line
+          .split('|')
+          .map((s) => s.trim())
+          .filter((s, idx, arr) => {
             if (idx === 0 && s === '') return false;
             if (idx === arr.length - 1 && s === '') return false;
             return true;
           });
+
+        const rows: string[][] = [];
+        let j = i + 2;
+        while (j < lines.length && lines[j].trim().startsWith('|')) {
+          const rowData = lines[j]
+            .split('|')
+            .map((s) => s.trim())
+            .filter((s, idx, arr) => {
+              if (idx === 0 && s === '') return false;
+              if (idx === arr.length - 1 && s === '') return false;
+              return true;
+            });
           rows.push(rowData);
           j++;
         }
 
         blocks.push(
-          <div key={`table-wrapper-${i}`} style={{ overflowX: 'auto', margin: '1em 0', borderRadius: '12px', border: '1px solid var(--color-border-dark)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', textAlign: 'left', tableLayout: 'fixed' }}>
+          <div
+            key={`table-wrapper-${i}`}
+            style={{
+              overflowX: 'auto',
+              margin: '1em 0',
+              borderRadius: '12px',
+              border: '1px solid var(--color-border-dark)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+            }}
+          >
+            <table
+              style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                fontSize: '0.9rem',
+                textAlign: 'left',
+                tableLayout: 'fixed',
+              }}
+            >
               <thead>
-                <tr style={{ background: 'var(--color-bg-surface-elevated)', borderBottom: '1px solid var(--color-border-dark)' }}>
+                <tr
+                  style={{
+                    background: 'var(--color-bg-surface-elevated)',
+                    borderBottom: '1px solid var(--color-border-dark)',
+                  }}
+                >
                   {cleanHeader.map((h, idx) => (
-                    <th 
-                      key={idx} 
-                      style={{ 
-                        padding: '10px 14px', 
-                        fontWeight: 700, 
+                    <th
+                      key={idx}
+                      style={{
+                        padding: '10px 14px',
+                        fontWeight: 700,
                         color: 'var(--color-text-primary)',
                         width: idx === 0 ? '60px' : 'auto',
                         textAlign: idx === 0 ? 'center' : 'left',
-                        borderRight: idx === 0 ? '1px solid var(--color-border-dark)' : 'none'
+                        borderRight: idx === 0 ? '1px solid var(--color-border-dark)' : 'none',
                       }}
                     >
                       {parseInline(h)}
@@ -264,16 +327,24 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
               </thead>
               <tbody>
                 {rows.map((row, rIdx) => (
-                  <tr key={rIdx} style={{ borderBottom: rIdx === rows.length - 1 ? 'none' : '1px solid var(--color-border-dark)', background: rIdx % 2 === 0 ? 'var(--color-bg-dark)' : 'var(--color-bg-surface)' }}>
+                  <tr
+                    key={rIdx}
+                    style={{
+                      borderBottom:
+                        rIdx === rows.length - 1 ? 'none' : '1px solid var(--color-border-dark)',
+                      background:
+                        rIdx % 2 === 0 ? 'var(--color-bg-dark)' : 'var(--color-bg-surface)',
+                    }}
+                  >
                     {row.map((cell, cIdx) => (
-                      <td 
-                        key={cIdx} 
-                        style={{ 
-                          padding: '10px 14px', 
+                      <td
+                        key={cIdx}
+                        style={{
+                          padding: '10px 14px',
                           color: 'var(--color-text-secondary)',
                           textAlign: cIdx === 0 ? 'center' : 'left',
                           fontWeight: cIdx === 0 ? 700 : 400,
-                          borderRight: cIdx === 0 ? '1px solid #f2f2f7' : 'none'
+                          borderRight: cIdx === 0 ? '1px solid #f2f2f7' : 'none',
                         }}
                       >
                         {parseInline(cell)}
@@ -283,10 +354,10 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
                 ))}
               </tbody>
             </table>
-          </div>
+          </div>,
         );
-        
-        i = j - 1; 
+
+        i = j - 1;
         continue;
       }
     }
@@ -295,9 +366,13 @@ const MarkdownText: React.FC<MarkdownTextProps> = ({ text, className, style, inl
     if (trimmed) {
       flushList(i);
       blocks.push(
-        <p key={`p-${i}`} className={className} style={{ ...style, margin: '0.5em 0', lineHeight: '1.6' }}>
+        <p
+          key={`p-${i}`}
+          className={className}
+          style={{ ...style, margin: '0.5em 0', lineHeight: '1.6' }}
+        >
           {parseInline(line)}
-        </p>
+        </p>,
       );
     } else {
       flushList(i);

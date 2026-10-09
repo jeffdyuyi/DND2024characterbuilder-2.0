@@ -14,50 +14,50 @@ export function clean5eTags(text: string): string {
   do {
     previous = text;
     text = text.replace(/\{@([a-zA-Z0-9]+)\s+([^{}]+)\}/g, (match, tag, body) => {
-    const parts = body.split('|');
-    const first = parts[0]?.trim() || '';
+      const parts = body.split('|');
+      const first = parts[0]?.trim() || '';
 
-    switch (tag.toLowerCase()) {
-      case 'dice':
-      case 'damage':
-      case 'd20':
-      case 'hit':
-        // {@damage 1d6} -> 1d6, {@dice 2d4 × 10|2d4 × 10|Starting Gold} -> 2d4 × 10
-        return parts[1] || first;
-      case 'item':
-      case 'spell':
-      case 'creature':
-      case 'feat':
-      case 'condition':
-      case 'race':
-      case 'background':
-      case 'class':
-      case 'subclass':
-      case 'variantrule':
-      case 'sense':
-      case 'action':
-      case 'skill':
-      case 'status':
-      case 'optfeature':
-      case 'reward':
-      case 'language':
-        // {@item shield|phb|shields} -> shields || shield
-        return parts[2] || first;
-      case 'filter':
-        // {@filter simple weapon|...} -> simple weapon
-        return first;
-      case 'b':
-      case 'bold':
-        return `**${first}**`;
-      case 'i':
-      case 'italic':
-        return `*${first}*`;
-      case 'note':
-        return `[注: ${first}]`;
-      default:
-        // Unknown tags must never substitute a source/URL for their visible label.
-        return first;
-    }
+      switch (tag.toLowerCase()) {
+        case 'dice':
+        case 'damage':
+        case 'd20':
+        case 'hit':
+          // {@damage 1d6} -> 1d6, {@dice 2d4 × 10|2d4 × 10|Starting Gold} -> 2d4 × 10
+          return parts[1] || first;
+        case 'item':
+        case 'spell':
+        case 'creature':
+        case 'feat':
+        case 'condition':
+        case 'race':
+        case 'background':
+        case 'class':
+        case 'subclass':
+        case 'variantrule':
+        case 'sense':
+        case 'action':
+        case 'skill':
+        case 'status':
+        case 'optfeature':
+        case 'reward':
+        case 'language':
+          // {@item shield|phb|shields} -> shields || shield
+          return parts[2] || first;
+        case 'filter':
+          // {@filter simple weapon|...} -> simple weapon
+          return first;
+        case 'b':
+        case 'bold':
+          return `**${first}**`;
+        case 'i':
+        case 'italic':
+          return `*${first}*`;
+        case 'note':
+          return `[注: ${first}]`;
+        default:
+          // Unknown tags must never substitute a source/URL for their visible label.
+          return first;
+      }
     });
   } while (text !== previous && text.includes('{@'));
   return text;
@@ -80,12 +80,20 @@ export function flattenEntries(entries: unknown[] | undefined): string {
         lines.push(`【${clean5eTags(obj.name)}】`);
       }
       if (obj.type === 'table' && Array.isArray(obj.rows)) {
-        const cell = (value: any): string => typeof value === 'string' ? clean5eTags(value) :
-          value?.entry ? flattenEntries([value.entry]) : value?.roll ? String(value.roll.exact ?? `${value.roll.min}–${value.roll.max}`) : String(value ?? '');
+        const cell = (value: any): string =>
+          typeof value === 'string'
+            ? clean5eTags(value)
+            : value?.entry
+              ? flattenEntries([value.entry])
+              : value?.roll
+                ? String(value.roll.exact ?? `${value.roll.min}–${value.roll.max}`)
+                : String(value ?? '');
         if (obj.caption) lines.push(clean5eTags(obj.caption));
         const labels = obj.colLabels || obj.rows[0]?.map(() => '');
         if (labels?.length) {
-          lines.push(`| ${labels.map(cell).join(' | ')} |\n| ${labels.map(() => '---').join(' | ')} |\n${obj.rows.map((row: any) => `| ${(row.row || row).map(cell).join(' | ')} |`).join('\n')}`);
+          lines.push(
+            `| ${labels.map(cell).join(' | ')} |\n| ${labels.map(() => '---').join(' | ')} |\n${obj.rows.map((row: any) => `| ${(row.row || row).map(cell).join(' | ')} |`).join('\n')}`,
+          );
         }
         continue;
       }

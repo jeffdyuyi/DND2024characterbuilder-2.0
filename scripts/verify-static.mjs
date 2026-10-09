@@ -9,7 +9,10 @@ let pages = 0;
 async function walk(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const file = join(directory, entry.name);
-    if (entry.isDirectory()) { if (entry.name !== '_next') await walk(file); continue; }
+    if (entry.isDirectory()) {
+      if (entry.name !== '_next') await walk(file);
+      continue;
+    }
     if (entry.name !== 'index.html') continue;
     const route = relative('out', directory).replaceAll('\\', '/');
     const url = `${origin}${basePath}/${route ? route + '/' : ''}`;
@@ -34,4 +37,6 @@ for (const asset of assets) {
 assert.equal((await fetch(`${origin}${basePath}/sheet/view/?id=static-preview-test`)).status, 200);
 assert.equal((await fetch(`${origin}${basePath}/unknown-static-route/`)).status, 404);
 if (basePath) assert.equal((await fetch(`${origin}/_next/invalid.js`)).status, 404);
-console.log(`Verified ${pages} exported pages, ${assets.size} assets, query-based sheet URL and 404 handling at ${origin}${basePath}/`);
+console.log(
+  `Verified ${pages} exported pages, ${assets.size} assets, query-based sheet URL and 404 handling at ${origin}${basePath}/`,
+);

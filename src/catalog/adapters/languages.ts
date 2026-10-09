@@ -23,7 +23,11 @@ export function catalogEntryToLanguage(entry: CatalogEntry): Language {
   const raw = (entry.raw || {}) as any;
   const name = entry.name;
   const nameEn = entry.englishName || raw.ENG_name || entry.name;
-  const id = nameEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || entry.id;
+  const id =
+    nameEn
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || entry.id;
 
   return {
     id,
@@ -31,8 +35,10 @@ export function catalogEntryToLanguage(entry: CatalogEntry): Language {
     nameEn,
     type: normalizeCategory(raw.type),
     source: entry.source,
-    typicalSpeakers: Array.isArray(raw.typicalSpeakers) 
-      ? raw.typicalSpeakers.map((s: any) => typeof s === 'string' ? s.replace(/\{@[^}]+ ([^}|]+)(\|[^}]+)?\}/g, '$1') : String(s))
+    typicalSpeakers: Array.isArray(raw.typicalSpeakers)
+      ? raw.typicalSpeakers.map((s: any) =>
+          typeof s === 'string' ? s.replace(/\{@[^}]+ ([^}|]+)(\|[^}]+)?\}/g, '$1') : String(s),
+        )
       : undefined,
     script: raw.script,
     origin: raw.origin || entry.description,
@@ -64,12 +70,14 @@ export function getCatalogLanguages(): Language[] {
 
       if (existing) {
         // 如果 catalog 条目有有效的中文名称（不是纯英文），则更新；否则保留本地权威中文名
-        const isEntryTranslated = entry.name && 
-          entry.name !== entry.englishName && 
+        const isEntryTranslated =
+          entry.name &&
+          entry.name !== entry.englishName &&
           entry.name !== (entry.raw as any)?.ENG_name &&
           /[\u4e00-\u9fa5]/.test(entry.name);
 
-        const shouldOverrideSource = entry.source === 'XPHB' || (entry.source === 'PHB' && existing.source !== 'XPHB');
+        const shouldOverrideSource =
+          entry.source === 'XPHB' || (entry.source === 'PHB' && existing.source !== 'XPHB');
 
         map.set(key, {
           ...existing,

@@ -5,15 +5,7 @@ import { createDefaultFiveEToolsSource } from '@/source/fiveetools-cn/client';
 import { expandCopies, expandVersions, inheritSubrace, readableEntries, Raw } from './expand';
 
 export type SrdKind =
-  | 'race'
-  | 'class'
-  | 'feat'
-  | 'feature'
-  | 'background'
-  | 'item'
-  | 'spell'
-  | 'rule'
-  | 'condition';
+  'race' | 'class' | 'feat' | 'feature' | 'background' | 'item' | 'spell' | 'rule' | 'condition';
 
 export const SRD_KIND_LABELS: Record<SrdKind, string> = {
   race: '种族',
@@ -46,7 +38,10 @@ export interface SrdEntry {
   raw: Raw;
 }
 
-const canonical = (s: unknown) => String(s ?? '').trim().toLowerCase();
+const canonical = (s: unknown) =>
+  String(s ?? '')
+    .trim()
+    .toLowerCase();
 
 export function makeSrdIdentity(kind: SrdKind, raw: Raw, packId = '5etools'): string {
   return [
@@ -68,7 +63,9 @@ export function makeSrdIdentity(kind: SrdKind, raw: Raw, packId = '5etools'): st
 }
 
 export function detectEdition(source: string, raw: Raw = {}): '2024' | '2014' | 'both' {
-  const s = String(source || raw.source || '').toUpperCase().trim();
+  const s = String(source || raw.source || '')
+    .toUpperCase()
+    .trim();
   if (
     raw.edition === 'one' ||
     ['XPHB', 'XDMG', 'XMM', 'SRD52', '5R'].includes(s) ||
@@ -78,7 +75,30 @@ export function detectEdition(source: string, raw: Raw = {}): '2024' | '2014' | 
   }
   if (
     raw.edition === 'classic' ||
-    ['PHB', 'DMG', 'MM', 'SCAG', 'VGM', 'XGE', 'MTF', 'ERLW', 'EGW', 'MOT', 'TCE', 'VRGR', 'WBTW', 'FTD', 'SCC', 'MPMM', 'AAG', 'BAM', 'SJA', 'DSOTC', 'BMT', 'PAIT'].includes(s)
+    [
+      'PHB',
+      'DMG',
+      'MM',
+      'SCAG',
+      'VGM',
+      'XGE',
+      'MTF',
+      'ERLW',
+      'EGW',
+      'MOT',
+      'TCE',
+      'VRGR',
+      'WBTW',
+      'FTD',
+      'SCC',
+      'MPMM',
+      'AAG',
+      'BAM',
+      'SJA',
+      'DSOTC',
+      'BMT',
+      'PAIT',
+    ].includes(s)
   ) {
     return '2014';
   }
@@ -118,23 +138,32 @@ function formatItemType(i: Raw): string {
 }
 
 /** 将 featureType 映射为友好的中文分类和所属职业提示 */
-function parseFeatureType(featTypes?: string[]): { subCategory: string; subCategoryLabel: string; parentClass?: string } {
+function parseFeatureType(featTypes?: string[]): {
+  subCategory: string;
+  subCategoryLabel: string;
+  parentClass?: string;
+} {
   if (!featTypes || !featTypes.length) {
     return { subCategory: 'OF', subCategoryLabel: '自选特性' };
   }
   const primary = String(featTypes[0]);
-  if (primary === 'EI') return { subCategory: 'EI', subCategoryLabel: '魔能祈魂', parentClass: '邪术师' };
+  if (primary === 'EI')
+    return { subCategory: 'EI', subCategoryLabel: '魔能祈魂', parentClass: '邪术师' };
   if (primary.startsWith('FS')) {
     let pClass = '战士';
     if (primary.includes('P')) pClass = '圣骑士';
     else if (primary.includes('R')) pClass = '游侠';
     return { subCategory: 'FS', subCategoryLabel: '战斗风格', parentClass: pClass };
   }
-  if (primary === 'MM') return { subCategory: 'MM', subCategoryLabel: '超魔选项', parentClass: '术士' };
-  if (primary.startsWith('MV')) return { subCategory: 'MV', subCategoryLabel: '战斗大师战技', parentClass: '战士' };
-  if (primary === 'PB') return { subCategory: 'PB', subCategoryLabel: '契约恩泽', parentClass: '邪术师' };
+  if (primary === 'MM')
+    return { subCategory: 'MM', subCategoryLabel: '超魔选项', parentClass: '术士' };
+  if (primary.startsWith('MV'))
+    return { subCategory: 'MV', subCategoryLabel: '战斗大师战技', parentClass: '战士' };
+  if (primary === 'PB')
+    return { subCategory: 'PB', subCategoryLabel: '契约恩泽', parentClass: '邪术师' };
   if (primary === 'AS') return { subCategory: 'AS', subCategoryLabel: '额外法术' };
-  if (primary === 'AI') return { subCategory: 'AI', subCategoryLabel: '魔导奇械', parentClass: '奇械师' };
+  if (primary === 'AI')
+    return { subCategory: 'AI', subCategoryLabel: '魔导奇械', parentClass: '奇械师' };
 
   return { subCategory: 'OF', subCategoryLabel: '可选特性' };
 }
@@ -150,7 +179,10 @@ class SrdEngineService {
   private classFeaturesList: SrdEntry[] = [];
 
   /** 获取特定分类的条目 */
-  public async getEntries(kind: SrdKind, options?: { signal?: AbortSignal; refresh?: boolean }): Promise<SrdEntry[]> {
+  public async getEntries(
+    kind: SrdKind,
+    options?: { signal?: AbortSignal; refresh?: boolean },
+  ): Promise<SrdEntry[]> {
     if (this.entriesByKind.has(kind)) {
       return this.entriesByKind.get(kind)!;
     }
@@ -311,7 +343,7 @@ class SrdEngineService {
             // 提取该职业的所有等级特性
             const cKey = `${cls.name}|${src}`.toLowerCase();
             const relatedFeatures = (featuresByClass.get(cKey) || []).sort(
-              (a, b) => (a.level || 0) - (b.level || 0)
+              (a, b) => (a.level || 0) - (b.level || 0),
             );
 
             // 构造层次化等级特性章节
@@ -378,7 +410,7 @@ class SrdEngineService {
 
             const scKey = `${sub.className}|${sub.shortName || sub.name}|${src}`.toLowerCase();
             const relatedFeatures = (featuresBySubclass.get(scKey) || []).sort(
-              (a, b) => (a.level || 0) - (b.level || 0)
+              (a, b) => (a.level || 0) - (b.level || 0),
             );
 
             const levelSections: any[] = [];
@@ -444,13 +476,19 @@ class SrdEngineService {
     return { classes: classEntries, subclasses: subEntries, classFeatures: featureEntries };
   }
 
-  private async loadKindData(kind: SrdKind, options?: { signal?: AbortSignal; refresh?: boolean }): Promise<SrdEntry[]> {
+  private async loadKindData(
+    kind: SrdKind,
+    options?: { signal?: AbortSignal; refresh?: boolean },
+  ): Promise<SrdEntry[]> {
     const results: SrdEntry[] = [];
 
     switch (kind) {
       case 'race': {
         try {
-          const res = await this.client.fetchJson<{ race?: Raw[]; subrace?: Raw[] }>('data/races.json', options);
+          const res = await this.client.fetchJson<{ race?: Raw[]; subrace?: Raw[] }>(
+            'data/races.json',
+            options,
+          );
           const rawRaces = expandCopies(res.body.race || []);
           const rawSubraces = expandCopies(res.body.subrace || []);
 
@@ -520,7 +558,10 @@ class SrdEngineService {
 
         // 加载可选特性（如魔能祈魂、战斗风格、超魔、战技等）
         try {
-          const res = await this.client.fetchJson<{ optionalfeature?: Raw[] }>('data/optionalfeatures.json', options);
+          const res = await this.client.fetchJson<{ optionalfeature?: Raw[] }>(
+            'data/optionalfeatures.json',
+            options,
+          );
           const rawOpts = expandCopies(res.body.optionalfeature || []);
           for (const f of rawOpts) {
             const src = String(f.source || 'PHB').toUpperCase();
@@ -549,7 +590,9 @@ class SrdEngineService {
               subCategoryLabel: meta.subCategoryLabel,
               parentClass: meta.parentClass,
               prerequisite: prereq || undefined,
-              type: meta.parentClass ? `${meta.subCategoryLabel} (${meta.parentClass})` : meta.subCategoryLabel,
+              type: meta.parentClass
+                ? `${meta.subCategoryLabel} (${meta.parentClass})`
+                : meta.subCategoryLabel,
               description: extractDescription(entries),
               entries,
               raw: f,
@@ -595,7 +638,10 @@ class SrdEngineService {
 
       case 'background': {
         try {
-          const res = await this.client.fetchJson<{ background?: Raw[] }>('data/backgrounds.json', options);
+          const res = await this.client.fetchJson<{ background?: Raw[] }>(
+            'data/backgrounds.json',
+            options,
+          );
           const rawBgs = expandCopies(res.body.background || []);
           for (const b of rawBgs) {
             const src = String(b.source || 'PHB').toUpperCase();
@@ -626,7 +672,10 @@ class SrdEngineService {
           const fileNames = await this.client.listIndexedFiles('data/spells/index.json', options);
           for (const fn of fileNames) {
             try {
-              const res = await this.client.fetchJson<{ spell?: Raw[] }>(`data/spells/${fn}`, options);
+              const res = await this.client.fetchJson<{ spell?: Raw[] }>(
+                `data/spells/${fn}`,
+                options,
+              );
               const rawSpells = expandCopies(res.body.spell || []);
               for (const s of rawSpells) {
                 const src = String(s.source || 'PHB').toUpperCase();
@@ -659,7 +708,10 @@ class SrdEngineService {
       case 'item': {
         try {
           const [baseRes, itemRes] = await Promise.allSettled([
-            this.client.fetchJson<{ baseitem?: Raw[]; item?: Raw[] }>('data/items-base.json', options),
+            this.client.fetchJson<{ baseitem?: Raw[]; item?: Raw[] }>(
+              'data/items-base.json',
+              options,
+            ),
             this.client.fetchJson<{ item?: Raw[] }>('data/items.json', options),
           ]);
           const baseItems = baseRes.status === 'fulfilled' ? baseRes.value.body.baseitem || [] : [];
@@ -692,10 +744,11 @@ class SrdEngineService {
 
       case 'condition': {
         try {
-          const res = await this.client.fetchJson<{ condition?: Raw[]; status?: Raw[]; disease?: Raw[] }>(
-            'data/conditionsdiseases.json',
-            options
-          );
+          const res = await this.client.fetchJson<{
+            condition?: Raw[];
+            status?: Raw[];
+            disease?: Raw[];
+          }>('data/conditionsdiseases.json', options);
           const list = [
             ...(res.body.condition || []).map((c) => ({ ...c, _cat: '状态' })),
             ...(res.body.status || []).map((c) => ({ ...c, _cat: '异常' })),
@@ -736,16 +789,19 @@ class SrdEngineService {
 
           const list: { raw: Raw; category: string }[] = [];
           if (varRules.status === 'fulfilled') {
-            for (const r of varRules.value.body.variantrule || []) list.push({ raw: r, category: '变体规则' });
+            for (const r of varRules.value.body.variantrule || [])
+              list.push({ raw: r, category: '变体规则' });
           }
           if (actions.status === 'fulfilled') {
-            for (const a of actions.value.body.action || []) list.push({ raw: a, category: '动作' });
+            for (const a of actions.value.body.action || [])
+              list.push({ raw: a, category: '动作' });
           }
           if (senses.status === 'fulfilled') {
             for (const s of senses.value.body.sense || []) list.push({ raw: s, category: '感官' });
           }
           if (languages.status === 'fulfilled') {
-            for (const l of languages.value.body.language || []) list.push({ raw: l, category: '语言' });
+            for (const l of languages.value.body.language || [])
+              list.push({ raw: l, category: '语言' });
           }
 
           for (const item of list) {

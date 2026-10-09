@@ -25,5 +25,8 @@ export interface RuleSource {
   id: string;
   name: string;
   kind: '5etools' | '5etools-cn' | 'homebrew' | 'legacy';
-  fetchJson<T>(path: string, options?: { signal?: AbortSignal; refresh?: boolean }): Promise<FetchResult<T>>;
+  fetchJson<T>(
+    path: string,
+    options?: { signal?: AbortSignal; refresh?: boolean },
+  ): Promise<FetchResult<T>>;
 }

@@ -1,5 +1,14 @@
 import { CharacterState, MulticlassEntry } from '../types/characterState';
-import { defaultCatalog, catalogEntryToSpell, catalogEntryToClass, catalogEntryToFeat, catalogEntryToBackground, catalogEntryToSpecies, catalogEntryToSubspecies, catalogEntryToItem } from '../catalog';
+import {
+  defaultCatalog,
+  catalogEntryToSpell,
+  catalogEntryToClass,
+  catalogEntryToFeat,
+  catalogEntryToBackground,
+  catalogEntryToSpecies,
+  catalogEntryToSubspecies,
+  catalogEntryToItem,
+} from '../catalog';
 import type { AnyItem, Armor } from '../types/equipment';
 import { Background, ClassData, Feat, Species, Spell, SubSpecies, SubClass } from '../types';
 
@@ -8,17 +17,24 @@ export type { AnyItem } from '../types/equipment';
 const normalizeReference = (value: string) => value.toLowerCase().replace(/[-_\s]+/g, '');
 const normalizeSource = (value?: string) => {
   const source = (value || '').toUpperCase();
-  return ({ PHB2024: 'XPHB', DMG2024: 'XDMG', MM2024: 'XMM' } as Record<string, string>)[source] || source;
+  return (
+    ({ PHB2024: 'XPHB', DMG2024: 'XDMG', MM2024: 'XMM' } as Record<string, string>)[source] ||
+    source
+  );
 };
 
 function findCatalogEntry(kinds: string[], reference: string, source?: string) {
   const direct = defaultCatalog.get(reference);
   if (direct && kinds.includes(direct.kind)) return direct;
   const target = normalizeReference(reference);
-  const matches = kinds.flatMap((kind) => defaultCatalog.list(kind as any)).filter((entry) => {
-    if (source && normalizeSource(entry.source) !== normalizeSource(source)) return false;
-    return [entry.id, entry.name, entry.englishName || ''].some((value) => normalizeReference(value) === target);
-  });
+  const matches = kinds
+    .flatMap((kind) => defaultCatalog.list(kind as any))
+    .filter((entry) => {
+      if (source && normalizeSource(entry.source) !== normalizeSource(source)) return false;
+      return [entry.id, entry.name, entry.englishName || ''].some(
+        (value) => normalizeReference(value) === target,
+      );
+    });
   if (matches.length === 1) return matches[0];
   if (matches.length > 1) {
     return matches.find((m) => m.edition === '2024' || m.source === 'XPHB') || matches[0];
@@ -55,7 +71,11 @@ export function getBackgroundDefinition(character: CharacterState): Background |
   if (!character.backgroundId) return undefined;
 
   // 1. 优先通过 Catalog 稳定 ID / 别名检索
-  const catEntry = findCatalogEntry(['background'], character.backgroundId, character.backgroundSource);
+  const catEntry = findCatalogEntry(
+    ['background'],
+    character.backgroundId,
+    character.backgroundSource,
+  );
   if (catEntry && catEntry.kind === 'background') {
     return catalogEntryToBackground(catEntry);
   }
@@ -81,7 +101,9 @@ export function getSubspeciesDefinition(character: CharacterState): SubSpecies |
   // 1. 优先通过 Catalog 稳定 ID / 别名检索
   const catEntry = defaultCatalog.get(character.subspeciesId);
   if (catEntry && catEntry.kind === 'subrace') {
-    const parent = character.speciesId ? findCatalogEntry(['race'], character.speciesId, character.speciesSource) : undefined;
+    const parent = character.speciesId
+      ? findCatalogEntry(['race'], character.speciesId, character.speciesSource)
+      : undefined;
     return catalogEntryToSubspecies(catEntry, parent?.raw);
   }
 
@@ -103,7 +125,6 @@ export function getSubspeciesDefinition(character: CharacterState): SubSpecies |
   return undefined;
 }
 
-
 export function getSubclassDefinition(character: CharacterState): SubClass | undefined {
   const primaryClass = getPrimaryClassEntry(character);
   const definition = getPrimaryClassDefinition(character);
@@ -112,7 +133,9 @@ export function getSubclassDefinition(character: CharacterState): SubClass | und
   // 1. 优先从已组装职业树按稳定 ID 检索，确保返回完整 traits。
   const catEntry = defaultCatalog.get(primaryClass.subclassId);
   if (catEntry && catEntry.kind === 'subclass' && definition?.subClassInfo) {
-    const assembled = definition.subClassInfo.options.find((item) => item.catalogId === catEntry.id);
+    const assembled = definition.subClassInfo.options.find(
+      (item) => item.catalogId === catEntry.id,
+    );
     if (assembled) return assembled;
   }
   if (catEntry && catEntry.kind === 'subclass' && Array.isArray((catEntry.raw as any)?.traits)) {
@@ -181,10 +204,16 @@ export function findItemById(itemId?: string): AnyItem | undefined {
   }
 
   // 1. 优先通过 Catalog 稳定 ID / 别名检索 (若带 source 则优先匹配指定版本)
-  const catEntry = (source ? findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanId, source) : undefined) ||
-                   findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanId) ||
-                   findCatalogEntry(['item', 'baseitem', 'magicvariant'], itemId);
-  if (catEntry && (catEntry.kind === 'item' || catEntry.kind === 'baseitem' || catEntry.kind === 'magicvariant')) {
+  const catEntry =
+    (source
+      ? findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanId, source)
+      : undefined) ||
+    findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanId) ||
+    findCatalogEntry(['item', 'baseitem', 'magicvariant'], itemId);
+  if (
+    catEntry &&
+    (catEntry.kind === 'item' || catEntry.kind === 'baseitem' || catEntry.kind === 'magicvariant')
+  ) {
     return catalogEntryToItem(catEntry);
   }
 
@@ -206,10 +235,16 @@ export function findItemByName(name?: string): AnyItem | undefined {
   }
 
   // 1. 优先通过 Catalog 检索
-  const catEntry = (source ? findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanName, source) : undefined) ||
-                   findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanName) ||
-                   findCatalogEntry(['item', 'baseitem', 'magicvariant'], name);
-  if (catEntry && (catEntry.kind === 'item' || catEntry.kind === 'baseitem' || catEntry.kind === 'magicvariant')) {
+  const catEntry =
+    (source
+      ? findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanName, source)
+      : undefined) ||
+    findCatalogEntry(['item', 'baseitem', 'magicvariant'], cleanName) ||
+    findCatalogEntry(['item', 'baseitem', 'magicvariant'], name);
+  if (
+    catEntry &&
+    (catEntry.kind === 'item' || catEntry.kind === 'baseitem' || catEntry.kind === 'magicvariant')
+  ) {
     return catalogEntryToItem(catEntry);
   }
 
@@ -217,9 +252,14 @@ export function findItemByName(name?: string): AnyItem | undefined {
 }
 
 /** 将角色清单实例 ID 解析为其 Catalog 物品定义。 */
-export function resolveInventoryItem(character: CharacterState, instanceOrItemId?: string): AnyItem | undefined {
+export function resolveInventoryItem(
+  character: CharacterState,
+  instanceOrItemId?: string,
+): AnyItem | undefined {
   if (!instanceOrItemId) return undefined;
-  const inventory = character.inventoryEntries?.find((entry) => entry.id === instanceOrItemId || entry.itemId === instanceOrItemId);
+  const inventory = character.inventoryEntries?.find(
+    (entry) => entry.id === instanceOrItemId || entry.itemId === instanceOrItemId,
+  );
   return findItemById(inventory?.itemId || instanceOrItemId);
 }
 
@@ -238,8 +278,9 @@ export function getActiveItemDefinitions(character: CharacterState): AnyItem[] {
     const item = findItemById(itemId);
     if (!item) continue;
     const isAttuned = attunedIds.has(entry.id) || attunedIds.has(itemId);
-    const isEquipped = Boolean(entry.equipped) || equippedEntryIds.has(entry.id) || equippedEntryIds.has(itemId);
-    const isActive = (item as any).requiresAttunement ? (isAttuned && isEquipped) : isEquipped;
+    const isEquipped =
+      Boolean(entry.equipped) || equippedEntryIds.has(entry.id) || equippedEntryIds.has(itemId);
+    const isActive = (item as any).requiresAttunement ? isAttuned && isEquipped : isEquipped;
     if (isActive) items.set(itemId, item);
   }
   // 兼容旧角色：旧存档可能直接保存物品库 ID，没有对应 InventoryEntry。
@@ -251,7 +292,8 @@ export function getActiveItemDefinitions(character: CharacterState): AnyItem[] {
     if (!item) continue;
     const isAttuned = attunedIds.has(id) || attunedIds.has(itemId);
     const isEquipped = equippedEntryIds.has(id) || equippedEntryIds.has(itemId);
-    if ((item as any).requiresAttunement ? (isAttuned && isEquipped) : isEquipped) items.set(itemId, item);
+    if ((item as any).requiresAttunement ? isAttuned && isEquipped : isEquipped)
+      items.set(itemId, item);
   }
 
   return Array.from(items.values());
@@ -269,26 +311,40 @@ export function getAttunementStatus(character: CharacterState): AttunementStatus
   let bonus = 0;
   const applyMechanics = (mechanics: any) => {
     if (!mechanics) return;
-    if (typeof mechanics.attunementLimit === 'number') fixedLimit = Math.max(fixedLimit, mechanics.attunementLimit);
+    if (typeof mechanics.attunementLimit === 'number')
+      fixedLimit = Math.max(fixedLimit, mechanics.attunementLimit);
     if (typeof mechanics.attunementLimitBonus === 'number') bonus += mechanics.attunementLimitBonus;
   };
 
   character.classes?.forEach((classEntry) => {
     const classDef = getClassDefinition(classEntry.classId);
-    const subclass = classDef?.subClassInfo?.options.find((option) =>
-      option.catalogId === classEntry.subclassId || option.nameEn === classEntry.subclassId || option.name === classEntry.subclassId
+    const subclass = classDef?.subClassInfo?.options.find(
+      (option) =>
+        option.catalogId === classEntry.subclassId ||
+        option.nameEn === classEntry.subclassId ||
+        option.name === classEntry.subclassId,
     );
-    classDef?.features.filter((feature) => feature.level <= classEntry.level).forEach((feature) => applyMechanics(feature.mechanics));
-    subclass?.traits.filter((trait) => trait.level <= classEntry.level).forEach((trait) => applyMechanics(trait.mechanics));
+    classDef?.features
+      .filter((feature) => feature.level <= classEntry.level)
+      .forEach((feature) => applyMechanics(feature.mechanics));
+    subclass?.traits
+      .filter((trait) => trait.level <= classEntry.level)
+      .forEach((trait) => applyMechanics(trait.mechanics));
   });
-  character.selectedFeats?.forEach((feat) => applyMechanics(getFeatDefinition(feat.featId)?.mechanics));
-  character.selectedCharacterOptionIds?.forEach((id) => applyMechanics((defaultCatalog.get(id)?.raw as any)?.mechanics));
+  character.selectedFeats?.forEach((feat) =>
+    applyMechanics(getFeatDefinition(feat.featId)?.mechanics),
+  );
+  character.selectedCharacterOptionIds?.forEach((id) =>
+    applyMechanics((defaultCatalog.get(id)?.raw as any)?.mechanics),
+  );
   getSpeciesDefinition(character)?.traits.forEach((trait) => applyMechanics(trait.mechanics));
   getSubspeciesDefinition(character)?.traits.forEach((trait) => applyMechanics(trait.mechanics));
 
   const counted = new Set<string>();
   for (const attunedId of character.attunedItemIds || []) {
-    const inventoryEntry = character.inventoryEntries?.find((entry) => entry.id === attunedId || entry.itemId === attunedId);
+    const inventoryEntry = character.inventoryEntries?.find(
+      (entry) => entry.id === attunedId || entry.itemId === attunedId,
+    );
     const itemId = inventoryEntry?.itemId || attunedId;
     const item = findItemById(itemId) as any;
     if (item?.requiresAttunement) counted.add(inventoryEntry?.id || itemId);
@@ -298,10 +354,9 @@ export function getAttunementStatus(character: CharacterState): AttunementStatus
   return { limit, count: counted.size, overLimit: counted.size > limit };
 }
 
-
 export function resolveDisplayName(item?: { name?: string; nameEn?: string }) {
   if (!item) return '';
-  return item.nameEn ? `${item.name} (${item.nameEn})` : item.name ?? '';
+  return item.nameEn ? `${item.name} (${item.nameEn})` : (item.name ?? '');
 }
 
 /**
@@ -316,15 +371,15 @@ export function getArmorProficiencies(character: CharacterState): string[] {
     if (!def) return;
     if (idx === 0) {
       // 初始职业
-      def.proficiencies.armor?.forEach(p => profs.add(p));
+      def.proficiencies.armor?.forEach((p) => profs.add(p));
     } else {
       // 兼职
-      def.multiclassProficiencies?.armor?.forEach(p => profs.add(p));
+      def.multiclassProficiencies?.armor?.forEach((p) => profs.add(p));
     }
   });
 
   // 2. 专长提供的熟练
-  character.selectedFeats?.forEach(f => {
+  character.selectedFeats?.forEach((f) => {
     const def = getFeatDefinition(f.featId);
     if (def?.mechanics?.armorProficiencies) {
       def.mechanics.armorProficiencies.forEach((p: string) => profs.add(p));
@@ -338,17 +393,17 @@ export function getArmorProficiencies(character: CharacterState): string[] {
  * 检查角色是否对特定护甲具有熟练
  */
 export function isProficientWithArmor(character: CharacterState, armor: Armor): boolean {
-  const profs = getArmorProficiencies(character).map(p => p.toLowerCase());
+  const profs = getArmorProficiencies(character).map((p) => p.toLowerCase());
   const category = armor.armorCategory.toLowerCase(); // 'light', 'medium', 'heavy', 'shield'
-  
+
   // 映射定义
   const map: Record<string, string[]> = {
-    'light': ['light', 'light armor', 'lightarmor'],
-    'medium': ['medium', 'medium armor', 'mediumarmor'],
-    'heavy': ['heavy', 'heavy armor', 'heavyarmor'],
-    'shield': ['shield']
+    light: ['light', 'light armor', 'lightarmor'],
+    medium: ['medium', 'medium armor', 'mediumarmor'],
+    heavy: ['heavy', 'heavy armor', 'heavyarmor'],
+    shield: ['shield'],
   };
 
   const keys = map[category] || [category];
-  return profs.some(p => keys.includes(p));
+  return profs.some((p) => keys.includes(p));
 }

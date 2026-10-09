@@ -25,6 +25,10 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - name: Check repository contents
+        run: npm run verify:repository
+      - name: Check formatting
+        run: npm run format:check
       - name: Unit tests
         run: npm test -- --reporter=dot
       - name: Build static site

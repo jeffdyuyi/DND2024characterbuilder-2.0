@@ -23,33 +23,34 @@ import {
 } from '../tools';
 
 function isArtisanCategory(term: string): boolean {
-  const t = String(term || '').toLowerCase().replace(/[-_\s']/g, '');
+  const t = String(term || '')
+    .toLowerCase()
+    .replace(/[-_\s']/g, '');
   return (
-    t === 'artisanstools' || 
-    t === 'artisantools' || 
-    t === 'anyartisan' || 
-    t === 'anyartisanstool' || 
+    t === 'artisanstools' ||
+    t === 'artisantools' ||
+    t === 'anyartisan' ||
+    t === 'anyartisanstool' ||
     t === 'anyartisanstools' ||
     t === 'artisan'
   );
 }
 
 function isGamingSetCategory(term: string): boolean {
-  const t = String(term || '').toLowerCase().replace(/[-_\s']/g, '');
-  return (
-    t === 'gamingset' || 
-    t === 'anygamingset' || 
-    t === 'gamingsets' || 
-    t === 'anygamingsets'
-  );
+  const t = String(term || '')
+    .toLowerCase()
+    .replace(/[-_\s']/g, '');
+  return t === 'gamingset' || t === 'anygamingset' || t === 'gamingsets' || t === 'anygamingsets';
 }
 
 function isMusicalInstrumentCategory(term: string): boolean {
-  const t = String(term || '').toLowerCase().replace(/[-_\s']/g, '');
+  const t = String(term || '')
+    .toLowerCase()
+    .replace(/[-_\s']/g, '');
   return (
-    t === 'musicalinstrument' || 
-    t === 'anymusicalinstrument' || 
-    t === 'musicalinstruments' || 
+    t === 'musicalinstrument' ||
+    t === 'anymusicalinstrument' ||
+    t === 'musicalinstruments' ||
     t === 'anymusicalinstruments' ||
     t === 'instrument'
   );
@@ -109,7 +110,7 @@ function parseProficiencies(value: unknown, kind: 'skill' | 'tool' | 'language')
         const hasArtisan = from.some(isArtisanCategory);
         const hasGaming = from.some(isGamingSetCategory);
         const hasMusical = from.some(isMusicalInstrumentCategory);
-        const hasAny = from.some(f => f.toLowerCase() === 'any' || f.toLowerCase() === 'anytool');
+        const hasAny = from.some((f) => f.toLowerCase() === 'any' || f.toLowerCase() === 'anytool');
 
         if (hasAny) {
           choiceName = '工具自选';
@@ -126,13 +127,15 @@ function parseProficiencies(value: unknown, kind: 'skill' | 'tool' | 'language')
         }
         from = expandToolOptions(from);
       } else if (kind === 'language') {
-        choiceName = from.some(f => f.toLowerCase() === 'anystandard') ? '标准语言自选' : '语言自选';
-        if (from.some(f => f.toLowerCase() === 'any' || f.toLowerCase() === 'anystandard')) {
+        choiceName = from.some((f) => f.toLowerCase() === 'anystandard')
+          ? '标准语言自选'
+          : '语言自选';
+        if (from.some((f) => f.toLowerCase() === 'any' || f.toLowerCase() === 'anystandard')) {
           from = ['Any'];
         }
       } else if (kind === 'skill') {
         choiceName = '技能自选';
-        if (from.some(f => f.toLowerCase() === 'any')) {
+        if (from.some((f) => f.toLowerCase() === 'any')) {
           from = ['Any'];
         }
       }
@@ -256,7 +259,11 @@ function getCachedItemCatalogEntries(): CatalogEntry[] {
 function findCatalogItemEntry(name: string, source?: string): CatalogEntry | undefined {
   if (!name) return undefined;
   const target = name.toLowerCase().replace(/[-_\s()（）]/g, '');
-  const normSource = source ? (source.toUpperCase() === 'PHB2024' ? 'XPHB' : source.toUpperCase()) : undefined;
+  const normSource = source
+    ? source.toUpperCase() === 'PHB2024'
+      ? 'XPHB'
+      : source.toUpperCase()
+    : undefined;
 
   const items = getCachedItemCatalogEntries();
 
@@ -274,7 +281,11 @@ function findCatalogItemEntry(name: string, source?: string): CatalogEntry | und
   }
 
   // 兜底模糊匹配：去除括号规格后重试（如 "墨水(1盎司/瓶)" -> "墨水"）
-  const simplified = name.replace(/\(.*?\)|（.*?）/g, '').trim().toLowerCase().replace(/[-_\s]/g, '');
+  const simplified = name
+    .replace(/\(.*?\)|（.*?）/g, '')
+    .trim()
+    .toLowerCase()
+    .replace(/[-_\s]/g, '');
   if (simplified && simplified !== target) {
     const fuzzyMatches = items.filter((entry) => {
       if (normSource && entry.source.toUpperCase() !== normSource) return false;
@@ -282,14 +293,19 @@ function findCatalogItemEntry(name: string, source?: string): CatalogEntry | und
       return n1 === simplified || n1.includes(simplified) || simplified.includes(n1);
     });
     if (fuzzyMatches.length > 0) {
-      return fuzzyMatches.find((m) => m.edition === '2024' || m.source === 'XPHB') || fuzzyMatches[0];
+      return (
+        fuzzyMatches.find((m) => m.edition === '2024' || m.source === 'XPHB') || fuzzyMatches[0]
+      );
     }
   }
 
   return undefined;
 }
 
-function getCategoryFromCatalogEntry(catEntry?: CatalogEntry, label?: string): BackgroundEquipmentRecord['category'] {
+function getCategoryFromCatalogEntry(
+  catEntry?: CatalogEntry,
+  label?: string,
+): BackgroundEquipmentRecord['category'] {
   if (catEntry) {
     const type = String(catEntry.raw?.type || '').toUpperCase();
     if (['M', 'R', 'W'].includes(type) || catEntry.raw?.weaponCategory) return 'weapon';
@@ -298,8 +314,26 @@ function getCategoryFromCatalogEntry(catEntry?: CatalogEntry, label?: string): B
     if (['AT', 'T', 'GS', 'INS'].includes(type) || catEntry.raw?.toolCategory) return 'tool';
   }
   if (label) {
-    if (label.includes('工具') || label.includes('赌具') || label.includes('乐器') || label.includes('道具') || label.includes('套件')) return 'tool';
-    if (label.includes('剑') || label.includes('匕首') || label.includes('弓') || label.includes('矛') || label.includes('杖') || label.includes('棍') || label.includes('弩') || label.includes('斧') || label.includes('锤')) return 'weapon';
+    if (
+      label.includes('工具') ||
+      label.includes('赌具') ||
+      label.includes('乐器') ||
+      label.includes('道具') ||
+      label.includes('套件')
+    )
+      return 'tool';
+    if (
+      label.includes('剑') ||
+      label.includes('匕首') ||
+      label.includes('弓') ||
+      label.includes('矛') ||
+      label.includes('杖') ||
+      label.includes('棍') ||
+      label.includes('弩') ||
+      label.includes('斧') ||
+      label.includes('锤')
+    )
+      return 'weapon';
     if (label.includes('甲') || label.includes('皮甲') || label.includes('链甲')) return 'armor';
     if (label.includes('盾')) return 'shield';
   }
@@ -353,7 +387,7 @@ function parseCurrencyString(label: string): Partial<Currency> | undefined {
 
 function parseEquipmentElement(
   entry: any,
-  index: number
+  index: number,
 ): {
   displayLabel?: string | Selection<string>;
   records: BackgroundEquipmentRecord[];
@@ -460,7 +494,10 @@ function parseEquipmentElement(
         records: [{ label: '工匠工具自选', kind: 'unresolved', category: 'tool' }],
       };
     }
-    if (entry.equipmentType === 'instrumentMusical' || entry.equipmentType === 'musicalInstrument') {
+    if (
+      entry.equipmentType === 'instrumentMusical' ||
+      entry.equipmentType === 'musicalInstrument'
+    ) {
       return {
         displayLabel: '乐器自选',
         records: [{ label: '乐器自选', kind: 'unresolved', category: 'tool' }],
@@ -473,7 +510,7 @@ function parseEquipmentElement(
 
 function parseStartingEquipmentAst(
   starting: any[],
-  backgroundName?: string
+  backgroundName?: string,
 ): Background['equipment'] {
   const choiceA: (string | Selection<string>)[] = [];
   const choiceARecords: BackgroundEquipmentRecord[] = [];
@@ -502,11 +539,12 @@ function parseStartingEquipmentAst(
       const listB = itemGroup.B || itemGroup.b;
 
       // 判断这是否是“方案A (装备包) vs 方案B (50 GP金币)”的顶层规则
-      const isTopLevelScheme = (
+      const isTopLevelScheme =
         !itemGroup._ &&
         idx === 0 &&
-        listB.some((it: any) => typeof it?.value === 'number' || typeof it === 'number' || it?.containsValue)
-      );
+        listB.some(
+          (it: any) => typeof it?.value === 'number' || typeof it === 'number' || it?.containsValue,
+        );
 
       if (isTopLevelScheme) {
         for (const item of listA) {
@@ -577,11 +615,10 @@ function parseStartingEquipmentAst(
   };
 }
 
-const REGEX_2024_SCHEME = /(?:\(A\)|(?:^|选择[A-Z或\s：:]*)[AＡ][：:])\s*([\s\S]+?)(?:[；;，,]\s*或|\s*或|[；;，,]|\s+)\s*(?:\(?[BＢ]\)?[：:]?)\s*([\s\S]+)$/i;
+const REGEX_2024_SCHEME =
+  /(?:\(A\)|(?:^|选择[A-Z或\s：:]*)[AＡ][：:])\s*([\s\S]+?)(?:[；;，,]\s*或|\s*或|[；;，,]|\s+)\s*(?:\(?[BＢ]\)?[：:]?)\s*([\s\S]+)$/i;
 
-function parseEquipmentTextFallback(
-  rawEqText: string
-): Background['equipment'] {
+function parseEquipmentTextFallback(rawEqText: string): Background['equipment'] {
   // 匹配 2024 标准分案：选择 A 或 B：(A) ...；或 (B) ...
   const match2024 = rawEqText.match(REGEX_2024_SCHEME);
   if (match2024) {
@@ -592,7 +629,10 @@ function parseEquipmentTextFallback(
     textA = textA.replace(/(\S)\s+(\d+\s*(?:GP|SP|CP|PP|EP|金币|银币|铜币|枚金币|枚))/gi, '$1，$2');
 
     // 2. 泛用按顿号、逗号、分号及连词拆分为子句
-    const rawTokens = textA.split(/[、，,;；]|(?:\s*以及\s*|\s*还有\s*|\s*和\s*)/).map((s) => s.trim()).filter(Boolean);
+    const rawTokens = textA
+      .split(/[、，,;；]|(?:\s*以及\s*|\s*还有\s*|\s*和\s*)/)
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     const choiceA: string[] = [];
     const choiceARecords: BackgroundEquipmentRecord[] = [];
@@ -610,15 +650,21 @@ function parseEquipmentTextFallback(
       }
 
       // 防御性处理：检查子句是否依然混有物品与货币（如 "旅行服装， 30 GP" 或 "旅行服装 30 GP"）
-      const compoundCurMatch = cleanToken.match(/(?:[，,\s]+|\s+)(\d+)\s*(GP|SP|CP|PP|EP|金币|银币|铜币|枚金币|枚)$/i);
+      const compoundCurMatch = cleanToken.match(
+        /(?:[，,\s]+|\s+)(\d+)\s*(GP|SP|CP|PP|EP|金币|银币|铜币|枚金币|枚)$/i,
+      );
       if (compoundCurMatch) {
         const itemPart = cleanToken.slice(0, compoundCurMatch.index).trim();
         const amt = parseInt(compoundCurMatch[1], 10);
         const unit = compoundCurMatch[2].toLowerCase();
-        const curKey: keyof Currency = (unit === '金币' || unit === 'gp' || unit === '枚' || unit === '枚金币') ? 'gp' :
-                                      (unit === '银币' || unit === 'sp') ? 'sp' :
-                                      (unit === '铜币' || unit === 'cp') ? 'cp' :
-                                      (unit as keyof Currency);
+        const curKey: keyof Currency =
+          unit === '金币' || unit === 'gp' || unit === '枚' || unit === '枚金币'
+            ? 'gp'
+            : unit === '银币' || unit === 'sp'
+              ? 'sp'
+              : unit === '铜币' || unit === 'cp'
+                ? 'cp'
+                : (unit as keyof Currency);
         const embeddedCur: Partial<Currency> = { [curKey]: amt };
         const curLabel = `${amt} ${unit === '枚' || unit === '枚金币' ? 'GP' : unit.toUpperCase()}`;
 
@@ -645,8 +691,9 @@ function parseEquipmentTextFallback(
       // 普通装备项：解析数量与具体物品名称
       let itemLabel = cleanToken;
       let qty = 1;
-      const qtyMatch = itemLabel.match(/^(\d+)\s*(?:把|支|个|套|件|张|瓶|条|副|根|盒|份|只|包)?\s*(.+)$/) ||
-                       itemLabel.match(/^(?:两|两把|两支|两个|两套|两瓶|两只|两包)\s*(.+)$/);
+      const qtyMatch =
+        itemLabel.match(/^(\d+)\s*(?:把|支|个|套|件|张|瓶|条|副|根|盒|份|只|包)?\s*(.+)$/) ||
+        itemLabel.match(/^(?:两|两把|两支|两个|两套|两瓶|两只|两包)\s*(.+)$/);
       if (qtyMatch) {
         if (qtyMatch[0].startsWith('两')) {
           qty = 2;
@@ -683,7 +730,10 @@ function parseEquipmentTextFallback(
   }
 
   // 2014 经典背景单文本解析：按标点与连词拆分
-  const rawClauses = rawEqText.split(/[，,;；、]|(?:\s*以及\s*|\s*还有\s*|\s*和\s*)/).map((s) => s.trim()).filter(Boolean);
+  const rawClauses = rawEqText
+    .split(/[，,;；、]|(?:\s*以及\s*|\s*还有\s*|\s*和\s*)/)
+    .map((s) => s.trim())
+    .filter(Boolean);
   const choiceA: string[] = [];
   const choiceARecords: BackgroundEquipmentRecord[] = [];
 
@@ -704,15 +754,21 @@ function parseEquipmentTextFallback(
     }
 
     // 检查是否有包含货币，如 "一条腰带小包内装有10gp（俄佐立发行的1齐诺硬币）"
-    const moneyMatch = clause.match(/(?:内装有|装有|内含|包含|带有|里面有)?\s*(\d+)\s*(gp|sp|cp|pp|ep|金币|银币|铜币)/i);
+    const moneyMatch = clause.match(
+      /(?:内装有|装有|内含|包含|带有|里面有)?\s*(\d+)\s*(gp|sp|cp|pp|ep|金币|银币|铜币)/i,
+    );
     let extractedCurrency: Partial<Currency> | undefined = undefined;
     if (moneyMatch) {
       const amount = parseInt(moneyMatch[1], 10);
       const unit = moneyMatch[2].toLowerCase();
-      const curKey: keyof Currency = (unit === '金币' || unit === 'gp') ? 'gp' :
-                                    (unit === '银币' || unit === 'sp') ? 'sp' :
-                                    (unit === '铜币' || unit === 'cp') ? 'cp' :
-                                    (unit as keyof Currency);
+      const curKey: keyof Currency =
+        unit === '金币' || unit === 'gp'
+          ? 'gp'
+          : unit === '银币' || unit === 'sp'
+            ? 'sp'
+            : unit === '铜币' || unit === 'cp'
+              ? 'cp'
+              : (unit as keyof Currency);
       extractedCurrency = { [curKey]: amount };
     }
 
@@ -735,7 +791,10 @@ function parseEquipmentTextFallback(
     let cleanClause = cleanClauseText
       // 修复重叠量词（如 "一瓶一瓶蓝墨水" -> "一瓶蓝墨水"）
       .replace(/(一[瓶支套条枚个把副卷张份])\1+/g, '$1')
-      .replace(/^(?:一枚|一支|一瓶|一套|一条|一把|一个|两把|一件|一卷|一副|两瓶|一盒|一份|一根)\s*/, '')
+      .replace(
+        /^(?:一枚|一支|一瓶|一套|一条|一把|一个|两把|一件|一卷|一副|两瓶|一盒|一份|一根)\s*/,
+        '',
+      )
       .replace(/(?:内装有|装有|内含|包含).*$/, '')
       .replace(/[（(].*?[）)]/g, '')
       .trim();
@@ -759,7 +818,9 @@ function parseEquipmentTextFallback(
         currency: extractedCurrency,
       });
     } else {
-      const displayLabel = clean5eTags(clause).replace(/(一[瓶支套条枚个把副卷张份])\1+/g, '$1').trim();
+      const displayLabel = clean5eTags(clause)
+        .replace(/(一[瓶支套条枚个把副卷张份])\1+/g, '$1')
+        .trim();
       choiceA.push(displayLabel);
       choiceARecords.push({
         itemId,
@@ -784,7 +845,11 @@ function parseEquipmentTextFallback(
  */
 export function catalogEntryToBackground(entry: CatalogEntry): Background {
   // 1. 若原始对象已是完整的旧版 Background，直接保留原汁原味
-  if (entry.sourcePackId === 'legacy' && entry.raw && Array.isArray((entry.raw as any).skillProficiencies)) {
+  if (
+    entry.sourcePackId === 'legacy' &&
+    entry.raw &&
+    Array.isArray((entry.raw as any).skillProficiencies)
+  ) {
     return entry.raw as unknown as Background;
   }
 
@@ -797,7 +862,12 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
     for (const ab of raw.ability) {
       if (typeof ab === 'object') {
         const weightedFrom = ab.choose?.weighted?.from || ab.choose?.from || [];
-        [...Object.keys(ab).filter((key) => ['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(key)), ...weightedFrom].forEach((k) => {
+        [
+          ...Object.keys(ab).filter((key) =>
+            ['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(key),
+          ),
+          ...weightedFrom,
+        ].forEach((k) => {
           if (!abilityScoreOptions.includes(k.toUpperCase())) {
             abilityScoreOptions.push(k.toUpperCase());
           }
@@ -819,53 +889,62 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
     }
     if (featRef) {
       const catalogFeats = defaultCatalog.list('feat');
-      const parts = featRef.split(/[;；]/).map(s => s.trim());
+      const parts = featRef.split(/[;；]/).map((s) => s.trim());
       const baseFeatName = parts[0];
       const subVariant = parts.slice(1).join('；');
 
       const cleanRef = featRef.toLowerCase().replace(/[-_\s]+/g, '');
       const cleanBase = baseFeatName.toLowerCase().replace(/[-_\s]+/g, '');
 
-      const matchedFeat = catalogFeats.find(candidate => 
-        candidate.name === featRef || 
-        candidate.englishName === featRef ||
-        candidate.id.toLowerCase() === featRef.toLowerCase() ||
-        candidate.id.toLowerCase().replace(/[-_\s]+/g, '') === cleanRef ||
-        (candidate.name && candidate.name.toLowerCase().replace(/[-_\s]+/g, '') === cleanRef) ||
-        (candidate.englishName && candidate.englishName.toLowerCase().replace(/[-_\s]+/g, '') === cleanRef)
-      ) || catalogFeats.find(candidate =>
-        candidate.name === baseFeatName ||
-        candidate.englishName === baseFeatName ||
-        candidate.id.toLowerCase() === baseFeatName.toLowerCase() ||
-        candidate.id.toLowerCase().replace(/[-_\s]+/g, '') === cleanBase ||
-        (candidate.name && candidate.name.toLowerCase().replace(/[-_\s]+/g, '') === cleanBase) ||
-        (candidate.englishName && candidate.englishName.toLowerCase().replace(/[-_\s]+/g, '') === cleanBase)
-      );
+      const matchedFeat =
+        catalogFeats.find(
+          (candidate) =>
+            candidate.name === featRef ||
+            candidate.englishName === featRef ||
+            candidate.id.toLowerCase() === featRef.toLowerCase() ||
+            candidate.id.toLowerCase().replace(/[-_\s]+/g, '') === cleanRef ||
+            (candidate.name && candidate.name.toLowerCase().replace(/[-_\s]+/g, '') === cleanRef) ||
+            (candidate.englishName &&
+              candidate.englishName.toLowerCase().replace(/[-_\s]+/g, '') === cleanRef),
+        ) ||
+        catalogFeats.find(
+          (candidate) =>
+            candidate.name === baseFeatName ||
+            candidate.englishName === baseFeatName ||
+            candidate.id.toLowerCase() === baseFeatName.toLowerCase() ||
+            candidate.id.toLowerCase().replace(/[-_\s]+/g, '') === cleanBase ||
+            (candidate.name &&
+              candidate.name.toLowerCase().replace(/[-_\s]+/g, '') === cleanBase) ||
+            (candidate.englishName &&
+              candidate.englishName.toLowerCase().replace(/[-_\s]+/g, '') === cleanBase),
+        );
 
       // 若有子变体，动态关联 Catalog 实体，严禁硬编码穷举字典
       let subVariantEn = '';
       if (subVariant) {
-        const matchedClass = defaultCatalog.list('class').find(c => 
-          c.name === subVariant || 
-          c.id.toLowerCase() === subVariant.toLowerCase()
-        );
+        const matchedClass = defaultCatalog
+          .list('class')
+          .find((c) => c.name === subVariant || c.id.toLowerCase() === subVariant.toLowerCase());
         subVariantEn = matchedClass?.englishName || subVariant;
       }
 
       if (matchedFeat) {
         feat = {
           name: featRef,
-          nameEn: subVariantEn 
-            ? `${matchedFeat.englishName || baseFeatName} (${subVariantEn})` 
-            : (matchedFeat.englishName || featRef),
+          nameEn: subVariantEn
+            ? `${matchedFeat.englishName || baseFeatName} (${subVariantEn})`
+            : matchedFeat.englishName || featRef,
           description: matchedFeat.description,
         };
       } else {
         feat = {
           name: typeof f === 'object' && f.name ? f.name : featRef,
-          nameEn: typeof f === 'object' && f.ENG_name 
-            ? f.ENG_name 
-            : (subVariantEn ? `${baseFeatName} (${subVariantEn})` : featRef),
+          nameEn:
+            typeof f === 'object' && f.ENG_name
+              ? f.ENG_name
+              : subVariantEn
+                ? `${baseFeatName} (${subVariantEn})`
+                : featRef,
           description: typeof f === 'object' ? f.description : undefined,
         };
       }
@@ -876,7 +955,7 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
   const skillProficiencies = parseProficiencies(raw.skillProficiencies || raw.skills, 'skill');
   const toolProficiencies = parseProficiencies(raw.toolProficiencies, 'tool');
   const languages = parseProficiencies(raw.languageProficiencies || raw.languages, 'language');
-  
+
   const entriesList = Array.isArray(raw.entries) ? raw.entries : [];
 
   // 装备方案解析：
@@ -888,8 +967,11 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
       const items = Array.isArray(entryItem.items) ? entryItem.items : [];
       for (const item of items) {
         if (typeof item === 'object' && item !== null) {
-          const isEquipment = item.name === '装备：' || item.name === '装备' || 
-                              item.ENG_name === 'Equipment:' || item.ENG_name === 'Equipment';
+          const isEquipment =
+            item.name === '装备：' ||
+            item.name === '装备' ||
+            item.ENG_name === 'Equipment:' ||
+            item.ENG_name === 'Equipment';
           if (isEquipment && typeof item.entry === 'string') {
             const rawEqText = item.entry;
             const match2024 = rawEqText.match(REGEX_2024_SCHEME);
@@ -917,8 +999,11 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
         const items = Array.isArray(entryItem.items) ? entryItem.items : [];
         for (const item of items) {
           if (typeof item === 'object' && item !== null) {
-            const isEquipment = item.name === '装备：' || item.name === '装备' || 
-                                item.ENG_name === 'Equipment:' || item.ENG_name === 'Equipment';
+            const isEquipment =
+              item.name === '装备：' ||
+              item.name === '装备' ||
+              item.ENG_name === 'Equipment:' ||
+              item.ENG_name === 'Equipment';
             if (isEquipment && typeof item.entry === 'string') {
               equipmentResult = parseEquipmentTextFallback(item.entry);
               break;
@@ -937,16 +1022,18 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
       if (typeof entryItem === 'object' && entryItem !== null) {
         const entryName = entryItem.name || entryItem.ENG_name || '';
         const isFeature = Boolean(
-          entryItem.data?.isFeature || 
-          entryName.startsWith('特性：') || 
-          entryName.startsWith('特性:') || 
+          entryItem.data?.isFeature ||
+          entryName.startsWith('特性：') ||
+          entryName.startsWith('特性:') ||
           entryName.toLowerCase().startsWith('feature:') ||
-          entryName.toLowerCase().startsWith('feature：')
+          entryName.toLowerCase().startsWith('feature：'),
         );
         if (isFeature) {
           const cleanName = entryName.replace(/^(特性[：:]\s*|Feature[：:]\s*)/i, '').trim();
           const cleanNameEn = (entryItem.ENG_name || '').replace(/^(Feature[：:]\s*)/i, '').trim();
-          const desc = flattenEntries(entryItem.entries || (entryItem.entry ? [entryItem.entry] : []));
+          const desc = flattenEntries(
+            entryItem.entries || (entryItem.entry ? [entryItem.entry] : []),
+          );
           legacyFeature = {
             name: cleanName || entryName,
             nameEn: cleanNameEn || cleanName || entryName,
@@ -969,19 +1056,24 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
           if (sub && typeof sub === 'object' && sub.type === 'table') {
             const colLabels = sub.colLabels || [];
             const diceMatch = colLabels[0]?.match(/d(\d+)/i);
-            const dice = diceMatch ? diceMatch[1] : (sub.rows?.length ? String(sub.rows.length) : undefined);
-            
+            const dice = diceMatch
+              ? diceMatch[1]
+              : sub.rows?.length
+                ? String(sub.rows.length)
+                : undefined;
+
             // 提取第二列列名作为分类名 (如 "特点", "理念", "牵挂", "缺陷", "人格特质", "Personality Trait" 等)
-            const colCategory = colLabels.length > 1 ? clean5eTags(String(colLabels[1])).trim() : '';
-            
+            const colCategory =
+              colLabels.length > 1 ? clean5eTags(String(colLabels[1])).trim() : '';
+
             // 如果父 entry 名字是泛指性的“建议人物特征”或“特征/特性”，优先使用第二列分类名
-            const isGenericParent = entryItem.name && (
-              entryItem.name.includes('特征') || 
-              entryItem.name.includes('特性') || 
-              entryItem.name.toLowerCase().includes('characteristic') ||
-              entryItem.name.toLowerCase().includes('trait')
-            );
-            
+            const isGenericParent =
+              entryItem.name &&
+              (entryItem.name.includes('特征') ||
+                entryItem.name.includes('特性') ||
+                entryItem.name.toLowerCase().includes('characteristic') ||
+                entryItem.name.toLowerCase().includes('trait'));
+
             let tableName = sub.caption;
             if (!tableName && colCategory && (isGenericParent || subList.length > 1)) {
               tableName = colCategory;
@@ -991,7 +1083,7 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
             }
 
             const rows = (sub.rows || []).map((row: any[], rIdx: number) => {
-              const id = parseInt(row[0], 10) || (rIdx + 1);
+              const id = parseInt(row[0], 10) || rIdx + 1;
               const content = clean5eTags(row[1] || row[0] || '');
               return { id, content };
             });
@@ -1021,7 +1113,12 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
   if (!description && entriesList.length > 0) {
     const textEntries = entriesList.filter((e: any) => {
       if (typeof e === 'string') return true;
-      if (e.type === 'list' || e.data?.isFeature || (e.name && (e.name.includes('特性') || e.name.toLowerCase().includes('feature')))) return false;
+      if (
+        e.type === 'list' ||
+        e.data?.isFeature ||
+        (e.name && (e.name.includes('特性') || e.name.toLowerCase().includes('feature')))
+      )
+        return false;
       return true;
     });
     description = flattenEntries(textEntries);
@@ -1034,7 +1131,8 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
     nameEn: entry.englishName || entry.name,
     description: description || '',
     variants: raw.variants,
-    abilityScoreOptions: abilityScoreOptions.length > 0 ? abilityScoreOptions : raw.abilityScoreOptions,
+    abilityScoreOptions:
+      abilityScoreOptions.length > 0 ? abilityScoreOptions : raw.abilityScoreOptions,
     feat: feat || raw.feat,
     enforceRules: Boolean(raw.enforceRules ?? true),
     skillProficiencies,
@@ -1081,8 +1179,5 @@ export function getCatalogBackgrounds(options?: {
     }
   }
 
-
   return backgrounds;
 }
-
-

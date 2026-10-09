@@ -83,7 +83,10 @@ export default function SrdPage() {
 
   // 预载职业列表供下拉筛选
   useEffect(() => {
-    srdEngine.getAvailableClasses().then(setAvailableClasses).catch(() => {});
+    srdEngine
+      .getAvailableClasses()
+      .then(setAvailableClasses)
+      .catch(() => {});
   }, []);
 
   // 当切换选项卡时重置子分类与加载条目
@@ -134,7 +137,9 @@ export default function SrdPage() {
 
       // 3. 母职业快速过滤
       if (parentClassFilter !== 'all') {
-        const itemClass = item.parentClass || (item.name.includes(':') ? item.name.split(':')[0].trim() : item.name);
+        const itemClass =
+          item.parentClass ||
+          (item.name.includes(':') ? item.name.split(':')[0].trim() : item.name);
         if (!itemClass.toLowerCase().includes(parentClassFilter.toLowerCase())) return false;
       }
 
@@ -179,7 +184,7 @@ export default function SrdPage() {
     const parts = reference.split('|');
     const targetName = parts[0].trim().toLowerCase();
     const found = rawEntries.find(
-      (e) => e.name.toLowerCase() === targetName || e.nameEn.toLowerCase() === targetName
+      (e) => e.name.toLowerCase() === targetName || e.nameEn.toLowerCase() === targetName,
     );
     if (found) {
       setModalHistory((prev) => [...prev, found]);
@@ -247,7 +252,8 @@ export default function SrdPage() {
               >
                 <Icon size={16} className={styles.tabIcon} />
                 <span>
-                  {tab.label} <small style={{ opacity: 0.65, fontSize: '0.78rem' }}>({tab.en})</small>
+                  {tab.label}{' '}
+                  <small style={{ opacity: 0.65, fontSize: '0.78rem' }}>({tab.en})</small>
                 </span>
               </button>
             );
@@ -258,15 +264,17 @@ export default function SrdPage() {
         {(activeTab === 'class' || activeTab === 'feature') && (
           <div className={styles.subCategoryBar}>
             <div className={styles.pillGroup}>
-              {(activeTab === 'class' ? CLASS_SUB_CATEGORIES : FEATURE_SUB_CATEGORIES).map((sub) => (
-                <button
-                  key={sub.key}
-                  className={`${styles.subPill} ${subCategoryFilter === sub.key ? styles.subPillActive : ''}`}
-                  onClick={() => setSubCategoryFilter(sub.key)}
-                >
-                  {sub.label}
-                </button>
-              ))}
+              {(activeTab === 'class' ? CLASS_SUB_CATEGORIES : FEATURE_SUB_CATEGORIES).map(
+                (sub) => (
+                  <button
+                    key={sub.key}
+                    className={`${styles.subPill} ${subCategoryFilter === sub.key ? styles.subPillActive : ''}`}
+                    onClick={() => setSubCategoryFilter(sub.key)}
+                  >
+                    {sub.label}
+                  </button>
+                ),
+              )}
             </div>
 
             {/* 母职业快速过滤下拉 */}
@@ -344,8 +352,14 @@ export default function SrdPage() {
                       )}
                     </div>
                     <div className={styles.badgeGroup}>
-                      <span className={item.edition === '2024' ? styles.badge2024 : styles.badge2014}>
-                        {item.edition === '2024' ? '2024' : item.edition === '2014' ? '2014' : '双版'}
+                      <span
+                        className={item.edition === '2024' ? styles.badge2024 : styles.badge2014}
+                      >
+                        {item.edition === '2024'
+                          ? '2024'
+                          : item.edition === '2014'
+                            ? '2014'
+                            : '双版'}
                       </span>
                       <span className={styles.badge}>
                         {item.subCategoryLabel || item.categoryLabel}
@@ -362,7 +376,9 @@ export default function SrdPage() {
                     </div>
                   )}
 
-                  <p className={styles.cardDesc}>{item.description || '无简要描述，点击查看详细规则。'}</p>
+                  <p className={styles.cardDesc}>
+                    {item.description || '无简要描述，点击查看详细规则。'}
+                  </p>
 
                   <div className={styles.cardBottom}>
                     <span>📖 出处：{item.source}</span>
@@ -396,9 +412,7 @@ export default function SrdPage() {
                     <ArrowLeft size={14} />
                     返回上一层：{modalHistory[modalHistory.length - 2].name}
                   </button>
-                  <span className={styles.historyDepth}>
-                    （层级 {modalHistory.length}）
-                  </span>
+                  <span className={styles.historyDepth}>（层级 {modalHistory.length}）</span>
                 </div>
               )}
 
@@ -431,8 +445,8 @@ export default function SrdPage() {
                     {activeModalEntry.edition === '2024'
                       ? '2024 规则集 (XPHB)'
                       : activeModalEntry.edition === '2014'
-                      ? '2014 经典版 (PHB)'
-                      : '双版通用'}
+                        ? '2014 经典版 (PHB)'
+                        : '双版通用'}
                   </span>
                   <span className={styles.modalMetaItem}>
                     <strong>出版物出处：</strong>

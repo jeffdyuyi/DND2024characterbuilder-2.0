@@ -15,7 +15,9 @@ import { Feat } from '@/types/feat';
 /**
  * 推导专长分类类别
  */
-function inferFeatCategory(raw: any): 'Origin' | 'General' | 'Epic Boon' | 'Fighting Style' | 'Legacy' {
+function inferFeatCategory(
+  raw: any,
+): 'Origin' | 'General' | 'Epic Boon' | 'Fighting Style' | 'Legacy' {
   if (raw.category) {
     const c = String(raw.category).toUpperCase();
     if (c === 'O' || c === 'ORIGIN') return 'Origin';
@@ -118,8 +120,5 @@ export function getCatalogFeats(options?: {
     }
   }
 
-
   return feats;
 }
-
-

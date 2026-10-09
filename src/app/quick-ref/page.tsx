@@ -29,21 +29,24 @@ const COMBAT_ACTIONS: CombatAction[] = [
     name: '攻击动作 (Attack)',
     nameEn: 'Attack Action',
     type: '基础动作',
-    description: '进行一次近战或远程武器攻击。具备“多重攻击”特质的职业可在一次攻击动作中多次攻击。可触发 2024 武器精通效果（如推翻、击退、减速）。',
+    description:
+      '进行一次近战或远程武器攻击。具备“多重攻击”特质的职业可在一次攻击动作中多次攻击。可触发 2024 武器精通效果（如推翻、击退、减速）。',
   },
   {
     id: 'bonus-action',
     name: '附赠动作 (Bonus Action)',
     nameEn: 'Bonus Action',
     type: '特定动作',
-    description: '由特定的法术、职业特性（如游荡者的灵巧动作、狂暴、副手攻击）触发。每回合最多使用一次附赠动作。',
+    description:
+      '由特定的法术、职业特性（如游荡者的灵巧动作、狂暴、副手攻击）触发。每回合最多使用一次附赠动作。',
   },
   {
     id: 'reaction',
     name: '反应 (Reaction)',
     nameEn: 'Reaction',
     type: '回合外回应',
-    description: '由特定诱因触发的瞬间回应（如敌人离开攻击范围引发借机攻击，或施展《护盾术》）。每轮只能使用一次反应。',
+    description:
+      '由特定诱因触发的瞬间回应（如敌人离开攻击范围引发借机攻击，或施展《护盾术》）。每轮只能使用一次反应。',
   },
   {
     id: 'dash',
@@ -64,7 +67,8 @@ const COMBAT_ACTIONS: CombatAction[] = [
     name: '藏匿 (Hide)',
     nameEn: 'Hide',
     type: '隐匿动作',
-    description: '尝试进行一次 DC 15 的敏捷(隐匿)检定。成功时你获得隐形状态，直到你进行攻击、施法、大声说话或被察觉。',
+    description:
+      '尝试进行一次 DC 15 的敏捷(隐匿)检定。成功时你获得隐形状态，直到你进行攻击、施法、大声说话或被察觉。',
   },
   {
     id: 'search',
@@ -107,7 +111,9 @@ export default function QuickRefPage() {
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter(
-      (item) => item.name.toLowerCase().includes(q) || (item.description && item.description.toLowerCase().includes(q))
+      (item) =>
+        item.name.toLowerCase().includes(q) ||
+        (item.description && item.description.toLowerCase().includes(q)),
     );
   };
 
@@ -288,4 +294,3 @@ export default function QuickRefPage() {
     </div>
   );
 }
-

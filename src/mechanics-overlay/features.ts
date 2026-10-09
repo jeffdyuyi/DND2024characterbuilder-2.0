@@ -9,9 +9,14 @@ const FEATURE_MECHANICS: Record<string, Record<string, unknown>> = {
   'subclassfeature|xphb|rogue|thief|usemagicdevice|13': { attunementLimit: 4 },
 };
 
-const key = (value: unknown) => String(value || '').toLowerCase().replace(/[-_\s']/g, '');
+const key = (value: unknown) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[-_\s']/g, '');
 
-export function getFeatureMechanicsOverlay(entry: CatalogEntry): Record<string, unknown> | undefined {
+export function getFeatureMechanicsOverlay(
+  entry: CatalogEntry,
+): Record<string, unknown> | undefined {
   const raw = (entry.raw || {}) as any;
   const identity = [
     key(entry.kind),

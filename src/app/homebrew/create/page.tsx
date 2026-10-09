@@ -108,14 +108,26 @@ function HomebrewCreateContent() {
   // 智能 Slug 自动生成与查重
   const generateSmartSlug = (nameStr: string, nameEnStr: string, explicitId: string): string => {
     if (explicitId && explicitId.trim()) {
-      return explicitId.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-');
+      return explicitId
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, '-')
+        .replace(/-+/g, '-');
     }
 
     let baseSlug = '';
     if (nameEnStr && nameEnStr.trim()) {
-      baseSlug = nameEnStr.trim().toLowerCase().replace(/[^a-z0-9\s_-]/g, '').replace(/\s+/g, '-');
+      baseSlug = nameEnStr
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\s_-]/g, '')
+        .replace(/\s+/g, '-');
     } else {
-      baseSlug = nameStr.trim().toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]/g, '').replace(/[\s\u4e00-\u9fa5]+/g, 'hb-item');
+      baseSlug = nameStr
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9\u4e00-\u9fa5]/g, '')
+        .replace(/[\s\u4e00-\u9fa5]+/g, 'hb-item');
     }
 
     if (!baseSlug || baseSlug === 'hb-item') {
@@ -286,15 +298,18 @@ function HomebrewCreateContent() {
         description: formData.description,
       } as any);
     } else if (activeTab === 'classes') {
-      homebrewState.addEntry('classes' as any, {
-        id: generatedId,
-        name: formData.name,
-        nameEn: formData.nameEn || formData.name,
-        source: 'HOMEBREW',
-        hitDie: formData.hitDie,
-        primaryAbility: formData.primaryAbility,
-        description: formData.description,
-      } as any);
+      homebrewState.addEntry(
+        'classes' as any,
+        {
+          id: generatedId,
+          name: formData.name,
+          nameEn: formData.nameEn || formData.name,
+          source: 'HOMEBREW',
+          hitDie: formData.hitDie,
+          primaryAbility: formData.primaryAbility,
+          description: formData.description,
+        } as any,
+      );
     }
 
     alert(`成功创建原创第三方条目「${formData.name}」！`);
@@ -477,18 +492,26 @@ function HomebrewCreateContent() {
                 <div className={styles.formGroup}>
                   <label className={styles.label}>适用职业 (多选)</label>
                   <div className={styles.checkboxGroup}>
-                    {['吟游诗人', '牧师', '德鲁伊', '圣武士', '游侠', '术士', '邪术师', '法师', '奇械师'].map(
-                      (cls) => (
-                        <label key={cls} className={styles.checkboxLabel}>
-                          <input
-                            type="checkbox"
-                            checked={formData.classes.includes(cls)}
-                            onChange={() => toggleClassSelect(cls)}
-                          />
-                          {cls}
-                        </label>
-                      )
-                    )}
+                    {[
+                      '吟游诗人',
+                      '牧师',
+                      '德鲁伊',
+                      '圣武士',
+                      '游侠',
+                      '术士',
+                      '邪术师',
+                      '法师',
+                      '奇械师',
+                    ].map((cls) => (
+                      <label key={cls} className={styles.checkboxLabel}>
+                        <input
+                          type="checkbox"
+                          checked={formData.classes.includes(cls)}
+                          onChange={() => toggleClassSelect(cls)}
+                        />
+                        {cls}
+                      </label>
+                    ))}
                   </div>
                 </div>
               </>
@@ -639,7 +662,9 @@ function HomebrewCreateContent() {
                       className={styles.input}
                       placeholder="如：寒冷, 闪电; 非魔法攻击免疫"
                       value={formData.monsterResistances}
-                      onChange={(e) => setFormData({ ...formData, monsterResistances: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, monsterResistances: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -662,7 +687,9 @@ function HomebrewCreateContent() {
                       className={styles.input}
                       placeholder="如：通用语, 深渊语, 所有"
                       value={formData.monsterLanguages}
-                      onChange={(e) => setFormData({ ...formData, monsterLanguages: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, monsterLanguages: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -880,7 +907,9 @@ function HomebrewCreateContent() {
                 <div className={styles.monsterHeader}>
                   <div>
                     <div className={styles.monsterNameCN}>{formData.name || '未命名怪物'}</div>
-                    {formData.nameEn && <div className={styles.monsterNameEN}>{formData.nameEn}</div>}
+                    {formData.nameEn && (
+                      <div className={styles.monsterNameEN}>{formData.nameEn}</div>
+                    )}
                   </div>
                   <span className={styles.badge}>第三方怪物</span>
                 </div>
@@ -908,7 +937,8 @@ function HomebrewCreateContent() {
                   <div className={styles.vitalBox}>
                     <span className={styles.vitalLabel}>CR (挑战等级)</span>
                     <span className={styles.vitalVal}>
-                      {formData.cr} (XP {getCrDetails(formData.cr).xp}; PB {getCrDetails(formData.cr).pb})
+                      {formData.cr} (XP {getCrDetails(formData.cr).xp}; PB{' '}
+                      {getCrDetails(formData.cr).pb})
                     </span>
                   </div>
                 </div>
@@ -929,12 +959,42 @@ function HomebrewCreateContent() {
                   </thead>
                   <tbody>
                     <tr>
-                      <td>{formData.str} <span className={styles.statModHighlight}>({calcModStr(formData.str)})</span></td>
-                      <td>{formData.dex} <span className={styles.statModHighlight}>({calcModStr(formData.dex)})</span></td>
-                      <td>{formData.con} <span className={styles.statModHighlight}>({calcModStr(formData.con)})</span></td>
-                      <td>{formData.int} <span className={styles.statModHighlight}>({calcModStr(formData.int)})</span></td>
-                      <td>{formData.wis} <span className={styles.statModHighlight}>({calcModStr(formData.wis)})</span></td>
-                      <td>{formData.cha} <span className={styles.statModHighlight}>({calcModStr(formData.cha)})</span></td>
+                      <td>
+                        {formData.str}{' '}
+                        <span className={styles.statModHighlight}>
+                          ({calcModStr(formData.str)})
+                        </span>
+                      </td>
+                      <td>
+                        {formData.dex}{' '}
+                        <span className={styles.statModHighlight}>
+                          ({calcModStr(formData.dex)})
+                        </span>
+                      </td>
+                      <td>
+                        {formData.con}{' '}
+                        <span className={styles.statModHighlight}>
+                          ({calcModStr(formData.con)})
+                        </span>
+                      </td>
+                      <td>
+                        {formData.int}{' '}
+                        <span className={styles.statModHighlight}>
+                          ({calcModStr(formData.int)})
+                        </span>
+                      </td>
+                      <td>
+                        {formData.wis}{' '}
+                        <span className={styles.statModHighlight}>
+                          ({calcModStr(formData.wis)})
+                        </span>
+                      </td>
+                      <td>
+                        {formData.cha}{' '}
+                        <span className={styles.statModHighlight}>
+                          ({calcModStr(formData.cha)})
+                        </span>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -945,19 +1005,23 @@ function HomebrewCreateContent() {
                 <div className={styles.monsterTraitsList}>
                   {formData.monsterSkills && (
                     <div className={styles.monsterTraitLine}>
-                      <span className={styles.monsterTraitLabel}>技能：</span>{formData.monsterSkills}
+                      <span className={styles.monsterTraitLabel}>技能：</span>
+                      {formData.monsterSkills}
                     </div>
                   )}
                   {formData.monsterResistances && (
                     <div className={styles.monsterTraitLine}>
-                      <span className={styles.monsterTraitLabel}>伤害抗性/免疫：</span>{formData.monsterResistances}
+                      <span className={styles.monsterTraitLabel}>伤害抗性/免疫：</span>
+                      {formData.monsterResistances}
                     </div>
                   )}
                   <div className={styles.monsterTraitLine}>
-                    <span className={styles.monsterTraitLabel}>感官：</span>{formData.monsterSenses || '被动察觉 10'}
+                    <span className={styles.monsterTraitLabel}>感官：</span>
+                    {formData.monsterSenses || '被动察觉 10'}
                   </div>
                   <div className={styles.monsterTraitLine}>
-                    <span className={styles.monsterTraitLabel}>语言：</span>{formData.monsterLanguages || '通用语'}
+                    <span className={styles.monsterTraitLabel}>语言：</span>
+                    {formData.monsterLanguages || '通用语'}
                   </div>
                 </div>
 
@@ -966,7 +1030,12 @@ function HomebrewCreateContent() {
                 {/* 动作与特质 Markdown 正文 */}
                 <div className={styles.cardBody}>
                   {formData.description || (
-                    <span style={{ color: 'var(--color-text-secondary, rgba(255,255,255,0.5))', fontStyle: 'italic' }}>
+                    <span
+                      style={{
+                        color: 'var(--color-text-secondary, rgba(255,255,255,0.5))',
+                        fontStyle: 'italic',
+                      }}
+                    >
                       在此输入怪物的特质、动作与反应等描述...
                     </span>
                   )}
@@ -976,9 +1045,7 @@ function HomebrewCreateContent() {
               <div className={styles.previewCard}>
                 <div className={styles.cardHeader}>
                   <div>
-                    <div className={styles.cardTitleCN}>
-                      {formData.name || '未命名条目'}
-                    </div>
+                    <div className={styles.cardTitleCN}>{formData.name || '未命名条目'}</div>
                     {formData.nameEn && <div className={styles.cardTitleEN}>{formData.nameEn}</div>}
                   </div>
                   <span className={styles.badge}>第三方</span>
@@ -987,7 +1054,10 @@ function HomebrewCreateContent() {
                 {/* 分类元数据高亮 */}
                 {activeTab === 'spells' && (
                   <div className={styles.cardMetaRow}>
-                    <div className={styles.metaItem}>🔮 {formData.level === 0 ? '戏法' : `${formData.level} 环`} · {formData.school}</div>
+                    <div className={styles.metaItem}>
+                      🔮 {formData.level === 0 ? '戏法' : `${formData.level} 环`} ·{' '}
+                      {formData.school}
+                    </div>
                     <div className={styles.metaItem}>⏱️ {formData.castingTime}</div>
                     <div className={styles.metaItem}>🎯 {formData.range}</div>
                     <div className={styles.metaItem}>✋ {formData.components}</div>
@@ -996,9 +1066,13 @@ function HomebrewCreateContent() {
 
                 {activeTab === 'items' && (
                   <div className={styles.cardMetaRow}>
-                    <div className={styles.metaItem}>📦 {formData.rarity} {formData.itemType}</div>
+                    <div className={styles.metaItem}>
+                      📦 {formData.rarity} {formData.itemType}
+                    </div>
                     <div className={styles.metaItem}>🔗 {formData.attunement}</div>
-                    <div className={styles.metaItem}>💰 {formData.cost} · ⚖️ {formData.weight}</div>
+                    <div className={styles.metaItem}>
+                      💰 {formData.cost} · ⚖️ {formData.weight}
+                    </div>
                   </div>
                 )}
 
@@ -1012,7 +1086,12 @@ function HomebrewCreateContent() {
                 {/* 正文描述即时渲染区 */}
                 <div className={styles.cardBody}>
                   {formData.description || (
-                    <span style={{ color: 'var(--color-text-secondary, rgba(255,255,255,0.5))', fontStyle: 'italic' }}>
+                    <span
+                      style={{
+                        color: 'var(--color-text-secondary, rgba(255,255,255,0.5))',
+                        fontStyle: 'italic',
+                      }}
+                    >
                       在此输入描述，此处将实时展示卡片规则正文...
                     </span>
                   )}

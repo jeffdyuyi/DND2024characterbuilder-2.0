@@ -24,14 +24,7 @@ export function makeEntryId(input: MakeEntryIdInput): string {
     input.level !== undefined ? String(input.level) : undefined,
   ]
     .filter((v): v is string => v !== undefined && v !== '')
-    .map((v) =>
-      encodeURIComponent(
-        String(v)
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, '-')
-      )
-    );
+    .map((v) => encodeURIComponent(String(v).trim().toLowerCase().replace(/\s+/g, '-')));
 
   return parts.join(':');
 }

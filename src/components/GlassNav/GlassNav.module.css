@@ -268,25 +268,43 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 1100px) {
-  .navLinks, .searchTrigger { display: none; }
+  .navLinks,
+  .searchTrigger {
+    display: none;
+  }
 }
 
 @media (max-width: 560px) {
-  .brandText { display: none; }
-  .glassNav { padding: 0 8px; }
-  .glassNav__inner { gap: 6px; }
+  .brandText {
+    display: none;
+  }
+  .glassNav {
+    padding: 0 8px;
+  }
+  .glassNav__inner {
+    gap: 6px;
+  }
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
-
 
 /* ================================================
    DRAWER SIDEBAR STYLING (可收纳侧边栏)
@@ -336,8 +354,12 @@
 }
 
 @keyframes slideInLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
 
 .drawerHeader {
@@ -435,7 +457,7 @@
   color: var(--color-text-primary, #ffffff);
 }
 
-:global(:root:not([data-theme="light"])) .glassNav {
+:global(:root:not([data-theme='light'])) .glassNav {
   background: var(--color-bg-light);
   border-bottom: 2px solid var(--color-border-dark);
   box-shadow: 0 3px 0 #10111e;
@@ -443,22 +465,22 @@
   -webkit-backdrop-filter: none;
 }
 
-:global(:root:not([data-theme="light"])) .brandText {
+:global(:root:not([data-theme='light'])) .brandText {
   font-family: var(--font-family-serif);
 }
 
-:global(:root:not([data-theme="light"])) .searchTrigger,
-:global(:root:not([data-theme="light"])) .glassNav__back,
-:global(:root:not([data-theme="light"])) .navLink,
-:global(:root:not([data-theme="light"])) .editionToggle,
-:global(:root:not([data-theme="light"])) .editionBtn,
-:global(:root:not([data-theme="light"])) .drawerFooterBtn {
+:global(:root:not([data-theme='light'])) .searchTrigger,
+:global(:root:not([data-theme='light'])) .glassNav__back,
+:global(:root:not([data-theme='light'])) .navLink,
+:global(:root:not([data-theme='light'])) .editionToggle,
+:global(:root:not([data-theme='light'])) .editionBtn,
+:global(:root:not([data-theme='light'])) .drawerFooterBtn {
   border-radius: 0;
   transition: none;
 }
 
-:global(:root:not([data-theme="light"])) .searchTrigger,
-:global(:root:not([data-theme="light"])) .glassNav__back {
+:global(:root:not([data-theme='light'])) .searchTrigger,
+:global(:root:not([data-theme='light'])) .glassNav__back {
   border-width: 2px;
   box-shadow: 2px 2px 0 #10111e;
 }

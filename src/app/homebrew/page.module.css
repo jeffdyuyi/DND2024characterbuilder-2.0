@@ -370,7 +370,9 @@
   color: var(--color-text-primary);
   font-size: 13.5px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
   border-bottom: 1px solid var(--color-border-subtle, rgba(0, 0, 0, 0.05));
 }
 
@@ -487,5 +489,3 @@
   align-items: center;
   gap: 8px;
 }
-
-

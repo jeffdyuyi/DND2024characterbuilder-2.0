@@ -206,28 +206,28 @@
   }
 }
 
-:global(:root:not([data-theme="light"])) .sidebar {
+:global(:root:not([data-theme='light'])) .sidebar {
   border-right: 2px solid var(--color-border-dark);
   transition: none;
 }
 
-:global(:root:not([data-theme="light"])) .logoText {
+:global(:root:not([data-theme='light'])) .logoText {
   font-family: var(--font-family-serif);
 }
 
-:global(:root:not([data-theme="light"])) .navItem,
-:global(:root:not([data-theme="light"])) .footerBtn,
-:global(:root:not([data-theme="light"])) .toggleBtn {
+:global(:root:not([data-theme='light'])) .navItem,
+:global(:root:not([data-theme='light'])) .footerBtn,
+:global(:root:not([data-theme='light'])) .toggleBtn {
   border-radius: 0;
   transition: none;
 }
 
-:global(:root:not([data-theme="light"])) .navItemActive {
+:global(:root:not([data-theme='light'])) .navItemActive {
   background: var(--color-bg-surface-elevated);
   box-shadow: inset 3px 0 0 var(--color-gold-bright);
 }
 
-:global(:root:not([data-theme="light"])) .footerBtn:hover,
-:global(:root:not([data-theme="light"])) .navItem:hover {
+:global(:root:not([data-theme='light'])) .footerBtn:hover,
+:global(:root:not([data-theme='light'])) .navItem:hover {
   box-shadow: inset 3px 0 0 var(--color-apple-blue);
 }

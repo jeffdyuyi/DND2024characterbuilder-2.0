@@ -9,7 +9,11 @@ import styles from '../species/page.module.css';
 
 // Lazy load the heavy spell list component which imports the entire spell data dictionary
 const SpellList = dynamic(() => import('./SpellList'), {
-  loading: () => <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>加载法术数据库中...</div>,
+  loading: () => (
+    <div style={{ padding: 40, textAlign: 'center', color: 'var(--color-text-tertiary)' }}>
+      加载法术数据库中...
+    </div>
+  ),
   ssr: false, // Prevents loading heavy data on server, reduces initial bundle
 });
 
@@ -26,7 +30,15 @@ export default function SpellsPage() {
   }, [id, loadCharacter]);
 
   const spellcasting = useMemo(() => {
-    if (!character) return { casterLevel: 0, spellSlots: {}, cantripsKnown: 0, spellsPrepared: 0, featCapacity: 0, spellcastingAbility: undefined };
+    if (!character)
+      return {
+        casterLevel: 0,
+        spellSlots: {},
+        cantripsKnown: 0,
+        spellsPrepared: 0,
+        featCapacity: 0,
+        spellcastingAbility: undefined,
+      };
     return computeSpellcasting(character);
   }, [character]);
 
@@ -41,7 +53,10 @@ export default function SpellsPage() {
         </div>
       </div>
 
-      <div className={styles.content} style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden' }}>
+      <div
+        className={styles.content}
+        style={{ display: 'flex', flexDirection: 'row', overflow: 'hidden' }}
+      >
         {/* 左侧状态侧边栏 */}
         <SpellcastingSummary
           spellcastingAbility={spellcasting.spellcastingAbility}
@@ -51,7 +66,7 @@ export default function SpellsPage() {
           spellSlots={spellcasting.spellSlots}
           character={character}
         />
-        
+
         {/* 右侧主选择区 */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '32px 40px' }}>
           <SpellList

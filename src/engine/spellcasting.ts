@@ -1,5 +1,14 @@
 import { CharacterState } from '../types/characterState';
-import { getActiveItemDefinitions, getClassDefinition, getClassProgression, getSpeciesDefinition, getSubspeciesDefinition, getFeatDefinition, getSpellDefinition, getSubclassDefinition } from './characterData';
+import {
+  getActiveItemDefinitions,
+  getClassDefinition,
+  getClassProgression,
+  getSpeciesDefinition,
+  getSubspeciesDefinition,
+  getFeatDefinition,
+  getSpellDefinition,
+  getSubclassDefinition,
+} from './characterData';
 import { normalizeAbilityKey, translateAbilityKey, translateClass } from './terminology';
 import { getCatalogSpells } from '@/catalog';
 import { computeAbilityScores } from './ability';
@@ -23,25 +32,25 @@ export interface SpellcastingStats {
 }
 
 export interface SpellChoiceSlot {
-  id: string;           // 对应 choice.id，用于持久化存储键
-  label: string;        // 显示名称（如"玄奥秘法 6环"）
-  numToChoose: number;  // 选择数量
-  filter: string;       // 筛选规则
-  source: string;       // 来源描述
-  isOptional: boolean;  // 是否依赖玩家的前置选择
+  id: string; // 对应 choice.id，用于持久化存储键
+  label: string; // 显示名称（如"玄奥秘法 6环"）
+  numToChoose: number; // 选择数量
+  filter: string; // 筛选规则
+  source: string; // 来源描述
+  isOptional: boolean; // 是否依赖玩家的前置选择
 }
 
 export interface SpellProgressionStep {
-  level: number;       // 职业等级
+  level: number; // 职业等级
   newCantrips: number; // 本级新增戏法数
-  newSpells: number;   // 本级新增法术数
+  newSpells: number; // 本级新增法术数
   canReplace: boolean; // 是否可替换一道已知法术
   allowedClasses: string[]; // 允许选择的法术列表（魔法奥秘等）
   maxSpellLevel: number; // 本级可学最高环阶
   specialFeatures: string[]; // 特殊提示 (如'魔法奥秘解锁!')
   extraChoices: SpellChoiceSlot[]; // 新增：特性提供的额外选择
   alwaysPreparedSpells?: string[]; // 新增：该等级自动获得的法术 (Q3)
-  filter?: string;      // 新增：针对基础法术选择的额外筛选器
+  filter?: string; // 新增：针对基础法术选择的额外筛选器
 }
 
 const MULTICLASS_SLOTS: Record<number, Record<number, number>> = {
@@ -71,7 +80,10 @@ const MULTICLASS_SLOTS: Record<number, Record<number, number>> = {
  * 标准 1/3 施法者进度表 (如奥法骑士、诡术师)
  * 对应 2024 规则：准备法术制，无学派限制
  */
-const THIRD_CASTER_TABLE: Record<number, { cantripsKnown: number; spellsPrepared: number; spellSlots: Record<string, number> }> = {
+const THIRD_CASTER_TABLE: Record<
+  number,
+  { cantripsKnown: number; spellsPrepared: number; spellSlots: Record<string, number> }
+> = {
   3: { cantripsKnown: 2, spellsPrepared: 3, spellSlots: { level1: 2 } },
   4: { cantripsKnown: 2, spellsPrepared: 4, spellSlots: { level1: 3 } },
   5: { cantripsKnown: 2, spellsPrepared: 4, spellSlots: { level1: 3 } },
@@ -88,14 +100,25 @@ const THIRD_CASTER_TABLE: Record<number, { cantripsKnown: number; spellsPrepared
   16: { cantripsKnown: 3, spellsPrepared: 11, spellSlots: { level1: 4, level2: 3, level3: 3 } },
   17: { cantripsKnown: 3, spellsPrepared: 11, spellSlots: { level1: 4, level2: 3, level3: 3 } },
   18: { cantripsKnown: 3, spellsPrepared: 11, spellSlots: { level1: 4, level2: 3, level3: 3 } },
-  19: { cantripsKnown: 3, spellsPrepared: 12, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 } },
-  20: { cantripsKnown: 3, spellsPrepared: 13, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 } },
+  19: {
+    cantripsKnown: 3,
+    spellsPrepared: 12,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 },
+  },
+  20: {
+    cantripsKnown: 3,
+    spellsPrepared: 13,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 },
+  },
 };
 
 /**
  * 标准 1/2 施法者进度表 (如 2024 版游侠、圣武士)
  */
-const HALF_CASTER_TABLE: Record<number, { cantripsKnown: number; spellsPrepared: number; spellSlots: Record<string, number> }> = {
+const HALF_CASTER_TABLE: Record<
+  number,
+  { cantripsKnown: number; spellsPrepared: number; spellSlots: Record<string, number> }
+> = {
   1: { cantripsKnown: 0, spellsPrepared: 2, spellSlots: { level1: 2 } },
   2: { cantripsKnown: 0, spellsPrepared: 3, spellSlots: { level1: 2 } },
   3: { cantripsKnown: 0, spellsPrepared: 4, spellSlots: { level1: 3 } },
@@ -108,39 +131,90 @@ const HALF_CASTER_TABLE: Record<number, { cantripsKnown: number; spellsPrepared:
   10: { cantripsKnown: 0, spellsPrepared: 9, spellSlots: { level1: 4, level2: 3, level3: 2 } },
   11: { cantripsKnown: 0, spellsPrepared: 10, spellSlots: { level1: 4, level2: 3, level3: 3 } },
   12: { cantripsKnown: 0, spellsPrepared: 10, spellSlots: { level1: 4, level2: 3, level3: 3 } },
-  13: { cantripsKnown: 0, spellsPrepared: 11, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 } },
-  14: { cantripsKnown: 0, spellsPrepared: 11, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 } },
-  15: { cantripsKnown: 0, spellsPrepared: 12, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 2 } },
-  16: { cantripsKnown: 0, spellsPrepared: 12, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 2 } },
-  17: { cantripsKnown: 0, spellsPrepared: 14, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 1 } },
-  18: { cantripsKnown: 0, spellsPrepared: 14, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 1 } },
-  19: { cantripsKnown: 0, spellsPrepared: 15, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 2 } },
-  20: { cantripsKnown: 0, spellsPrepared: 15, spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 2 } },
+  13: {
+    cantripsKnown: 0,
+    spellsPrepared: 11,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 },
+  },
+  14: {
+    cantripsKnown: 0,
+    spellsPrepared: 11,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 1 },
+  },
+  15: {
+    cantripsKnown: 0,
+    spellsPrepared: 12,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 2 },
+  },
+  16: {
+    cantripsKnown: 0,
+    spellsPrepared: 12,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 2 },
+  },
+  17: {
+    cantripsKnown: 0,
+    spellsPrepared: 14,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 1 },
+  },
+  18: {
+    cantripsKnown: 0,
+    spellsPrepared: 14,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 1 },
+  },
+  19: {
+    cantripsKnown: 0,
+    spellsPrepared: 15,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 2 },
+  },
+  20: {
+    cantripsKnown: 0,
+    spellsPrepared: 15,
+    spellSlots: { level1: 4, level2: 3, level3: 3, level4: 3, level5: 2 },
+  },
 };
 
-const normalizedName = (value: unknown) => String(value || '').toLowerCase().replace(/[-_\s]+/g, '');
+const normalizedName = (value: unknown) =>
+  String(value || '')
+    .toLowerCase()
+    .replace(/[-_\s]+/g, '');
 
 export function isSpellAvailableToClass(spell: Spell, classDef: ClassData): boolean {
   const classNames = new Set([classDef.name, classDef.nameEn].map(normalizedName));
   if (spell.classGrants?.length) {
     const classSource = classDef.source.toUpperCase().replace('PHB2024', 'XPHB');
-    if (spell.classGrants.some((grant) =>
-      classNames.has(normalizedName(grant.name)) && (!grant.source || grant.source.toUpperCase().replace('PHB2024', 'XPHB') === classSource)
-    )) return true;
+    if (
+      spell.classGrants.some(
+        (grant) =>
+          classNames.has(normalizedName(grant.name)) &&
+          (!grant.source || grant.source.toUpperCase().replace('PHB2024', 'XPHB') === classSource),
+      )
+    )
+      return true;
   } else if (spell.classes.some((name) => classNames.has(normalizedName(name)))) return true;
   return (classDef.spellList || []).some((reference) => {
     const [name, source] = String(reference).split('|');
-    const nameMatches = normalizedName(name) === normalizedName(spell.name) || normalizedName(name) === normalizedName(spell.nameEn);
+    const nameMatches =
+      normalizedName(name) === normalizedName(spell.name) ||
+      normalizedName(name) === normalizedName(spell.nameEn);
     return nameMatches && (!source || source.toLowerCase() === spell.source.toLowerCase());
   });
 }
 
-function evaluatePreparedFormula(formula: string | undefined, level: number, modifiers: Record<string, number>): number | undefined {
+function evaluatePreparedFormula(
+  formula: string | undefined,
+  level: number,
+  modifiers: Record<string, number>,
+): number | undefined {
   if (!formula) return undefined;
-  const expression = formula.replace(/<\$(level|str_mod|dex_mod|con_mod|int_mod|wis_mod|cha_mod)\$>/gi, (_, token: string) => {
-    if (token.toLowerCase() === 'level') return String(level);
-    return String(modifiers[token.slice(0, 3).toLowerCase()] || 0);
-  }).replace(/\s+/g, '');
+  const expression = formula
+    .replace(
+      /<\$(level|str_mod|dex_mod|con_mod|int_mod|wis_mod|cha_mod)\$>/gi,
+      (_, token: string) => {
+        if (token.toLowerCase() === 'level') return String(level);
+        return String(modifiers[token.slice(0, 3).toLowerCase()] || 0);
+      },
+    )
+    .replace(/\s+/g, '');
   if (!/^[\d+\-*/().]+$/.test(expression)) return undefined;
   const terms = expression.match(/[+-]?[^+-]+/g);
   if (!terms) return undefined;
@@ -172,7 +246,10 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
   let primaryAbility: string | undefined;
   let pactMagicSlots: Record<number, number> = {};
   let singleClassSlots: Record<number, number> | undefined;
-  const abilityModifiers = computeAbilityScores(state).modifiers as unknown as Record<string, number>;
+  const abilityModifiers = computeAbilityScores(state).modifiers as unknown as Record<
+    string,
+    number
+  >;
 
   state.classes.forEach((cEntry, index) => {
     const classDef = getClassDefinition(cEntry.classId);
@@ -180,15 +257,18 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
 
     const progression = getClassProgression(classDef, cEntry.level);
     let sc = progression?.spellcasting;
-    const subclassDef = classDef.subClassInfo?.options.find((option) =>
-      option.catalogId === cEntry.subclassId || option.nameEn === cEntry.subclassId || option.name === cEntry.subclassId
+    const subclassDef = classDef.subClassInfo?.options.find(
+      (option) =>
+        option.catalogId === cEntry.subclassId ||
+        option.nameEn === cEntry.subclassId ||
+        option.name === cEntry.subclassId,
     );
 
     // Fallback: 如果 progression 中没有定义施法数据，尝试寻找子职定义的施法类型并使用标准表
     if (!sc) {
-      const scTrait = subclassDef?.traits.find(t => t.mechanics?.spellcastingType);
+      const scTrait = subclassDef?.traits.find((t) => t.mechanics?.spellcastingType);
       const scType = scTrait?.mechanics?.spellcastingType;
-      
+
       if (scType === '1/3') {
         sc = THIRD_CASTER_TABLE[cEntry.level] as any;
       } else if (scType === '1/2' || scType === 'half') {
@@ -198,9 +278,13 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
 
     // 2024 Multiclassing Caster Level Rules
     const nameLow = normalizedName(classDef.nameEn || classDef.name);
-    const casterProgression = classDef.casterProgression ||
-      (['bard', 'cleric', 'druid', 'sorcerer', 'wizard'].includes(nameLow) ? 'full' :
-        ['paladin', 'ranger'].includes(nameLow) ? 'half' : undefined);
+    const casterProgression =
+      classDef.casterProgression ||
+      (['bard', 'cleric', 'druid', 'sorcerer', 'wizard'].includes(nameLow)
+        ? 'full'
+        : ['paladin', 'ranger'].includes(nameLow)
+          ? 'half'
+          : undefined);
     if (casterProgression === 'full') {
       totalCasterLevel += cEntry.level;
     } else if (casterProgression === 'half') {
@@ -212,10 +296,18 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
 
     if (sc) {
       totalCantrips += sc.cantripsKnown || 0;
-      const formulaPrepared = evaluatePreparedFormula(classDef.preparedSpellsFormula, cEntry.level, abilityModifiers);
+      const formulaPrepared = evaluatePreparedFormula(
+        classDef.preparedSpellsFormula,
+        cEntry.level,
+        abilityModifiers,
+      );
       totalPrepared += formulaPrepared ?? sc.spellsPrepared ?? 0;
-      if (index === 0) primaryAbility = classDef.spellcastingAbility || subclassDef?.traits.find(t => t.mechanics?.spellcastingAbility)?.mechanics?.spellcastingAbility;
-      
+      if (index === 0)
+        primaryAbility =
+          classDef.spellcastingAbility ||
+          subclassDef?.traits.find((t) => t.mechanics?.spellcastingAbility)?.mechanics
+            ?.spellcastingAbility;
+
       // Pact Magic handling
       if (casterProgression === 'pact' || nameLow === 'warlock') {
         Object.entries(sc.spellSlots || {}).forEach(([lvl, count]) => {
@@ -246,29 +338,40 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
     const l = parseInt(lvl);
     slots[l] = (slots[l] || 0) + count;
   });
-  
+
   const abilityKey = primaryAbility ? normalizeAbilityKey(primaryAbility) : undefined;
-  
+
   const innateSpells = getInnateSpells(state);
-  const innateCantrips = innateSpells.filter(s => {
+  const innateCantrips = innateSpells.filter((s) => {
     const def = getSpellDefinition(s.spellId);
     return def?.level === 0;
   }).length;
-  const innatePrepared = innateSpells.filter(s => s.isPrepared && (getSpellDefinition(s.spellId)?.level || 0) !== 0).length;
+  const innatePrepared = innateSpells.filter(
+    (s) => s.isPrepared && (getSpellDefinition(s.spellId)?.level || 0) !== 0,
+  ).length;
 
   // Calculate Feat Capacity
   let featCapacity = 0;
   if (state.backgroundId) featCapacity += 1;
   const species = getSpeciesDefinition(state);
-  if (species?.traits.some(t => t.id === 'versatile' || t.name === '多才多艺')) {
+  if (species?.traits.some((t) => t.id === 'versatile' || t.name === '多才多艺')) {
     featCapacity += 1;
   }
-  state.classes.forEach(cEntry => {
+  state.classes.forEach((cEntry) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
     for (let l = 1; l <= cEntry.level; l++) {
-      const prog = classDef.progression.find(p => p.level === l);
-      if (prog?.featuresUnlocked?.some(f => f.includes('属性值提升') || f.includes('专长') || f.includes('Ability Score Improvement') || f.includes('Feat') || f.includes('传奇恩惠'))) {
+      const prog = classDef.progression.find((p) => p.level === l);
+      if (
+        prog?.featuresUnlocked?.some(
+          (f) =>
+            f.includes('属性值提升') ||
+            f.includes('专长') ||
+            f.includes('Ability Score Improvement') ||
+            f.includes('Feat') ||
+            f.includes('传奇恩惠'),
+        )
+      ) {
         featCapacity += 1;
       }
     }
@@ -307,7 +410,9 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
     spellDcTrace.push(`法术豁免 DC: ${8 + pb + abilityMod + spellSaveDcBonus}`);
 
     const atkTotal = pb + abilityMod + spellAttackBonus;
-    spellAttackTrace.push(`熟练加值 (+${pb}) + ${abilityName}修正 (${abilityMod >= 0 ? '+' : ''}${abilityMod}) = ${atkTotal >= 0 ? '+' : ''}${atkTotal}`);
+    spellAttackTrace.push(
+      `熟练加值 (+${pb}) + ${abilityName}修正 (${abilityMod >= 0 ? '+' : ''}${abilityMod}) = ${atkTotal >= 0 ? '+' : ''}${atkTotal}`,
+    );
   }
 
   if (totalCasterLevel > 0) {
@@ -342,9 +447,9 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
 
   const processTraitSpells = (traits: any[] | undefined, sourceLabel: string) => {
     if (!traits) return;
-    traits.forEach(trait => {
+    traits.forEach((trait) => {
       if (trait.level && trait.level > totalLevel) return;
-      
+
       const spells = trait.features?.spells || trait.mechanics?.spells;
       if (!spells) return;
 
@@ -352,42 +457,59 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       const selectedAbility =
         state.speciesSelections?.[`sp:${state.speciesId}:trait:${traitId}:ability`]?.[0] ||
         state.speciesSelections?.[`sp:${state.speciesId}:trait:innate-spellcasting-ability`]?.[0] ||
-        (state.subspeciesId && state.speciesSelections?.[`sp:${state.speciesId}:sub:${state.subspeciesId}:ability`]?.[0]) ||
-        Object.entries(state.speciesSelections || {}).find(([k]) => k.includes(`:${traitId}:ability`) || k.includes(':innate-spellcasting-ability') || k.endsWith(':ability'))?.[1]?.[0];
-      const abilityKey = normalizeAbilityKey(trait.mechanics?.spellcastingAbility || selectedAbility || '');
+        (state.subspeciesId &&
+          state.speciesSelections?.[
+            `sp:${state.speciesId}:sub:${state.subspeciesId}:ability`
+          ]?.[0]) ||
+        Object.entries(state.speciesSelections || {}).find(
+          ([k]) =>
+            k.includes(`:${traitId}:ability`) ||
+            k.includes(':innate-spellcasting-ability') ||
+            k.endsWith(':ability'),
+        )?.[1]?.[0];
+      const abilityKey = normalizeAbilityKey(
+        trait.mechanics?.spellcastingAbility || selectedAbility || '',
+      );
       const modifier = abilityKey ? modifiers[abilityKey as keyof typeof modifiers] : undefined;
       const pb = Math.floor((totalLevel - 1) / 4) + 2;
-      const spellSource = sourceLabel === '种族' && abilityKey && modifier !== undefined
-        ? `${sourceLabel}（${translateAbilityKey(abilityKey)}；豁免 DC ${8 + pb + modifier}，攻击 ${pb + modifier >= 0 ? '+' : ''}${pb + modifier}）`
-        : sourceLabel;
+      const spellSource =
+        sourceLabel === '种族' && abilityKey && modifier !== undefined
+          ? `${sourceLabel}（${translateAbilityKey(abilityKey)}；豁免 DC ${8 + pb + modifier}，攻击 ${pb + modifier >= 0 ? '+' : ''}${pb + modifier}）`
+          : sourceLabel;
 
       spells.forEach((s: any) => {
         if ('numToChoose' in s) {
           const selections = Object.entries(state.speciesSelections || {})
-            .filter(([key]) =>
-              key === traitId ||
-              key.startsWith(`${traitId}:spell-`) ||
-              key.startsWith(`sp:${state.speciesId}:trait:${traitId}:spell-`) ||
-              (state.subspeciesId && key.startsWith(`sp:${state.speciesId}:sub:${state.subspeciesId}:spell-`)) ||
-              key.includes(`:${traitId}:spell-`) ||
-              key.includes(':innate-spells:spell-')
+            .filter(
+              ([key]) =>
+                key === traitId ||
+                key.startsWith(`${traitId}:spell-`) ||
+                key.startsWith(`sp:${state.speciesId}:trait:${traitId}:spell-`) ||
+                (state.subspeciesId &&
+                  key.startsWith(`sp:${state.speciesId}:sub:${state.subspeciesId}:spell-`)) ||
+                key.includes(`:${traitId}:spell-`) ||
+                key.includes(':innate-spells:spell-'),
             )
             .flatMap(([_, values]) => values);
-          selections.forEach(selId => {
-            const opt = s.options.find((o: any) => o.spellId === selId) ||
-              (s.filter && getSpellDefinition(selId) ? { spellId: selId, level: 1, isPrepared: true, freeCastsPerLongRest: 0 } : undefined);
+          selections.forEach((selId) => {
+            const opt =
+              s.options.find((o: any) => o.spellId === selId) ||
+              (s.filter && getSpellDefinition(selId)
+                ? { spellId: selId, level: 1, isPrepared: true, freeCastsPerLongRest: 0 }
+                : undefined);
             if (opt && opt.level <= totalLevel) {
               result.push({
                 spellId: opt.spellId,
                 source: spellSource,
                 unlockLevel: opt.level,
                 isPrepared: opt.isPrepared,
-                freeCastsPerLongRest: opt.freeCastsPerLongRest
+                freeCastsPerLongRest: opt.freeCastsPerLongRest,
               });
             }
           });
         } else {
-          const spellList = s.spells || (s.spellId ? [s.spellId] : (s.spellName ? [s.spellName] : []));
+          const spellList =
+            s.spells || (s.spellId ? [s.spellId] : s.spellName ? [s.spellName] : []);
           spellList.forEach((sp: string) => {
             const def = getSpellDefinition(sp);
             const resolvedId = def?.id || s.spellId || s.spellName || sp;
@@ -397,7 +519,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
                 source: spellSource,
                 unlockLevel: s.level || 0,
                 isPrepared: s.prepared !== false,
-                freeCastsPerLongRest: s.freeCastsPerLongRest
+                freeCastsPerLongRest: s.freeCastsPerLongRest,
               });
             }
           });
@@ -422,10 +544,12 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
   if (species) {
     // 过滤掉已被亚种特质替换的母特质，杜绝母特质法术残存或重复展示
     const activeBaseTraits = subspecies
-      ? species.traits.filter(t => {
+      ? species.traits.filter((t) => {
           const tName = (t.name || '').toLowerCase().replace(/[-_\s]+/g, '');
           const tNameEn = (t.nameEn || '').toLowerCase().replace(/[-_\s]+/g, '');
-          return !overwrittenTraitNames.has(tName) && (!tNameEn || !overwrittenTraitNames.has(tNameEn));
+          return (
+            !overwrittenTraitNames.has(tName) && (!tNameEn || !overwrittenTraitNames.has(tNameEn))
+          );
         })
       : species.traits;
     processTraitSpells(activeBaseTraits, '种族');
@@ -433,17 +557,17 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
 
   if (subspecies) processTraitSpells(subspecies.traits, '种族');
 
-  state.selectedFeats?.forEach(fEntry => {
+  state.selectedFeats?.forEach((fEntry) => {
     const selections = state.speciesSelections?.[fEntry.featId] || [];
-    selections.forEach(selId => {
-       if (getSpellDefinition(selId)) {
-          result.push({
-            spellId: selId,
-            source: '专长',
-            unlockLevel: 0,
-            isPrepared: true
-          });
-       }
+    selections.forEach((selId) => {
+      if (getSpellDefinition(selId)) {
+        result.push({
+          spellId: selId,
+          source: '专长',
+          unlockLevel: 0,
+          isPrepared: true,
+        });
+      }
     });
   });
 
@@ -451,40 +575,43 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
     const feat = getFeatDefinition(choices.featId);
     if (!feat) return;
 
-    choices.spells?.forEach(spellId => {
+    choices.spells?.forEach((spellId) => {
       result.push({
         spellId: spellId,
         source: `专长: ${feat.name}`,
         unlockLevel: 0,
-        isPrepared: true
+        isPrepared: true,
       });
     });
   });
 
-  state.classes?.forEach(cEntry => {
+  state.classes?.forEach((cEntry) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
-    
-    const activeFeatures = classDef.features.filter(f => f.level <= cEntry.level);
+
+    const activeFeatures = classDef.features.filter((f) => f.level <= cEntry.level);
     processTraitSpells(activeFeatures, `职业: ${classDef.name}`);
-    
+
     if (cEntry.subclassId) {
       const subclassDef = getSubclassDefinition(state);
       if (subclassDef) {
-        const activeSubTraits = subclassDef.traits.filter(t => t.level <= cEntry.level);
+        const activeSubTraits = subclassDef.traits.filter((t) => t.level <= cEntry.level);
         processTraitSpells(activeSubTraits, `子职业: ${subclassDef.name}`);
       }
     }
 
     Object.entries(state.classSelections || {}).forEach(([choiceId, selection]) => {
-      const featureWithChoice = classDef.features.find(f => f.mechanics?.choices?.some((c: any) => c.id === choiceId));
+      const featureWithChoice = classDef.features.find((f) =>
+        f.mechanics?.choices?.some((c: any) => c.id === choiceId),
+      );
       if (!featureWithChoice || featureWithChoice.level > cEntry.level) return;
 
       const selectedIds = Array.isArray(selection) ? selection : [selection];
-      selectedIds.forEach(selId => {
-        const option = featureWithChoice.options?.find((o: any) => o.nameEn === selId || o.name === selId) ||
-                       WarlockInvocations2024.find(i => i.nameEn === selId || i.name === selId);
-        
+      selectedIds.forEach((selId) => {
+        const option =
+          featureWithChoice.options?.find((o: any) => o.nameEn === selId || o.name === selId) ||
+          WarlockInvocations2024.find((i) => i.nameEn === selId || i.name === selId);
+
         if (option) {
           processTraitSpells([option], `特性: ${option.name}`);
         }
@@ -506,204 +633,230 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
   return deduplicatedResult;
 }
 
-export function computeSpellProgression(state: CharacterState, classId: string): SpellProgressionStep[] {
+export function computeSpellProgression(
+  state: CharacterState,
+  classId: string,
+): SpellProgressionStep[] {
   const steps: SpellProgressionStep[] = [];
-  const classEntry = state.classes?.find(c => c.classId === classId);
+  const classEntry = state.classes?.find((c) => c.classId === classId);
   if (!classEntry) return steps;
 
   const classDef = getClassDefinition(classId);
   if (!classDef) return steps;
-  const abilityModifiers = computeAbilityScores(state).modifiers as unknown as Record<string, number>;
+  const abilityModifiers = computeAbilityScores(state).modifiers as unknown as Record<
+    string,
+    number
+  >;
 
   let prevCantrips = 0;
   let prevSpells = 0;
-  
+
   let subclassDef: any = null;
   if (classEntry.subclassId && classDef.subClassInfo) {
-      subclassDef = classDef.subClassInfo.options.find(o => o.catalogId === classEntry.subclassId || o.nameEn === classEntry.subclassId || o.name === classEntry.subclassId);
+    subclassDef = classDef.subClassInfo.options.find(
+      (o) =>
+        o.catalogId === classEntry.subclassId ||
+        o.nameEn === classEntry.subclassId ||
+        o.name === classEntry.subclassId,
+    );
   }
 
   let baseAllowedClasses = [classDef.name, classDef.nameEn];
 
   for (let lvl = 1; lvl <= classEntry.level; lvl++) {
-      const prog = classDef.progression.find(p => p.level === lvl);
-      if (!prog) continue;
+    const prog = classDef.progression.find((p) => p.level === lvl);
+    if (!prog) continue;
 
-      let sc = prog.spellcasting;
+    let sc = prog.spellcasting;
 
-      // Fallback: 如果职业进度中没有施法数据，尝试寻找子职定义的施法类型并使用标准表
-      if (!sc && subclassDef) {
-        const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellcastingType);
-        const scType = scTrait?.mechanics?.spellcastingType;
-        if (scType === '1/3') {
-          sc = THIRD_CASTER_TABLE[lvl] as any;
-        } else if (scType === '1/2' || scType === 'half') {
-          sc = HALF_CASTER_TABLE[lvl] as any;
+    // Fallback: 如果职业进度中没有施法数据，尝试寻找子职定义的施法类型并使用标准表
+    if (!sc && subclassDef) {
+      const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellcastingType);
+      const scType = scTrait?.mechanics?.spellcastingType;
+      if (scType === '1/3') {
+        sc = THIRD_CASTER_TABLE[lvl] as any;
+      } else if (scType === '1/2' || scType === 'half') {
+        sc = HALF_CASTER_TABLE[lvl] as any;
+      }
+    }
+
+    let currentCantrips = sc?.cantripsKnown || 0;
+    let currentSpells =
+      evaluatePreparedFormula(classDef.preparedSpellsFormula, lvl, abilityModifiers) ??
+      sc?.spellsPrepared ??
+      0;
+
+    let newCantrips = Math.max(0, currentCantrips - prevCantrips);
+    let newSpells = Math.max(0, currentSpells - prevSpells);
+
+    let allowedClasses = [...baseAllowedClasses];
+
+    // 如果有子职提供的法术列表来源，则优先加入
+    if (subclassDef) {
+      const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellListSource);
+      if (scTrait) {
+        const source = scTrait.mechanics.spellListSource;
+        [source, translateClass(source)].forEach((item) => {
+          if (item && !allowedClasses.includes(item)) {
+            allowedClasses.push(item);
+          }
+        });
+      }
+    }
+    let specialFeatures: string[] = [];
+    let canReplace = lvl > 1;
+
+    const features = classDef.features.filter((f) => f.level === lvl);
+    for (const f of features) {
+      if (f.name === '魔法奥秘' || f.nameEn === 'Magical Secrets') {
+        allowedClasses.push('牧师', '德鲁伊', '法师', 'Cleric', 'Druid', 'Wizard');
+        specialFeatures.push('魔法奥秘：可从牧师、德鲁伊或法师法术列表中选择法术。');
+        baseAllowedClasses = [...allowedClasses];
+      }
+    }
+
+    if (subclassDef) {
+      const subFeatures = subclassDef.traits.filter((t: any) => t.level === lvl);
+      for (const f of subFeatures) {
+        if (f.name === '魔法探秘' || f.nameEn === 'Magical Discoveries') {
+          newSpells += 2;
+          allowedClasses.push('牧师', '德鲁伊', '法师', 'Cleric', 'Druid', 'Wizard');
+          specialFeatures.push('魔法探秘：额外习得两道自选法术（牧师、德鲁伊或法师列表）。');
         }
       }
-      
-      let currentCantrips = sc?.cantripsKnown || 0;
-      let currentSpells = evaluatePreparedFormula(classDef.preparedSpellsFormula, lvl, abilityModifiers) ?? sc?.spellsPrepared ?? 0;
-      
-      let newCantrips = Math.max(0, currentCantrips - prevCantrips);
-      let newSpells = Math.max(0, currentSpells - prevSpells);
-      
-      let allowedClasses = [...baseAllowedClasses];
+    }
 
-      // 如果有子职提供的法术列表来源，则优先加入
-      if (subclassDef) {
-        const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellListSource);
-        if (scTrait) {
-          const source = scTrait.mechanics.spellListSource;
-          [source, translateClass(source)].forEach(item => {
-            if (item && !allowedClasses.includes(item)) {
-              allowedClasses.push(item);
+    let stepFilter: string | undefined = undefined;
+    if (subclassDef) {
+      const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellcastingType);
+      if (scTrait?.mechanics?.spellFilter) {
+        stepFilter = scTrait.mechanics.spellFilter;
+      }
+    }
+
+    let maxSpellLevel = 0;
+    if (sc?.spellSlots) {
+      const levels = Object.keys(sc.spellSlots).map((k) => parseInt(k.replace('level', '')));
+      maxSpellLevel = Math.max(0, ...levels);
+    }
+
+    const extraChoices: SpellChoiceSlot[] = [];
+    const alwaysPreparedSpells: string[] = [];
+
+    const scanFeaturesForSpells = (featureList: any[], sourcePrefix: string) => {
+      featureList.forEach((f) => {
+        const fixedSpells = f.mechanics?.spells;
+        if (fixedSpells) {
+          fixedSpells.forEach((fs: any) => {
+            const isUnlockedAtThisLvl = (f.level === lvl && !fs.level) || fs.level === lvl;
+            if (fs.prepared && fs.spells && isUnlockedAtThisLvl) {
+              alwaysPreparedSpells.push(...fs.spells);
             }
           });
         }
-      }
-      let specialFeatures: string[] = [];
-      let canReplace = lvl > 1; 
-      
-      const features = classDef.features.filter(f => f.level === lvl);
-      for (const f of features) {
-          if (f.name === '魔法奥秘' || f.nameEn === 'Magical Secrets') {
-               allowedClasses.push('牧师', '德鲁伊', '法师', 'Cleric', 'Druid', 'Wizard');
-               specialFeatures.push('魔法奥秘：可从牧师、德鲁伊或法师法术列表中选择法术。');
-               baseAllowedClasses = [...allowedClasses]; 
-          }
-      }
-      
-      if (subclassDef) {
-          const subFeatures = subclassDef.traits.filter((t:any) => t.level === lvl);
-          for (const f of subFeatures) {
-              if (f.name === '魔法探秘' || f.nameEn === 'Magical Discoveries') {
-                  newSpells += 2; 
-                  allowedClasses.push('牧师', '德鲁伊', '法师', 'Cleric', 'Druid', 'Wizard');
-                  specialFeatures.push('魔法探秘：额外习得两道自选法术（牧师、德鲁伊或法师列表）。');
-              }
-          }
-      }
-      
-      let stepFilter: string | undefined = undefined;
-      if (subclassDef) {
-        const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellcastingType);
-        if (scTrait?.mechanics?.spellFilter) {
-          stepFilter = scTrait.mechanics.spellFilter;
-        }
-      }
-      
-      let maxSpellLevel = 0;
-      if (sc?.spellSlots) {
-           const levels = Object.keys(sc.spellSlots).map(k => parseInt(k.replace('level','')));
-           maxSpellLevel = Math.max(0, ...levels);
-      }
 
-      const extraChoices: SpellChoiceSlot[] = [];
-      const alwaysPreparedSpells: string[] = [];
+        if (f.level === lvl) {
+          const choices = f.mechanics?.choices || [];
+          choices.forEach((c: any) => {
+            if (c.type === 'spell') {
+              extraChoices.push({
+                id: c.id,
+                label: f.name,
+                numToChoose: c.numToChoose,
+                filter: c.filter || '',
+                source: `${sourcePrefix}: ${f.name}`,
+                isOptional: false,
+              });
+            }
+          });
 
-      const scanFeaturesForSpells = (featureList: any[], sourcePrefix: string) => {
-        featureList.forEach(f => {
-          const fixedSpells = f.mechanics?.spells;
-          if (fixedSpells) {
-            fixedSpells.forEach((fs: any) => {
-              const isUnlockedAtThisLvl = (f.level === lvl && !fs.level) || (fs.level === lvl);
-              if (fs.prepared && fs.spells && isUnlockedAtThisLvl) {
-                alwaysPreparedSpells.push(...fs.spells);
-              }
-            });
-          }
+          const featureChoices = f.mechanics?.choices || [];
+          featureChoices.forEach((fc: any) => {
+            const selectionKey = fc.id;
+            const userSelection = state.classSelections?.[selectionKey] || [];
+            const selectedIds = Array.isArray(userSelection)
+              ? userSelection
+              : userSelection
+                ? [userSelection]
+                : [];
 
-          if (f.level === lvl) {
-            const choices = f.mechanics?.choices || [];
-            choices.forEach((c: any) => {
-              if (c.type === 'spell') {
-                extraChoices.push({
-                  id: c.id,
-                  label: f.name,
-                  numToChoose: c.numToChoose,
-                  filter: c.filter || '',
-                  source: `${sourcePrefix}: ${f.name}`,
-                  isOptional: false
-                });
-              }
-            });
+            selectedIds.forEach((selId: string) => {
+              const selectedOpt =
+                (f.options || []).find((opt: any) => opt.name === selId || opt.nameEn === selId) ||
+                WarlockInvocations2024.find((i) => i.nameEn === selId || i.name === selId);
 
-            const featureChoices = f.mechanics?.choices || [];
-            featureChoices.forEach((fc: any) => {
-              const selectionKey = fc.id;
-              const userSelection = state.classSelections?.[selectionKey] || [];
-              const selectedIds = Array.isArray(userSelection) ? userSelection : (userSelection ? [userSelection] : []);
-              
-              selectedIds.forEach((selId: string) => {
-                const selectedOpt = (f.options || []).find((opt: any) => opt.name === selId || opt.nameEn === selId) ||
-                                    WarlockInvocations2024.find(i => i.nameEn === selId || i.name === selId);
-                                    
-                if (selectedOpt) {
-                  const optSpells = selectedOpt.mechanics?.spells;
-                  if (optSpells) {
-                    optSpells.forEach((fs: any) => {
-                      if (fs.prepared && fs.spells) {
-                        alwaysPreparedSpells.push(...fs.spells);
-                      }
-                    });
-                  }
-                  const optChoices = selectedOpt.mechanics?.choices || [];
-                  optChoices.forEach((c: any) => {
-                    if (c.type === 'spell') {
-                      extraChoices.push({
-                        id: c.id,
-                        label: `${f.name}: ${selectedOpt.name}`,
-                        numToChoose: c.numToChoose,
-                        filter: c.filter || '',
-                        source: `${sourcePrefix}: ${f.name}`,
-                        isOptional: true
-                      });
+              if (selectedOpt) {
+                const optSpells = selectedOpt.mechanics?.spells;
+                if (optSpells) {
+                  optSpells.forEach((fs: any) => {
+                    if (fs.prepared && fs.spells) {
+                      alwaysPreparedSpells.push(...fs.spells);
                     }
                   });
                 }
-              });
+                const optChoices = selectedOpt.mechanics?.choices || [];
+                optChoices.forEach((c: any) => {
+                  if (c.type === 'spell') {
+                    extraChoices.push({
+                      id: c.id,
+                      label: `${f.name}: ${selectedOpt.name}`,
+                      numToChoose: c.numToChoose,
+                      filter: c.filter || '',
+                      source: `${sourcePrefix}: ${f.name}`,
+                      isOptional: true,
+                    });
+                  }
+                });
+              }
             });
-          }
-        });
-      };
+          });
+        }
+      });
+    };
 
-      scanFeaturesForSpells(classDef.features, '职业');
-      if (subclassDef) {
-        scanFeaturesForSpells(subclassDef.traits, '子职业');
-      }
+    scanFeaturesForSpells(classDef.features, '职业');
+    if (subclassDef) {
+      scanFeaturesForSpells(subclassDef.traits, '子职业');
+    }
 
-      if (classDef.nameEn === 'Wizard') {
-        const wizardBookCount = lvl === 1 ? 6 : 2;
-        extraChoices.push({
-          id: `wizard_spellbook_lvl${lvl}`,
-          label: lvl === 1 ? '初始法术书习得' : `法术书习得 (等级 ${lvl})`,
-          numToChoose: wizardBookCount,
-          filter: `class:wizard;level:1-${maxSpellLevel}`,
-          source: '法师: 法术书',
-          isOptional: false
-        });
-      }
+    if (classDef.nameEn === 'Wizard') {
+      const wizardBookCount = lvl === 1 ? 6 : 2;
+      extraChoices.push({
+        id: `wizard_spellbook_lvl${lvl}`,
+        label: lvl === 1 ? '初始法术书习得' : `法术书习得 (等级 ${lvl})`,
+        numToChoose: wizardBookCount,
+        filter: `class:wizard;level:1-${maxSpellLevel}`,
+        source: '法师: 法术书',
+        isOptional: false,
+      });
+    }
 
-      if (newCantrips > 0 || newSpells > 0 || (canReplace && lvl > 1) || specialFeatures.length > 0 || extraChoices.length > 0 || alwaysPreparedSpells.length > 0) {
-           steps.push({ 
-             level: lvl, 
-             newCantrips, 
-             newSpells, 
-             canReplace, 
-             allowedClasses, 
-             maxSpellLevel, 
-             specialFeatures,
-             extraChoices,
-             alwaysPreparedSpells: alwaysPreparedSpells.length > 0 ? alwaysPreparedSpells : undefined,
-             filter: stepFilter
-           });
-      }
-      
-      prevCantrips = currentCantrips;
-      prevSpells = currentSpells;
+    if (
+      newCantrips > 0 ||
+      newSpells > 0 ||
+      (canReplace && lvl > 1) ||
+      specialFeatures.length > 0 ||
+      extraChoices.length > 0 ||
+      alwaysPreparedSpells.length > 0
+    ) {
+      steps.push({
+        level: lvl,
+        newCantrips,
+        newSpells,
+        canReplace,
+        allowedClasses,
+        maxSpellLevel,
+        specialFeatures,
+        extraChoices,
+        alwaysPreparedSpells: alwaysPreparedSpells.length > 0 ? alwaysPreparedSpells : undefined,
+        filter: stepFilter,
+      });
+    }
+
+    prevCantrips = currentCantrips;
+    prevSpells = currentSpells;
   }
-  
+
   return steps;
 }
 
@@ -739,9 +892,17 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
     const steps = computeSpellProgression(state, classEntry.classId);
     Object.entries(selections).forEach(([level, selection]) => {
       if (Number(level) > classEntry.level) return;
-      selection.cantrips.forEach((id) => { if (!replaced.has(id)) cantrips.add(id); });
-      selection.spells.forEach((id) => { if (!replaced.has(id)) prepared.add(id); });
-      const validExtraIds = new Set(steps.find((step) => step.level === Number(level))?.extraChoices.map((choice) => choice.id) || []);
+      selection.cantrips.forEach((id) => {
+        if (!replaced.has(id)) cantrips.add(id);
+      });
+      selection.spells.forEach((id) => {
+        if (!replaced.has(id)) prepared.add(id);
+      });
+      const validExtraIds = new Set(
+        steps
+          .find((step) => step.level === Number(level))
+          ?.extraChoices.map((choice) => choice.id) || [],
+      );
       Object.entries(selection.extra || {}).forEach(([choiceId, ids]) => {
         if (choiceId.startsWith('wizard_spellbook')) {
           ids.forEach((id) => spellbook.add(id));
@@ -755,12 +916,15 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
         });
       });
     });
-    steps.filter((step) => step.level <= classEntry.level).flatMap((step) => step.alwaysPreparedSpells || []).forEach((reference) => {
-      const spell = getSpellDefinition(reference);
-      if (!spell) return;
-      if (spell.level === 0) cantrips.add(spell.id);
-      else prepared.add(spell.id);
-    });
+    steps
+      .filter((step) => step.level <= classEntry.level)
+      .flatMap((step) => step.alwaysPreparedSpells || [])
+      .forEach((reference) => {
+        const spell = getSpellDefinition(reference);
+        if (!spell) return;
+        if (spell.level === 0) cantrips.add(spell.id);
+        else prepared.add(spell.id);
+      });
   }
 
   getInnateSpells(state).forEach((grant) => {
@@ -770,5 +934,9 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
     else if (grant.isPrepared) prepared.add(spell.id);
   });
 
-  return { cantripIds: [...cantrips], preparedSpellIds: [...prepared], spellbookIds: [...spellbook] };
+  return {
+    cantripIds: [...cantrips],
+    preparedSpellIds: [...prepared],
+    spellbookIds: [...spellbook],
+  };
 }

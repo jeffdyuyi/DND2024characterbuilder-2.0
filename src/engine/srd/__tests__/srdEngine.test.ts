@@ -118,4 +118,3 @@ describe('SrdEngine and Expand Unit Tests', () => {
     expect(srdEngine.resolveFeature('野蛮人|狂暴')).toBeDefined();
   });
 });
-

@@ -62,7 +62,9 @@ describe('HomebrewPack 架构与存储驱动测试', () => {
     // 停用卡包
     store.togglePackEnabled(pack.id, false);
     // 撤出活跃列表
-    expect(useHomebrewStore.getState().feats.some((f) => f.id === 'feat-vampiric-gaze')).toBe(false);
+    expect(useHomebrewStore.getState().feats.some((f) => f.id === 'feat-vampiric-gaze')).toBe(
+      false,
+    );
 
     // 重新启用
     store.togglePackEnabled(pack.id, true);
@@ -72,12 +74,8 @@ describe('HomebrewPack 架构与存储驱动测试', () => {
   it('旧版散落扁平条目自动升级迁移为独立卡包', () => {
     // 模拟旧版本没有 packs 字段的 persisted 数据
     const legacyPersisted = {
-      spells: [
-        { id: 'legacy-spell-1', name: '旧版法术', level: 1, description: '旧数据' },
-      ],
-      items: [
-        { id: 'legacy-item-1', name: '旧版魔法剑', type: '武器', description: '旧武器' },
-      ],
+      spells: [{ id: 'legacy-spell-1', name: '旧版法术', level: 1, description: '旧数据' }],
+      items: [{ id: 'legacy-item-1', name: '旧版魔法剑', type: '武器', description: '旧武器' }],
       monsters: [],
       feats: [],
       species: [],
@@ -129,32 +127,32 @@ describe('HomebrewPack 架构与存储驱动测试', () => {
       _meta: {
         sources: [
           {
-            json: "TomeOfMagic",
-            abbreviation: "ToM",
-            full: "Tome of Magic Expansion",
-            authors: ["Archmage"],
-            version: "1.0.0",
+            json: 'TomeOfMagic',
+            abbreviation: 'ToM',
+            full: 'Tome of Magic Expansion',
+            authors: ['Archmage'],
+            version: '1.0.0',
           },
         ],
       },
       spell: [
         {
-          name: "奥术风暴",
-          ENG_name: "Arcane Storm",
-          source: "ToM",
+          name: '奥术风暴',
+          ENG_name: 'Arcane Storm',
+          source: 'ToM',
           level: 4,
-          school: "塑能",
-          entries: ["唤来奥术风暴打击敌人。"],
+          school: '塑能',
+          entries: ['唤来奥术风暴打击敌人。'],
         },
       ],
       item: [
         {
-          name: "秘银护符",
-          ENG_name: "Mithral Amulet",
-          source: "ToM",
-          type: "奇物",
-          rarity: "rare",
-          entries: ["提升法术豁免 DC。"],
+          name: '秘银护符',
+          ENG_name: 'Mithral Amulet',
+          source: 'ToM',
+          type: '奇物',
+          rarity: 'rare',
+          entries: ['提升法术豁免 DC。'],
         },
       ],
     });

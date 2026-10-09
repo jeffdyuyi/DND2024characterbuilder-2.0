@@ -90,7 +90,11 @@ export function normalizeSpell(raw: Record<string, any>, packId = '5etools-cn'):
   const components = {
     v: Boolean(raw.components?.v),
     s: Boolean(raw.components?.s),
-    m: raw.components?.m ? (typeof raw.components.m === 'string' ? clean5eTags(raw.components.m) : true) : false,
+    m: raw.components?.m
+      ? typeof raw.components.m === 'string'
+        ? clean5eTags(raw.components.m)
+        : true
+      : false,
   };
 
   const description = flattenEntries(raw.entries);

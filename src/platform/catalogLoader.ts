@@ -16,7 +16,10 @@
 import { defaultCatalog } from '@/catalog/catalog';
 import { CatalogService } from '@/catalog/types';
 import { FiveEToolsCnLoader, LoadSummary } from '@/source/fiveetools-cn/loader';
-import { createDefaultFiveEToolsSource, createDefaultHomebrewSource } from '@/source/fiveetools-cn/client';
+import {
+  createDefaultFiveEToolsSource,
+  createDefaultHomebrewSource,
+} from '@/source/fiveetools-cn/client';
 import { discoverHomebrewManifest, HomebrewManifest } from '@/source/homebrew/manifest';
 
 export type CatalogStatus = 'idle' | 'loading' | 'ready' | 'partial' | 'complete' | 'error';
@@ -66,7 +69,10 @@ export interface CatalogStats {
 class CatalogLoaderService {
   private loader: FiveEToolsCnLoader;
   private homebrewLoader?: FiveEToolsCnLoader;
-  private discoverHomebrew: (options?: { signal?: AbortSignal; refresh?: boolean }) => Promise<HomebrewManifest>;
+  private discoverHomebrew: (options?: {
+    signal?: AbortSignal;
+    refresh?: boolean;
+  }) => Promise<HomebrewManifest>;
   private catalog: CatalogService;
   private status: CatalogStatus = 'idle';
   private listeners: Set<(stats: CatalogStats) => void> = new Set();
@@ -105,15 +111,15 @@ class CatalogLoaderService {
     catalog?: CatalogService,
     loader?: FiveEToolsCnLoader,
     homebrewLoader?: FiveEToolsCnLoader,
-    manifestDiscoverer = discoverHomebrewManifest
+    manifestDiscoverer = discoverHomebrewManifest,
   ) {
     this.catalog = catalog || defaultCatalog;
     const client = createDefaultFiveEToolsSource();
     this.loader = loader || new FiveEToolsCnLoader(client, this.catalog);
     // 显式注入主加载器通常表示单元测试；生产单例则自动启用 Homebrew。
-    this.homebrewLoader = homebrewLoader || (!loader
-      ? new FiveEToolsCnLoader(createDefaultHomebrewSource(), this.catalog)
-      : undefined);
+    this.homebrewLoader =
+      homebrewLoader ||
+      (!loader ? new FiveEToolsCnLoader(createDefaultHomebrewSource(), this.catalog) : undefined);
     this.discoverHomebrew = manifestDiscoverer;
     if (!this.homebrewLoader) {
       this.sources.homebrew.state = 'disabled';
@@ -178,17 +184,26 @@ class CatalogLoaderService {
     this.counts.subclasses = this.catalog.list('subclass').length;
     this.counts.spells = this.catalog.list('spell').length;
     this.counts.items = this.catalog.list('item').length;
-    this.counts.characterOptions = ['optionalfeature', 'charoption', 'reward', 'boon', 'cult']
-      .reduce((total, kind) => total + this.catalog.list(kind as any).length, 0);
+    this.counts.characterOptions = [
+      'optionalfeature',
+      'charoption',
+      'reward',
+      'boon',
+      'cult',
+    ].reduce((total, kind) => total + this.catalog.list(kind as any).length, 0);
     this.counts.subraces = this.catalog.list('subrace').length;
-    this.counts.tools = [...this.catalog.list('item'), ...this.catalog.list('baseitem')]
-      .filter((entry) => ['AT', 'GS', 'INS', 'T'].includes(String((entry.raw as any).type))).length;
+    this.counts.tools = [...this.catalog.list('item'), ...this.catalog.list('baseitem')].filter(
+      (entry) => ['AT', 'GS', 'INS', 'T'].includes(String((entry.raw as any).type)),
+    ).length;
     this.counts.optionalFeatures = this.catalog.list('optionalfeature').length;
     this.counts.charOptions = this.catalog.list('charoption').length;
     this.counts.rewards = this.catalog.list('reward').length;
     this.counts.boons = this.catalog.list('boon').length;
     this.counts.cults = this.catalog.list('cult').length;
-    for (const [key, loader] of [['fiveetoolsCn', this.loader], ['homebrew', this.homebrewLoader]] as const) {
+    for (const [key, loader] of [
+      ['fiveetoolsCn', this.loader],
+      ['homebrew', this.homebrewLoader],
+    ] as const) {
       if (!loader) continue;
       const diagnostic = loader.getSourceDiagnostics?.();
       if (!diagnostic) continue;
@@ -240,7 +255,10 @@ class CatalogLoaderService {
   /**
    * 次批数据加载（法术库，后台非阻塞）
    */
-  public async loadSecondaryData(options?: { signal?: AbortSignal; refresh?: boolean }): Promise<void> {
+  public async loadSecondaryData(options?: {
+    signal?: AbortSignal;
+    refresh?: boolean;
+  }): Promise<void> {
     try {
       const result = await this.loader.loadSpells(options);
       this.secondaryLoaded = result.count > 0 && (result.failedFiles || 0) === 0;
@@ -257,14 +275,20 @@ class CatalogLoaderService {
   /**
    * 末批数据加载（物品与装备，后台非阻塞）
    */
-  public async loadRemainingData(options?: { signal?: AbortSignal; refresh?: boolean }): Promise<void> {
+  public async loadRemainingData(options?: {
+    signal?: AbortSignal;
+    refresh?: boolean;
+  }): Promise<void> {
     try {
       const [items, characterOptions] = await Promise.all([
         this.loader.loadItems(options),
         this.loader.loadCharacterOptions(options),
       ]);
-      this.completeLoaded = items.count > 0 && characterOptions.count > 0 &&
-        (items.failedFiles || 0) === 0 && (characterOptions.failedFiles || 0) === 0;
+      this.completeLoaded =
+        items.count > 0 &&
+        characterOptions.count > 0 &&
+        (items.failedFiles || 0) === 0 &&
+        (characterOptions.failedFiles || 0) === 0;
       this.sources.fiveetoolsCn.entries += items.count + characterOptions.count;
       if (this.completeLoaded) this.sources.fiveetoolsCn.loadedFiles++;
       else this.sources.fiveetoolsCn.failedFiles++;
@@ -276,13 +300,19 @@ class CatalogLoaderService {
   }
 
   /** 发现并加载 Homebrew 中角色构建需要的全部目标类别。 */
-  public async loadHomebrewData(options?: { signal?: AbortSignal; refresh?: boolean; fullDownload?: boolean; includeCollections?: boolean }): Promise<void> {
+  public async loadHomebrewData(options?: {
+    signal?: AbortSignal;
+    refresh?: boolean;
+    fullDownload?: boolean;
+    includeCollections?: boolean;
+  }): Promise<void> {
     if (!this.homebrewLoader) return;
     this.sources.homebrew.state = 'loading';
     this.notify();
     try {
       const manifest = await this.discoverHomebrew(options);
-      const shouldFullDownload = options?.fullDownload || process.env.NEXT_PUBLIC_HOMEBREW_AUTOLOAD === 'true';
+      const shouldFullDownload =
+        options?.fullDownload || process.env.NEXT_PUBLIC_HOMEBREW_AUTOLOAD === 'true';
 
       if (!shouldFullDownload) {
         Object.assign(this.sources.homebrew, {
@@ -296,13 +326,33 @@ class CatalogLoaderService {
       }
 
       const defaultCategories = [
-        'class', 'subclass', 'spell', 'item', 'baseitem', 'magicvariant',
-        'race', 'subrace', 'background', 'feat', 'optionalfeature', 'charoption', 'reward', 'boon',
+        'class',
+        'subclass',
+        'spell',
+        'item',
+        'baseitem',
+        'magicvariant',
+        'race',
+        'subrace',
+        'background',
+        'feat',
+        'optionalfeature',
+        'charoption',
+        'reward',
+        'boon',
       ];
       const configuredCategories = (process.env.NEXT_PUBLIC_HOMEBREW_AUTOLOAD_CATEGORIES || '')
-        .split(',').map((value) => value.trim()).filter(Boolean);
-      const enabledCategories = new Set(configuredCategories.length ? configuredCategories : defaultCategories);
-      if (process.env.NEXT_PUBLIC_HOMEBREW_INCLUDE_COLLECTIONS === 'true' || options?.includeCollections || options?.fullDownload) {
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean);
+      const enabledCategories = new Set(
+        configuredCategories.length ? configuredCategories : defaultCategories,
+      );
+      if (
+        process.env.NEXT_PUBLIC_HOMEBREW_INCLUDE_COLLECTIONS === 'true' ||
+        options?.includeCollections ||
+        options?.fullDownload
+      ) {
         enabledCategories.add('collection');
       }
       const paths = manifest.entries
@@ -311,7 +361,13 @@ class CatalogLoaderService {
       const excludedFiles = manifest.entries.length - paths.length;
       this.sources.homebrew.expectedFiles = paths.length;
       if (paths.length === 0) {
-        Object.assign(this.sources.homebrew, { state: 'empty', loadedFiles: 0, failedFiles: 0, entries: 0, message: '清单可用，但没有启用范围内的资源' });
+        Object.assign(this.sources.homebrew, {
+          state: 'empty',
+          loadedFiles: 0,
+          failedFiles: 0,
+          entries: 0,
+          message: '清单可用，但没有启用范围内的资源',
+        });
         return;
       }
       const result = await this.homebrewLoader.loadClassFiles(paths, options);
@@ -323,23 +379,33 @@ class CatalogLoaderService {
         loadedFiles: result.loadedFiles || 0,
         failedFiles: result.failedFiles || 0,
         entries: result.count,
-        state: result.count > 0 && (result.failedFiles || 0) === 0 && result.warnings.length === 0 ? 'complete' : result.count > 0 ? 'partial' : 'error',
+        state:
+          result.count > 0 && (result.failedFiles || 0) === 0 && result.warnings.length === 0
+            ? 'complete'
+            : result.count > 0
+              ? 'partial'
+              : 'error',
         message: (() => {
           const parts: string[] = [];
-          if (excludedFiles > 0) parts.push(`${excludedFiles} 个未启用范围文件未自动下载（collection 默认需显式启用）`);
+          if (excludedFiles > 0)
+            parts.push(`${excludedFiles} 个未启用范围文件未自动下载（collection 默认需显式启用）`);
           if (result.warnings.length > 0) {
             if (result.warnings.length <= 3) {
               parts.push(...result.warnings.map((w) => w.message));
             } else {
               parts.push(...result.warnings.slice(0, 3).map((w) => w.message));
-              parts.push(`...（另有 ${result.warnings.length - 3} 条告警，可在开发者控制台查看完整日志）`);
+              parts.push(
+                `...（另有 ${result.warnings.length - 3} 条告警，可在开发者控制台查看完整日志）`,
+              );
             }
           }
           return parts.join('; ') || undefined;
         })(),
       });
     } catch (err) {
-      this.sources.homebrew.state = (err as Error).message.includes('没有发现可加载资源') ? 'empty' : 'error';
+      this.sources.homebrew.state = (err as Error).message.includes('没有发现可加载资源')
+        ? 'empty'
+        : 'error';
       this.sources.homebrew.message = (err as Error).message;
     } finally {
       this.notify();
@@ -359,10 +425,23 @@ class CatalogLoaderService {
       this.status = 'loading';
       this.error = undefined;
       this.sources = {
-        fiveetoolsCn: { state: 'idle', expectedFiles: 6, loadedFiles: 0, failedFiles: 0, entries: 0 },
+        fiveetoolsCn: {
+          state: 'idle',
+          expectedFiles: 6,
+          loadedFiles: 0,
+          failedFiles: 0,
+          entries: 0,
+        },
         homebrew: this.homebrewLoader
           ? { state: 'idle', expectedFiles: 0, loadedFiles: 0, failedFiles: 0, entries: 0 }
-          : { state: 'disabled', expectedFiles: 0, loadedFiles: 0, failedFiles: 0, entries: 0, message: '扩展数据源未启用' },
+          : {
+              state: 'disabled',
+              expectedFiles: 0,
+              loadedFiles: 0,
+              failedFiles: 0,
+              entries: 0,
+              message: '扩展数据源未启用',
+            },
       };
 
       // 1. 加载首批核心（种族、背景、专长、职业）。离线场景由版本化缓存承担，
@@ -392,8 +471,13 @@ class CatalogLoaderService {
         this.notify();
         await this.loadRemainingData(requestOptions);
         await this.loadHomebrewData(requestOptions);
-        const allComplete = this.coreLoaded && this.secondaryLoaded && this.completeLoaded &&
-          (!this.homebrewLoader || this.sources.homebrew.state === 'complete' || this.sources.homebrew.state === 'ready');
+        const allComplete =
+          this.coreLoaded &&
+          this.secondaryLoaded &&
+          this.completeLoaded &&
+          (!this.homebrewLoader ||
+            this.sources.homebrew.state === 'complete' ||
+            this.sources.homebrew.state === 'ready');
         if (allComplete && !this.error) {
           this.status = 'complete';
         } else if (this.status !== 'error') {
@@ -417,7 +501,10 @@ class CatalogLoaderService {
 export const catalogLoader = new CatalogLoaderService();
 export { CatalogLoaderService };
 
-export async function initCatalog(options?: { force?: boolean; fromCacheRefresh?: boolean }): Promise<void> {
+export async function initCatalog(options?: {
+  force?: boolean;
+  fromCacheRefresh?: boolean;
+}): Promise<void> {
   return catalogLoader.init(options);
 }
 
@@ -429,8 +516,14 @@ export function getCatalogStats(): CatalogStats {
   return catalogLoader.getStats();
 }
 
-export async function loadHomebrewAll(options?: { signal?: AbortSignal; refresh?: boolean; includeCollections?: boolean }): Promise<void> {
-  return catalogLoader.loadHomebrewData({ ...options, fullDownload: true, includeCollections: options?.includeCollections ?? true });
+export async function loadHomebrewAll(options?: {
+  signal?: AbortSignal;
+  refresh?: boolean;
+  includeCollections?: boolean;
+}): Promise<void> {
+  return catalogLoader.loadHomebrewData({
+    ...options,
+    fullDownload: true,
+    includeCollections: options?.includeCollections ?? true,
+  });
 }
-
-

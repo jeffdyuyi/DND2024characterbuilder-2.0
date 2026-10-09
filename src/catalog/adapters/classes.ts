@@ -51,7 +51,7 @@ function equipmentText(value: unknown): string {
   if (typeof value === 'string') {
     const tagged = value
       .replace(/\{@(item|filter|dice|i)\s+([^}]+)\}/gi, (_, tag: string, body: string) =>
-        tag.toLowerCase() === 'i' ? body : renderFiveEToolsTag(tag.toLowerCase(), body)
+        tag.toLowerCase() === 'i' ? body : renderFiveEToolsTag(tag.toLowerCase(), body),
       )
       .trim();
     const reference = tagged.match(/^([^|]+)\|[^|]+(?:\|([^|]+))?$/);
@@ -79,11 +79,13 @@ function equipmentOption(value: unknown): string {
 }
 
 function normalizeStartingEquipment(value: unknown): ClassData['startingEquipment'] {
-  const raw = value && typeof value === 'object' ? value as Record<string, any> : {};
-  if (Array.isArray(raw.choiceA) && typeof raw.choiceB === 'string') return raw as ClassData['startingEquipment'];
+  const raw = value && typeof value === 'object' ? (value as Record<string, any>) : {};
+  if (Array.isArray(raw.choiceA) && typeof raw.choiceB === 'string')
+    return raw as ClassData['startingEquipment'];
 
   const rows = Array.isArray(raw.defaultData) ? raw.defaultData : [];
-  const first = rows[0] && typeof rows[0] === 'object' ? rows[0] as Record<string, unknown> : undefined;
+  const first =
+    rows[0] && typeof rows[0] === 'object' ? (rows[0] as Record<string, unknown>) : undefined;
   const upperCasePackages = first && ['A', 'B', 'C'].some((key) => key in first);
 
   if (upperCasePackages && first) {
@@ -128,7 +130,12 @@ function normalizeProficiencyList(items: unknown): string[] {
       if (trimmed) result.push(trimmed);
     } else if (typeof item === 'object') {
       const obj = item as Record<string, any>;
-      const prof = typeof obj.proficiency === 'string' ? obj.proficiency.trim() : (typeof obj.name === 'string' ? obj.name.trim() : '');
+      const prof =
+        typeof obj.proficiency === 'string'
+          ? obj.proficiency.trim()
+          : typeof obj.name === 'string'
+            ? obj.name.trim()
+            : '';
       if (prof) {
         result.push(obj.optional ? `${prof}（可选）` : prof);
       }
@@ -139,10 +146,14 @@ function normalizeProficiencyList(items: unknown): string[] {
 
 function normalizeProficiencyChoice(value: unknown, fallbackCount = 0) {
   const entries = Array.isArray(value) ? value : [];
-  const choice = entries.find((entry) => entry && typeof entry === 'object' && (entry as any).choose)?.choose;
+  const choice = entries.find(
+    (entry) => entry && typeof entry === 'object' && (entry as any).choose,
+  )?.choose;
   return {
     numToChoose: Number(choice?.count || fallbackCount),
-    options: Array.isArray(choice?.from) ? choice.from.filter((item: unknown): item is string => typeof item === 'string') : [],
+    options: Array.isArray(choice?.from)
+      ? choice.from.filter((item: unknown): item is string => typeof item === 'string')
+      : [],
   };
 }
 
@@ -174,7 +185,11 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
       const mergedSub = mergeOverlay(subEntry);
       const subRaw = mergedSub.raw || {};
       const subParent = (subRaw.className || (mergedSub as any).parent || '').toLowerCase().trim();
-      if (subParent === parentName || subParent.includes(parentName) || parentName.includes(subParent)) {
+      if (
+        subParent === parentName ||
+        subParent.includes(parentName) ||
+        parentName.includes(subParent)
+      ) {
         subOptions.push({
           name: mergedSub.name,
           nameEn: mergedSub.englishName || mergedSub.name,
@@ -199,7 +214,9 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
       skills: normalizeProficiencyChoice(startProf.skills, 2),
       weapons: normalizeProficiencyList(startProf.weapons),
       armor: normalizeProficiencyList(startProf.armor),
-      tools: Array.isArray(startProf.tools) ? normalizeProficiencyList(startProf.tools) : (startProf.tools || []),
+      tools: Array.isArray(startProf.tools)
+        ? normalizeProficiencyList(startProf.tools)
+        : startProf.tools || [],
     },
     startingEquipment: normalizeStartingEquipment(raw.startingEquipment),
     becomingAClass: raw.becomingAClass,
@@ -218,7 +235,9 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
       skills: normalizeProficiencyChoice(multiclassProf.skills),
       weapons: normalizeProficiencyList(multiclassProf.weapons),
       armor: normalizeProficiencyList(multiclassProf.armor),
-      tools: Array.isArray(multiclassProf.tools) ? normalizeProficiencyList(multiclassProf.tools) : (multiclassProf.tools || []),
+      tools: Array.isArray(multiclassProf.tools)
+        ? normalizeProficiencyList(multiclassProf.tools)
+        : multiclassProf.tools || [],
     },
   } as ClassData;
 }
@@ -254,7 +273,6 @@ export function getCatalogClasses(options?: { edition?: Edition; source?: string
     }
   }
 
-
   return classes;
 }
 
@@ -263,19 +281,36 @@ export function getCatalogClasses(options?: { edition?: Edition; source?: string
  */
 export function getCatalogSubclasses(
   parentClassName?: string,
-  options?: { edition?: Edition; source?: string; parentSource?: string }
+  options?: { edition?: Edition; source?: string; parentSource?: string },
 ): CatalogEntry[] {
-  const entries = defaultCatalog.list('subclass', { source: options?.source }).filter(entry =>
-    !options?.edition || options.edition === 'both' || inferEditionFromSource(String(entry.raw.classSource || 'PHB')) === options.edition);
+  const entries = defaultCatalog
+    .list('subclass', { source: options?.source })
+    .filter(
+      (entry) =>
+        !options?.edition ||
+        options.edition === 'both' ||
+        inferEditionFromSource(String(entry.raw.classSource || 'PHB')) === options.edition,
+    );
   if (!parentClassName) return entries;
 
   const parent = defaultCatalog.get(parentClassName);
-  const parents = parent?.kind === 'class' ? [parent] : defaultCatalog.list('class', { edition: options?.edition })
-    .filter(entry => classNames(entry).includes(classKeyPart(parentClassName)) &&
-      (!options?.parentSource || classKeyPart(entry.source) === classKeyPart(options.parentSource)));
-  if (parents.length) return entries.filter(entry => parents.some(parent => belongsToClass(entry, parent)));
-  return entries.filter(entry => classKeyPart(entry.raw.className || entry.parent) === classKeyPart(parentClassName) &&
-    (!options?.parentSource || classKeyPart(entry.raw.classSource || 'PHB') === classKeyPart(options.parentSource)));
+  const parents =
+    parent?.kind === 'class'
+      ? [parent]
+      : defaultCatalog
+          .list('class', { edition: options?.edition })
+          .filter(
+            (entry) =>
+              classNames(entry).includes(classKeyPart(parentClassName)) &&
+              (!options?.parentSource ||
+                classKeyPart(entry.source) === classKeyPart(options.parentSource)),
+          );
+  if (parents.length)
+    return entries.filter((entry) => parents.some((parent) => belongsToClass(entry, parent)));
+  return entries.filter(
+    (entry) =>
+      classKeyPart(entry.raw.className || entry.parent) === classKeyPart(parentClassName) &&
+      (!options?.parentSource ||
+        classKeyPart(entry.raw.classSource || 'PHB') === classKeyPart(options.parentSource)),
+  );
 }
-
-

@@ -18,7 +18,16 @@ import CatalogStatus from '@/platform/CatalogStatus';
 import styles from './AppSidebar.module.css';
 
 const D20Icon = ({ size = 20 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M12 2L2.5 7.5L2.5 16.5L12 22L21.5 16.5L21.5 7.5L12 2Z" />
     <path d="M12 22V12" />
     <path d="M12 12L2.5 7.5" />
@@ -63,7 +72,8 @@ export default function AppSidebar() {
   };
 
   const toggleTheme = () => {
-    const activeTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    const activeTheme =
+      document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
     const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
     setTheme(nextTheme);
     localStorage.setItem('dnd2024-theme', nextTheme);
@@ -72,14 +82,24 @@ export default function AppSidebar() {
 
   const navItems = [
     { label: '角色库', path: '/', icon: <User size={18} /> },
-    { label: '官方资源库', path: '/srd', icon: <BookOpen size={18} style={{ color: 'var(--color-apple-blue, #3b82f6)' }} /> },
-    { label: '原创第三方', path: '/homebrew', icon: <Sparkles size={18} style={{ color: 'var(--color-gold-bright, #ffd700)' }} /> },
+    {
+      label: '官方资源库',
+      path: '/srd',
+      icon: <BookOpen size={18} style={{ color: 'var(--color-apple-blue, #3b82f6)' }} />,
+    },
+    {
+      label: '原创第三方',
+      path: '/homebrew',
+      icon: <Sparkles size={18} style={{ color: 'var(--color-gold-bright, #ffd700)' }} />,
+    },
     { label: '规则速查', path: '/quick-ref', icon: <BookOpen size={18} /> },
   ];
 
   return (
     <>
-      <aside className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : styles.sidebarExpanded}`}>
+      <aside
+        className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : styles.sidebarExpanded}`}
+      >
         {/* 顶部 Logo 与折叠按钮 */}
         <div className={styles.header}>
           <div className={styles.logoArea} onClick={() => router.push('/')} title="返回角色库首页">
@@ -129,13 +149,18 @@ export default function AppSidebar() {
                 <span>{theme === 'dark' ? '浅色模式' : '深色模式'}</span>
               </button>
               <button className={styles.footerBtn} onClick={() => setShowInfo(true)}>
-                <div className={styles.itemIcon}><Info size={17} /></div>
+                <div className={styles.itemIcon}>
+                  <Info size={17} />
+                </div>
                 <span>关于与社区</span>
               </button>
             </>
           ) : (
             <>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }} title="数据加载状态">
+              <div
+                style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}
+                title="数据加载状态"
+              >
                 <CatalogStatus compact />
               </div>
               <button
@@ -187,20 +212,72 @@ export default function AppSidebar() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, borderBottom: '1px solid var(--color-border-dark)', paddingBottom: 10 }}>
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, fontFamily: 'var(--font-family-serif)' }}>作者与交流群</h3>
-              <button onClick={() => setShowInfo(false)} style={{ background: 'transparent', border: 'none', color: 'var(--color-text-secondary)', cursor: 'pointer', fontSize: 18 }}>×</button>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: 16,
+                borderBottom: '1px solid var(--color-border-dark)',
+                paddingBottom: 10,
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  fontFamily: 'var(--font-family-serif)',
+                }}
+              >
+                作者与交流群
+              </h3>
+              <button
+                onClick={() => setShowInfo(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--color-text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: 18,
+                }}
+              >
+                ×
+              </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13, color: 'var(--color-text-secondary)' }}>
-              <div><strong>作者：</strong> 不咕鸟（基德）</div>
-              <div><strong>AI 辅助：</strong> Antigravity Gemini</div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 12,
+                fontSize: 13,
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              <div>
+                <strong>作者：</strong> 不咕鸟（基德）
+              </div>
+              <div>
+                <strong>AI 辅助：</strong> Antigravity Gemini
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <strong>TRPG 创想俱乐部：</strong>
                 <span style={{ color: 'var(--color-apple-blue)', fontWeight: 600 }}>261751459</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <strong>官方主页：</strong>
-                <a href="https://nogubird.top/" target="_blank" rel="noreferrer" style={{ color: 'var(--color-apple-blue)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <a
+                  href="https://nogubird.top/"
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    color: 'var(--color-apple-blue)',
+                    textDecoration: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
                   nogubird.top <ExternalLink size={12} />
                 </a>
               </div>

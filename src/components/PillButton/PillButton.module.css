@@ -50,7 +50,9 @@
   font-family: var(--font-family);
   font-weight: 700;
   border: 1px solid var(--color-gold-bright);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 8px rgba(197, 160, 89, 0.2);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    0 0 8px rgba(197, 160, 89, 0.2);
 }
 
 .pill--primary:hover {
@@ -105,32 +107,32 @@
   pointer-events: none;
 }
 
-:global(:root:not([data-theme="light"])) .pill {
+:global(:root:not([data-theme='light'])) .pill {
   border-radius: 0;
   border-width: 2px;
   font-family: var(--font-family-serif);
   transition: none;
 }
 
-:global(:root:not([data-theme="light"])) .pill--primary,
-:global(:root:not([data-theme="light"])) .pill--primary:hover {
+:global(:root:not([data-theme='light'])) .pill--primary,
+:global(:root:not([data-theme='light'])) .pill--primary:hover {
   background: var(--color-gold-bright);
   color: var(--color-bg-light);
   box-shadow: 3px 3px 0 var(--color-gold-accent);
 }
 
-:global(:root:not([data-theme="light"])) .pill--outline,
-:global(:root:not([data-theme="light"])) .pill--dark {
+:global(:root:not([data-theme='light'])) .pill--outline,
+:global(:root:not([data-theme='light'])) .pill--dark {
   background: var(--color-bg-dark);
   box-shadow: 3px 3px 0 #10111e;
 }
 
-:global(:root:not([data-theme="light"])) .pill:hover:not(.pill--disabled) {
+:global(:root:not([data-theme='light'])) .pill:hover:not(.pill--disabled) {
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 var(--color-apple-blue);
 }
 
-:global(:root:not([data-theme="light"])) .pill:active:not(.pill--disabled) {
+:global(:root:not([data-theme='light'])) .pill:active:not(.pill--disabled) {
   transform: translate(3px, 3px);
   box-shadow: none;
 }

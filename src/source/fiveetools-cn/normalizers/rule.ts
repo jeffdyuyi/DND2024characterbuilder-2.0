@@ -7,9 +7,13 @@ import { CatalogEntry } from '@/catalog/types';
 import { makeEntryId, inferEditionFromSource } from '@/catalog/identity';
 import { flattenEntries } from '../utils';
 
-export function normalizeItemProperty(raw: Record<string, any>, packId = '5etools-cn'): CatalogEntry {
+export function normalizeItemProperty(
+  raw: Record<string, any>,
+  packId = '5etools-cn',
+): CatalogEntry {
   const abbreviation = raw.abbreviation || '';
-  const firstEntry = Array.isArray(raw.entries) && typeof raw.entries[0] === 'object' ? raw.entries[0] : {};
+  const firstEntry =
+    Array.isArray(raw.entries) && typeof raw.entries[0] === 'object' ? raw.entries[0] : {};
   const name = firstEntry.name || raw.name || abbreviation;
   const englishName = firstEntry.ENG_name || raw.ENG_name || abbreviation;
   const source = raw.source || 'XPHB';
@@ -39,7 +43,10 @@ export function normalizeItemProperty(raw: Record<string, any>, packId = '5etool
   };
 }
 
-export function normalizeItemMastery(raw: Record<string, any>, packId = '5etools-cn'): CatalogEntry {
+export function normalizeItemMastery(
+  raw: Record<string, any>,
+  packId = '5etools-cn',
+): CatalogEntry {
   const name = raw.name || raw.ENG_name || '未命名精通';
   const englishName = raw.ENG_name || raw.name;
   const source = raw.source || 'XPHB';

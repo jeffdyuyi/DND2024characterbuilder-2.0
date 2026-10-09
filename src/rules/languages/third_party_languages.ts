@@ -8,884 +8,760 @@ import { Language } from '../../types/language';
  * 3. 严格剔除非语言生物条目(触须怪、孢子人等)、非口语文字条目(灵吸文)及野兽鸣叫条目，杜绝虚报与幻想。
  */
 export const THIRD_PARTY_LANGUAGES: Language[] = [
-    {
-        "id": "dankwood-goblin",
-        "name": "阴林地精语",
-        "nameEn": "Dankwood Goblin",
-        "type": "Rare",
-        "source": "AWM",
-        "typicalSpeakers": [
-            "地精 (阴林)"
-        ]
-    },
-    {
-        "id": "aarakocra",
-        "name": "鸟羽人语",
-        "nameEn": "Aarakocra",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 鸟羽人}"
-        ]
-    },
-    {
-        "id": "abanasinian",
-        "name": "阿班尼西亚语",
-        "nameEn": "Abanasinian",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "阿班尼西亚"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "aglarondan",
-        "name": "阿戈拉隆语",
-        "nameEn": "Aglarondan",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "alzhedo",
-        "name": "阿兹多语",
-        "nameEn": "Alzhedo",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "卡林珊族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "aquan",
-        "name": "水族语",
-        "nameEn": "Aquan",
-        "type": "Rare",
-        "source": "XPHB",
-        "typicalSpeakers": [
-            "水元素",
-            "人鱼"
-        ],
-        "script": "矮人语"
-    },
-    {
-        "id": "auran",
-        "name": "气族语",
-        "nameEn": "Auran",
-        "type": "Rare",
-        "source": "XPHB",
-        "typicalSpeakers": [
-            "气元素",
-            "鸟羽人"
-        ],
-        "script": "矮人语"
-    },
-    {
-        "id": "aven",
-        "name": "艾文语",
-        "nameEn": "Aven",
-        "type": "Rare",
-        "source": "PSD",
-        "typicalSpeakers": [
-            "{@race 艾文|PSD}"
-        ]
-    },
-    {
-        "id": "bothii",
-        "name": "博锡语",
-        "nameEn": "Bothii",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "{@creature 乌斯伽野蛮人领袖|SKT|乌斯伽野蛮人}",
-            "{@creature 乌斯伽萨满|SKT|乌斯伽萨满}"
-        ]
-    },
-    {
-        "id": "bullywug",
-        "name": "啵灵蛙语",
-        "nameEn": "Bullywug",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 啵灵蛙||啵灵蛙}"
-        ]
-    },
-    {
-        "id": "chessentan",
-        "name": "阙森坦语",
-        "nameEn": "Chessentan",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "穆兰族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "chondathan",
-        "name": "琼达斯语",
-        "nameEn": "Chondathan",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "琼达斯族群",
-            "泰瑟尔族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "coalition-pidgin",
-        "name": "联盟皮钦语",
-        "nameEn": "Coalition Pidgin",
-        "type": "Rare",
-        "source": "PSX",
-        "typicalSpeakers": [
-            "莽霸联盟",
-            "{@race 人类 (依夏兰)|PSX|人类}",
-            "{@race 兽人 (依夏兰)|PSX|兽人}",
-            "{@race 赛壬|PSX|塞壬}",
-            "{@race 地精 (依夏兰)|PSX|地精}"
-        ]
-    },
-    {
-        "id": "common-trade-pidgin",
-        "name": "通用贸易皮钦语",
-        "nameEn": "Common Trade Pidgin",
-        "type": "Rare",
-        "source": "PSX",
-        "typicalSpeakers": [
-            "烈阳帝国",
-            "川流使",
-            "暮影军团",
-            "莽霸联盟",
-            "{@race 人类 (依夏兰)|PSX|人类}",
-            "{@race 兽人 (依夏兰)|PSX|兽人}",
-            "{@race 赛壬|PSX|塞壬}",
-            "{@race 地精 (依夏兰)|PSX|地精}"
-        ]
-    },
-    {
-        "id": "daelkyr",
-        "name": "异变魔语",
-        "nameEn": "Daelkyr",
-        "type": "Rare",
-        "source": "ERLW",
-        "typicalSpeakers": [
-            "{@filter 异怪|bestiary|type=aberration|source=ERLW}",
-            "凯博尔的居民"
-        ],
-        "script": "异变魔语"
-    },
-    {
-        "id": "damaran",
-        "name": "达马拉语",
-        "nameEn": "Damaran",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "达马拉族群",
-            "纳尔族群"
-        ],
-        "script": "迪泰克文"
-    },
-    {
-        "id": "dambrathan",
-        "name": "丹布拉森语",
-        "nameEn": "Dambrathan",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "阿凯恩族群"
-        ],
-        "script": "埃斯普拉文"
-    },
-    {
-        "id": "demonic",
-        "name": "恶魔语",
-        "nameEn": "Demonic",
-        "type": "Rare",
-        "source": "PSI",
-        "typicalSpeakers": [
-            "{@filter 恶魔|bestiary|source=|tag=恶魔}",
-            "{@filter 魔鬼|bestiary|source=|tag=魔鬼}"
-        ]
-    },
-    {
-        "id": "ergot",
-        "name": "亚苟斯语",
-        "nameEn": "Ergot",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "北亚苟斯"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "gith",
-        "name": "吉斯语",
-        "nameEn": "Gith",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 吉斯泽莱武僧||吉斯泽莱武僧}",
-            "{@creature 吉斯洋基武者||吉斯洋基武者}",
-            "{@creature 吉斯泽莱泽锡修士||吉斯泽莱泽锡修士}",
-            "{@creature 吉斯洋基骑士||吉斯洋基骑士}"
-        ],
-        "script": "提尔苏"
-    },
-    {
-        "id": "gnoll",
-        "name": "鬣狗语",
-        "nameEn": "Gnoll",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 鬣狗人||鬣狗人们}",
-            "{@creature 鬣狗人头领||鬣狗人头领}",
-            "{@creature 鬣狗人·耶诺古毒牙||鬣狗人·耶诺古毒牙}"
-        ]
-    },
-    {
-        "id": "grung",
-        "name": "格龙蛙人语",
-        "nameEn": "Grung",
-        "type": "Rare",
-        "source": "VGM",
-        "typicalSpeakers": [
-            "{@creature 格龙蛙人|VGM|格龙蛙人们}",
-            "{@creature 格龙蛙人蛮荒祭司|VGM|格龙蛙人蛮荒祭司}",
-            "{@creature 格龙蛙人精英战士|VGM|格龙蛙人精英战士}"
-        ]
-    },
-    {
-        "id": "guran",
-        "name": "古兰语",
-        "nameEn": "Guran",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "古尔族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "halruaan",
-        "name": "哈鲁阿语",
-        "nameEn": "Halruaan",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "哈鲁阿族群"
-        ],
-        "script": "龙语"
-    },
-    {
-        "id": "homarid",
-        "name": "荷马利语",
-        "nameEn": "Homarid",
-        "type": "Rare",
-        "source": "PSD",
-        "typicalSpeakers": [
-            "{@creature 荷马利|PSD|荷马利}"
-        ]
-    },
-    {
-        "id": "ignan",
-        "name": "火族语",
-        "nameEn": "Ignan",
-        "type": "Rare",
-        "source": "XPHB",
-        "typicalSpeakers": [
-            "火元素",
-            "火蜥蜴"
-        ],
-        "script": "矮人语"
-    },
-    {
-        "id": "illuskan",
-        "name": "伊路斯坎语",
-        "nameEn": "Illuskan",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "伊路斯坎族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "istarian",
-        "name": "伊斯塔语",
-        "nameEn": "Istarian",
-        "type": "Rare",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "古伊斯塔人"
-        ],
-        "script": "伊斯塔语"
-    },
-    {
-        "id": "itzocan",
-        "name": "阿佐坎语",
-        "nameEn": "Itzocan",
-        "type": "Rare",
-        "source": "PSX",
-        "typicalSpeakers": [
-            "烈阳帝国",
-            "{@race 人类 (依夏兰)|PSX|人类}"
-        ]
-    },
-    {
-        "id": "ixitxachitl",
-        "name": "伊希鳐鱼语",
-        "nameEn": "Ixitxachitl",
-        "type": "Rare",
-        "source": "OotA",
-        "typicalSpeakers": [
-            "{@creature 伊希鳐鱼|OotA}",
-            "{@creature 伊希鳐鱼牧师|OotA|伊希鳐鱼牧师}",
-            "{@creature 伊希鳐鱼吸血鬼|OotA}",
-            "{@creature 伊希鳐鱼吸血鬼牧师|OotA|伊希鳐鱼吸血鬼牧师}"
-        ]
-    },
-    {
-        "id": "keldon",
-        "name": "凯尔顿语",
-        "nameEn": "Keldon",
-        "type": "Rare",
-        "source": "PSD",
-        "typicalSpeakers": [
-            "{@race 人类 (凯尔顿)|PSD|凯尔顿人}"
-        ]
-    },
-    {
-        "id": "kenderspeak",
-        "name": "坎德人语",
-        "nameEn": "Kenderspeak",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "古德兰",
-            "海洛"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "kharolian",
-        "name": "卡若理语",
-        "nameEn": "Kharolian",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "尘埃平原",
-            "塔西斯"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "khenra",
-        "name": "胡狼人语",
-        "nameEn": "Khenra",
-        "type": "Rare",
-        "source": "PSA",
-        "typicalSpeakers": [
-            "{@race 胡狼人|PSA}"
-        ]
-    },
-    {
-        "id": "khur",
-        "name": "克尔语",
-        "nameEn": "Khur",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "克尔语"
-        ],
-        "script": "伊斯塔语"
-    },
-    {
-        "id": "kothian",
-        "name": "科西安语",
-        "nameEn": "Kothian",
-        "type": "Rare",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "牛头人"
-        ],
-        "script": "科西安语"
-    },
-    {
-        "id": "kraul",
-        "name": "刻洛语",
-        "nameEn": "Kraul",
-        "type": "Standard",
-        "source": "GGR",
-        "typicalSpeakers": [
-            "刻洛语",
-            "{@creature 刻洛战士|GGR|刻洛战士}",
-            "{@creature 刻洛死亡僧侣|GGR|刻洛死亡僧侣}",
-            "{@creature 戴卡林巫妖|GGR|戴卡林巫妖}"
-        ],
-        "script": "刻洛语"
-    },
-    {
-        "id": "lantanese",
-        "name": "兰檀语",
-        "nameEn": "Lantanese",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "leonin",
-        "name": "狮族语",
-        "nameEn": "Leonin",
-        "type": "Rare",
-        "source": "MOT",
-        "typicalSpeakers": [
-            "狮族"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "loross",
-        "name": "洛罗斯语",
-        "nameEn": "Loross",
-        "type": "Rare",
-        "source": "IDRotF",
-        "typicalSpeakers": [],
-        "script": "龙语"
-    },
-    {
-        "id": "loxodon",
-        "name": "象族语",
-        "nameEn": "Loxodon",
-        "type": "Standard",
-        "source": "GGR",
-        "typicalSpeakers": [
-            "{@filter 象族人|bestiary|tag=任意种族|source=GGR}"
-        ],
-        "script": "精灵语"
-    },
-    {
-        "id": "marquesian",
-        "name": "马凯特语",
-        "nameEn": "Marquesian",
-        "type": "Rare",
-        "source": "EGW",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "merfolk",
-        "name": "人鱼语",
-        "nameEn": "Merfolk",
-        "type": "Standard",
-        "source": "GGR",
-        "typicalSpeakers": [
-            "{@filter 人鱼|bestiary|source=GGR|tag=任意种族;人鱼}"
-        ],
-        "script": "人鱼语"
-    },
-    {
-        "id": "midani",
-        "name": "米达尼语",
-        "nameEn": "Midani",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "贝戴族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "minotaur",
-        "name": "牛头人语",
-        "nameEn": "Minotaur",
-        "type": "Standard",
-        "source": "GGR",
-        "typicalSpeakers": [
-            "{@race 牛头人|GGR|牛头人}"
-        ],
-        "script": "牛头人语"
-    },
-    {
-        "id": "modron",
-        "name": "魔冢语",
-        "nameEn": "Modron",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 单元冢||单元冢}",
-            "{@creature 二元冢||二元冢}",
-            "{@creature 三元冢||三元冢}",
-            "{@creature 四元冢||四元冢}",
-            "{@creature 五元冢||五元冢}"
-        ]
-    },
-    {
-        "id": "mulhorandi",
-        "name": "穆尔霍兰德语",
-        "nameEn": "Mulhorandi",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "穆兰族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "naga",
-        "name": "纳迦语",
-        "nameEn": "Naga",
-        "type": "Rare",
-        "source": "PSA",
-        "typicalSpeakers": [
-            "{@race 纳迦|PSA}"
-        ]
-    },
-    {
-        "id": "naush",
-        "name": "纳乌什语",
-        "nameEn": "Naush",
-        "type": "Rare",
-        "source": "EGW",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "nerakese",
-        "name": "奈拉卡语",
-        "nameEn": "Nerakese",
-        "type": "Rare",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "奈拉卡"
-        ],
-        "script": "伊斯塔语"
-    },
-    {
-        "id": "netherese",
-        "name": "耐瑟瑞尔语",
-        "nameEn": "Netherese",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [],
-        "script": "龙语"
-    },
-    {
-        "id": "nordmaarian",
-        "name": "诺德马里安语",
-        "nameEn": "Nordmaarian",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "诺德玛"
-        ],
-        "script": "伊斯塔语"
-    },
-    {
-        "id": "ogre",
-        "name": "食人魔语",
-        "nameEn": "Ogre",
-        "type": "Rare",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "布洛德",
-            "克恩"
-        ],
-        "script": "食人魔语"
-    },
-    {
-        "id": "olman",
-        "name": "奥尔曼语",
-        "nameEn": "Olman",
-        "type": "Rare",
-        "source": "TftYP",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "quori",
-        "name": "梦灵语",
-        "nameEn": "Quori",
-        "type": "Rare",
-        "source": "ERLW",
-        "typicalSpeakers": [
-            "{@creature 梦启者|ERLW}",
-            "离梦人",
-            "{@filter 梦灵|bestiary|source=ERLW|search=梦灵}"
-        ],
-        "script": "梦灵语"
-    },
-    {
-        "id": "rashemi",
-        "name": "莱瑟曼语",
-        "nameEn": "Rashemi",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "莱瑟曼族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "reghedjic",
-        "name": "瑞格语",
-        "nameEn": "Reghedjic",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "riedran",
-        "name": "瑞依卓尔语",
-        "nameEn": "Riedran",
-        "type": "Standard",
-        "source": "ERLW",
-        "typicalSpeakers": [
-            "索隆娜的人民"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "roushoum",
-        "name": "鲁述姆语",
-        "nameEn": "Roushoum",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "伊玛斯卡族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "sahuagin",
-        "name": "鲨华语",
-        "nameEn": "Sahuagin",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 鲨华鱼人}",
-            "{@creature 鲨华女祭司||鲨华女祭司}",
-            "{@creature 鲨华男爵||鲨华男爵}"
-        ]
-    },
-    {
-        "id": "sespech",
-        "name": "塞斯佩奇语",
-        "nameEn": "Sespech",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": []
-    },
-    {
-        "id": "shaaran",
-        "name": "夏亚语",
-        "nameEn": "Shaaran",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "夏亚族群"
-        ],
-        "script": "迪泰克文"
-    },
-    {
-        "id": "shou",
-        "name": "受国语",
-        "nameEn": "Shou",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "受国族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "siren",
-        "name": "赛壬语",
-        "nameEn": "Siren",
-        "type": "Rare",
-        "source": "PSX",
-        "typicalSpeakers": [
-            "{@race 赛壬|PSX|塞壬}"
-        ]
-    },
-    {
-        "id": "slaad",
-        "name": "史拉蟾语",
-        "nameEn": "Slaad",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 史拉蟾蝌蚪||史拉蟾蝌蚪}",
-            "{@creature 史拉红蟾||史拉红蟾}",
-            "{@creature 史拉蓝蟾||史拉蓝蟾}",
-            "{@creature 史拉绿蟾||史拉绿蟾}",
-            "{@creature 史拉灰蟾||史拉灰蟾}",
-            "{@creature 史拉亡蟾||史拉亡蟾}"
-        ]
-    },
-    {
-        "id": "solamnic",
-        "name": "索兰尼亚语",
-        "nameEn": "Solamnic",
-        "type": "Standard",
-        "source": "DSotDQ",
-        "typicalSpeakers": [
-            "圣奎斯特",
-            "索兰尼亚"
-        ],
-        "script": "通用语"
-    },
-    {
-        "id": "sphinx",
-        "name": "斯芬克斯语",
-        "nameEn": "Sphinx",
-        "type": "Standard",
-        "source": "GGR",
-        "typicalSpeakers": [
-            "{@creature 审判斯芬克斯|GGR|斯芬克斯们}"
-        ],
-        "script": "none"
-    },
-    {
-        "id": "terran",
-        "name": "土族语",
-        "nameEn": "Terran",
-        "type": "Rare",
-        "source": "XPHB",
-        "typicalSpeakers": [
-            "土元素",
-            "石盲蛮族"
-        ],
-        "script": "矮人语"
-    },
-    {
-        "id": "thayan",
-        "name": "赛尔语",
-        "nameEn": "Thayan",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "穆兰族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "thri-kreen",
-        "name": "螳螂语",
-        "nameEn": "Thri-kreen",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 螳螂人}"
-        ]
-    },
-    {
-        "id": "tlincalli",
-        "name": "蝎人语",
-        "nameEn": "Tlincalli",
-        "type": "Rare",
-        "source": "VGM",
-        "typicalSpeakers": [
-            "{@creature 蝎人|VGM}"
-        ]
-    },
-    {
-        "id": "troglodyte",
-        "name": "穴蜥人语",
-        "nameEn": "Troglodyte",
-        "type": "Rare",
-        "source": "MM",
-        "typicalSpeakers": [
-            "{@creature 穴蜥人||穴蜥人}"
-        ]
-    },
-    {
-        "id": "tuigan",
-        "name": "图坎语",
-        "nameEn": "Tuigan",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "图坎族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "turmic",
-        "name": "图拉米语",
-        "nameEn": "Turmic",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "图拉米族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "uluik",
-        "name": "乌鲁逊语",
-        "nameEn": "Uluik",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "乌鲁逊族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "untheric",
-        "name": "恩瑟语",
-        "nameEn": "Untheric",
-        "type": "Standard",
-        "source": "FRHoF",
-        "typicalSpeakers": [
-            "穆兰族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "vedalken",
-        "name": "维多肯语",
-        "nameEn": "Vedalken",
-        "type": "Standard",
-        "source": "GGR",
-        "typicalSpeakers": [
-            "{@race 维多肯|GGR}"
-        ],
-        "script": "维多肯语"
-    },
-    {
-        "id": "waelan",
-        "name": "威兰语",
-        "nameEn": "Waelan",
-        "type": "Rare",
-        "source": "SCAG",
-        "typicalSpeakers": [
-            "弗尔克族群"
-        ],
-        "script": "索拉斯"
-    },
-    {
-        "id": "yikaria",
-        "name": "伊卡里亚语",
-        "nameEn": "Yikaria",
-        "type": "Rare",
-        "source": "SKT",
-        "typicalSpeakers": [
-            "{@creature 牦牛人祭司|SKT|牦牛人祭司}",
-            "{@creature 牦牛人武者|SKT|牦牛人武者}"
-        ]
-    },
-    {
-        "id": "zemnian",
-        "name": "泽姆尼亚语",
-        "nameEn": "Zemnian",
-        "type": "Rare",
-        "source": "EGW",
-        "typicalSpeakers": []
-    }
+  {
+    id: 'dankwood-goblin',
+    name: '阴林地精语',
+    nameEn: 'Dankwood Goblin',
+    type: 'Rare',
+    source: 'AWM',
+    typicalSpeakers: ['地精 (阴林)'],
+  },
+  {
+    id: 'aarakocra',
+    name: '鸟羽人语',
+    nameEn: 'Aarakocra',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: ['{@creature 鸟羽人}'],
+  },
+  {
+    id: 'abanasinian',
+    name: '阿班尼西亚语',
+    nameEn: 'Abanasinian',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['阿班尼西亚'],
+    script: '通用语',
+  },
+  {
+    id: 'aglarondan',
+    name: '阿戈拉隆语',
+    nameEn: 'Aglarondan',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'alzhedo',
+    name: '阿兹多语',
+    nameEn: 'Alzhedo',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['卡林珊族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'aquan',
+    name: '水族语',
+    nameEn: 'Aquan',
+    type: 'Rare',
+    source: 'XPHB',
+    typicalSpeakers: ['水元素', '人鱼'],
+    script: '矮人语',
+  },
+  {
+    id: 'auran',
+    name: '气族语',
+    nameEn: 'Auran',
+    type: 'Rare',
+    source: 'XPHB',
+    typicalSpeakers: ['气元素', '鸟羽人'],
+    script: '矮人语',
+  },
+  {
+    id: 'aven',
+    name: '艾文语',
+    nameEn: 'Aven',
+    type: 'Rare',
+    source: 'PSD',
+    typicalSpeakers: ['{@race 艾文|PSD}'],
+  },
+  {
+    id: 'bothii',
+    name: '博锡语',
+    nameEn: 'Bothii',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: [
+      '{@creature 乌斯伽野蛮人领袖|SKT|乌斯伽野蛮人}',
+      '{@creature 乌斯伽萨满|SKT|乌斯伽萨满}',
+    ],
+  },
+  {
+    id: 'bullywug',
+    name: '啵灵蛙语',
+    nameEn: 'Bullywug',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: ['{@creature 啵灵蛙||啵灵蛙}'],
+  },
+  {
+    id: 'chessentan',
+    name: '阙森坦语',
+    nameEn: 'Chessentan',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['穆兰族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'chondathan',
+    name: '琼达斯语',
+    nameEn: 'Chondathan',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['琼达斯族群', '泰瑟尔族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'coalition-pidgin',
+    name: '联盟皮钦语',
+    nameEn: 'Coalition Pidgin',
+    type: 'Rare',
+    source: 'PSX',
+    typicalSpeakers: [
+      '莽霸联盟',
+      '{@race 人类 (依夏兰)|PSX|人类}',
+      '{@race 兽人 (依夏兰)|PSX|兽人}',
+      '{@race 赛壬|PSX|塞壬}',
+      '{@race 地精 (依夏兰)|PSX|地精}',
+    ],
+  },
+  {
+    id: 'common-trade-pidgin',
+    name: '通用贸易皮钦语',
+    nameEn: 'Common Trade Pidgin',
+    type: 'Rare',
+    source: 'PSX',
+    typicalSpeakers: [
+      '烈阳帝国',
+      '川流使',
+      '暮影军团',
+      '莽霸联盟',
+      '{@race 人类 (依夏兰)|PSX|人类}',
+      '{@race 兽人 (依夏兰)|PSX|兽人}',
+      '{@race 赛壬|PSX|塞壬}',
+      '{@race 地精 (依夏兰)|PSX|地精}',
+    ],
+  },
+  {
+    id: 'daelkyr',
+    name: '异变魔语',
+    nameEn: 'Daelkyr',
+    type: 'Rare',
+    source: 'ERLW',
+    typicalSpeakers: ['{@filter 异怪|bestiary|type=aberration|source=ERLW}', '凯博尔的居民'],
+    script: '异变魔语',
+  },
+  {
+    id: 'damaran',
+    name: '达马拉语',
+    nameEn: 'Damaran',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['达马拉族群', '纳尔族群'],
+    script: '迪泰克文',
+  },
+  {
+    id: 'dambrathan',
+    name: '丹布拉森语',
+    nameEn: 'Dambrathan',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['阿凯恩族群'],
+    script: '埃斯普拉文',
+  },
+  {
+    id: 'demonic',
+    name: '恶魔语',
+    nameEn: 'Demonic',
+    type: 'Rare',
+    source: 'PSI',
+    typicalSpeakers: [
+      '{@filter 恶魔|bestiary|source=|tag=恶魔}',
+      '{@filter 魔鬼|bestiary|source=|tag=魔鬼}',
+    ],
+  },
+  {
+    id: 'ergot',
+    name: '亚苟斯语',
+    nameEn: 'Ergot',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['北亚苟斯'],
+    script: '通用语',
+  },
+  {
+    id: 'gith',
+    name: '吉斯语',
+    nameEn: 'Gith',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: [
+      '{@creature 吉斯泽莱武僧||吉斯泽莱武僧}',
+      '{@creature 吉斯洋基武者||吉斯洋基武者}',
+      '{@creature 吉斯泽莱泽锡修士||吉斯泽莱泽锡修士}',
+      '{@creature 吉斯洋基骑士||吉斯洋基骑士}',
+    ],
+    script: '提尔苏',
+  },
+  {
+    id: 'gnoll',
+    name: '鬣狗语',
+    nameEn: 'Gnoll',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: [
+      '{@creature 鬣狗人||鬣狗人们}',
+      '{@creature 鬣狗人头领||鬣狗人头领}',
+      '{@creature 鬣狗人·耶诺古毒牙||鬣狗人·耶诺古毒牙}',
+    ],
+  },
+  {
+    id: 'grung',
+    name: '格龙蛙人语',
+    nameEn: 'Grung',
+    type: 'Rare',
+    source: 'VGM',
+    typicalSpeakers: [
+      '{@creature 格龙蛙人|VGM|格龙蛙人们}',
+      '{@creature 格龙蛙人蛮荒祭司|VGM|格龙蛙人蛮荒祭司}',
+      '{@creature 格龙蛙人精英战士|VGM|格龙蛙人精英战士}',
+    ],
+  },
+  {
+    id: 'guran',
+    name: '古兰语',
+    nameEn: 'Guran',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['古尔族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'halruaan',
+    name: '哈鲁阿语',
+    nameEn: 'Halruaan',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['哈鲁阿族群'],
+    script: '龙语',
+  },
+  {
+    id: 'homarid',
+    name: '荷马利语',
+    nameEn: 'Homarid',
+    type: 'Rare',
+    source: 'PSD',
+    typicalSpeakers: ['{@creature 荷马利|PSD|荷马利}'],
+  },
+  {
+    id: 'ignan',
+    name: '火族语',
+    nameEn: 'Ignan',
+    type: 'Rare',
+    source: 'XPHB',
+    typicalSpeakers: ['火元素', '火蜥蜴'],
+    script: '矮人语',
+  },
+  {
+    id: 'illuskan',
+    name: '伊路斯坎语',
+    nameEn: 'Illuskan',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['伊路斯坎族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'istarian',
+    name: '伊斯塔语',
+    nameEn: 'Istarian',
+    type: 'Rare',
+    source: 'DSotDQ',
+    typicalSpeakers: ['古伊斯塔人'],
+    script: '伊斯塔语',
+  },
+  {
+    id: 'itzocan',
+    name: '阿佐坎语',
+    nameEn: 'Itzocan',
+    type: 'Rare',
+    source: 'PSX',
+    typicalSpeakers: ['烈阳帝国', '{@race 人类 (依夏兰)|PSX|人类}'],
+  },
+  {
+    id: 'ixitxachitl',
+    name: '伊希鳐鱼语',
+    nameEn: 'Ixitxachitl',
+    type: 'Rare',
+    source: 'OotA',
+    typicalSpeakers: [
+      '{@creature 伊希鳐鱼|OotA}',
+      '{@creature 伊希鳐鱼牧师|OotA|伊希鳐鱼牧师}',
+      '{@creature 伊希鳐鱼吸血鬼|OotA}',
+      '{@creature 伊希鳐鱼吸血鬼牧师|OotA|伊希鳐鱼吸血鬼牧师}',
+    ],
+  },
+  {
+    id: 'keldon',
+    name: '凯尔顿语',
+    nameEn: 'Keldon',
+    type: 'Rare',
+    source: 'PSD',
+    typicalSpeakers: ['{@race 人类 (凯尔顿)|PSD|凯尔顿人}'],
+  },
+  {
+    id: 'kenderspeak',
+    name: '坎德人语',
+    nameEn: 'Kenderspeak',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['古德兰', '海洛'],
+    script: '通用语',
+  },
+  {
+    id: 'kharolian',
+    name: '卡若理语',
+    nameEn: 'Kharolian',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['尘埃平原', '塔西斯'],
+    script: '通用语',
+  },
+  {
+    id: 'khenra',
+    name: '胡狼人语',
+    nameEn: 'Khenra',
+    type: 'Rare',
+    source: 'PSA',
+    typicalSpeakers: ['{@race 胡狼人|PSA}'],
+  },
+  {
+    id: 'khur',
+    name: '克尔语',
+    nameEn: 'Khur',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['克尔语'],
+    script: '伊斯塔语',
+  },
+  {
+    id: 'kothian',
+    name: '科西安语',
+    nameEn: 'Kothian',
+    type: 'Rare',
+    source: 'DSotDQ',
+    typicalSpeakers: ['牛头人'],
+    script: '科西安语',
+  },
+  {
+    id: 'kraul',
+    name: '刻洛语',
+    nameEn: 'Kraul',
+    type: 'Standard',
+    source: 'GGR',
+    typicalSpeakers: [
+      '刻洛语',
+      '{@creature 刻洛战士|GGR|刻洛战士}',
+      '{@creature 刻洛死亡僧侣|GGR|刻洛死亡僧侣}',
+      '{@creature 戴卡林巫妖|GGR|戴卡林巫妖}',
+    ],
+    script: '刻洛语',
+  },
+  {
+    id: 'lantanese',
+    name: '兰檀语',
+    nameEn: 'Lantanese',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'leonin',
+    name: '狮族语',
+    nameEn: 'Leonin',
+    type: 'Rare',
+    source: 'MOT',
+    typicalSpeakers: ['狮族'],
+    script: '通用语',
+  },
+  {
+    id: 'loross',
+    name: '洛罗斯语',
+    nameEn: 'Loross',
+    type: 'Rare',
+    source: 'IDRotF',
+    typicalSpeakers: [],
+    script: '龙语',
+  },
+  {
+    id: 'loxodon',
+    name: '象族语',
+    nameEn: 'Loxodon',
+    type: 'Standard',
+    source: 'GGR',
+    typicalSpeakers: ['{@filter 象族人|bestiary|tag=任意种族|source=GGR}'],
+    script: '精灵语',
+  },
+  {
+    id: 'marquesian',
+    name: '马凯特语',
+    nameEn: 'Marquesian',
+    type: 'Rare',
+    source: 'EGW',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'merfolk',
+    name: '人鱼语',
+    nameEn: 'Merfolk',
+    type: 'Standard',
+    source: 'GGR',
+    typicalSpeakers: ['{@filter 人鱼|bestiary|source=GGR|tag=任意种族;人鱼}'],
+    script: '人鱼语',
+  },
+  {
+    id: 'midani',
+    name: '米达尼语',
+    nameEn: 'Midani',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['贝戴族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'minotaur',
+    name: '牛头人语',
+    nameEn: 'Minotaur',
+    type: 'Standard',
+    source: 'GGR',
+    typicalSpeakers: ['{@race 牛头人|GGR|牛头人}'],
+    script: '牛头人语',
+  },
+  {
+    id: 'modron',
+    name: '魔冢语',
+    nameEn: 'Modron',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: [
+      '{@creature 单元冢||单元冢}',
+      '{@creature 二元冢||二元冢}',
+      '{@creature 三元冢||三元冢}',
+      '{@creature 四元冢||四元冢}',
+      '{@creature 五元冢||五元冢}',
+    ],
+  },
+  {
+    id: 'mulhorandi',
+    name: '穆尔霍兰德语',
+    nameEn: 'Mulhorandi',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['穆兰族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'naga',
+    name: '纳迦语',
+    nameEn: 'Naga',
+    type: 'Rare',
+    source: 'PSA',
+    typicalSpeakers: ['{@race 纳迦|PSA}'],
+  },
+  {
+    id: 'naush',
+    name: '纳乌什语',
+    nameEn: 'Naush',
+    type: 'Rare',
+    source: 'EGW',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'nerakese',
+    name: '奈拉卡语',
+    nameEn: 'Nerakese',
+    type: 'Rare',
+    source: 'DSotDQ',
+    typicalSpeakers: ['奈拉卡'],
+    script: '伊斯塔语',
+  },
+  {
+    id: 'netherese',
+    name: '耐瑟瑞尔语',
+    nameEn: 'Netherese',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: [],
+    script: '龙语',
+  },
+  {
+    id: 'nordmaarian',
+    name: '诺德马里安语',
+    nameEn: 'Nordmaarian',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['诺德玛'],
+    script: '伊斯塔语',
+  },
+  {
+    id: 'ogre',
+    name: '食人魔语',
+    nameEn: 'Ogre',
+    type: 'Rare',
+    source: 'DSotDQ',
+    typicalSpeakers: ['布洛德', '克恩'],
+    script: '食人魔语',
+  },
+  {
+    id: 'olman',
+    name: '奥尔曼语',
+    nameEn: 'Olman',
+    type: 'Rare',
+    source: 'TftYP',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'quori',
+    name: '梦灵语',
+    nameEn: 'Quori',
+    type: 'Rare',
+    source: 'ERLW',
+    typicalSpeakers: [
+      '{@creature 梦启者|ERLW}',
+      '离梦人',
+      '{@filter 梦灵|bestiary|source=ERLW|search=梦灵}',
+    ],
+    script: '梦灵语',
+  },
+  {
+    id: 'rashemi',
+    name: '莱瑟曼语',
+    nameEn: 'Rashemi',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['莱瑟曼族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'reghedjic',
+    name: '瑞格语',
+    nameEn: 'Reghedjic',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'riedran',
+    name: '瑞依卓尔语',
+    nameEn: 'Riedran',
+    type: 'Standard',
+    source: 'ERLW',
+    typicalSpeakers: ['索隆娜的人民'],
+    script: '通用语',
+  },
+  {
+    id: 'roushoum',
+    name: '鲁述姆语',
+    nameEn: 'Roushoum',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['伊玛斯卡族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'sahuagin',
+    name: '鲨华语',
+    nameEn: 'Sahuagin',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: [
+      '{@creature 鲨华鱼人}',
+      '{@creature 鲨华女祭司||鲨华女祭司}',
+      '{@creature 鲨华男爵||鲨华男爵}',
+    ],
+  },
+  {
+    id: 'sespech',
+    name: '塞斯佩奇语',
+    nameEn: 'Sespech',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: [],
+  },
+  {
+    id: 'shaaran',
+    name: '夏亚语',
+    nameEn: 'Shaaran',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['夏亚族群'],
+    script: '迪泰克文',
+  },
+  {
+    id: 'shou',
+    name: '受国语',
+    nameEn: 'Shou',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['受国族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'siren',
+    name: '赛壬语',
+    nameEn: 'Siren',
+    type: 'Rare',
+    source: 'PSX',
+    typicalSpeakers: ['{@race 赛壬|PSX|塞壬}'],
+  },
+  {
+    id: 'slaad',
+    name: '史拉蟾语',
+    nameEn: 'Slaad',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: [
+      '{@creature 史拉蟾蝌蚪||史拉蟾蝌蚪}',
+      '{@creature 史拉红蟾||史拉红蟾}',
+      '{@creature 史拉蓝蟾||史拉蓝蟾}',
+      '{@creature 史拉绿蟾||史拉绿蟾}',
+      '{@creature 史拉灰蟾||史拉灰蟾}',
+      '{@creature 史拉亡蟾||史拉亡蟾}',
+    ],
+  },
+  {
+    id: 'solamnic',
+    name: '索兰尼亚语',
+    nameEn: 'Solamnic',
+    type: 'Standard',
+    source: 'DSotDQ',
+    typicalSpeakers: ['圣奎斯特', '索兰尼亚'],
+    script: '通用语',
+  },
+  {
+    id: 'sphinx',
+    name: '斯芬克斯语',
+    nameEn: 'Sphinx',
+    type: 'Standard',
+    source: 'GGR',
+    typicalSpeakers: ['{@creature 审判斯芬克斯|GGR|斯芬克斯们}'],
+    script: 'none',
+  },
+  {
+    id: 'terran',
+    name: '土族语',
+    nameEn: 'Terran',
+    type: 'Rare',
+    source: 'XPHB',
+    typicalSpeakers: ['土元素', '石盲蛮族'],
+    script: '矮人语',
+  },
+  {
+    id: 'thayan',
+    name: '赛尔语',
+    nameEn: 'Thayan',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['穆兰族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'thri-kreen',
+    name: '螳螂语',
+    nameEn: 'Thri-kreen',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: ['{@creature 螳螂人}'],
+  },
+  {
+    id: 'tlincalli',
+    name: '蝎人语',
+    nameEn: 'Tlincalli',
+    type: 'Rare',
+    source: 'VGM',
+    typicalSpeakers: ['{@creature 蝎人|VGM}'],
+  },
+  {
+    id: 'troglodyte',
+    name: '穴蜥人语',
+    nameEn: 'Troglodyte',
+    type: 'Rare',
+    source: 'MM',
+    typicalSpeakers: ['{@creature 穴蜥人||穴蜥人}'],
+  },
+  {
+    id: 'tuigan',
+    name: '图坎语',
+    nameEn: 'Tuigan',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['图坎族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'turmic',
+    name: '图拉米语',
+    nameEn: 'Turmic',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['图拉米族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'uluik',
+    name: '乌鲁逊语',
+    nameEn: 'Uluik',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['乌鲁逊族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'untheric',
+    name: '恩瑟语',
+    nameEn: 'Untheric',
+    type: 'Standard',
+    source: 'FRHoF',
+    typicalSpeakers: ['穆兰族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'vedalken',
+    name: '维多肯语',
+    nameEn: 'Vedalken',
+    type: 'Standard',
+    source: 'GGR',
+    typicalSpeakers: ['{@race 维多肯|GGR}'],
+    script: '维多肯语',
+  },
+  {
+    id: 'waelan',
+    name: '威兰语',
+    nameEn: 'Waelan',
+    type: 'Rare',
+    source: 'SCAG',
+    typicalSpeakers: ['弗尔克族群'],
+    script: '索拉斯',
+  },
+  {
+    id: 'yikaria',
+    name: '伊卡里亚语',
+    nameEn: 'Yikaria',
+    type: 'Rare',
+    source: 'SKT',
+    typicalSpeakers: [
+      '{@creature 牦牛人祭司|SKT|牦牛人祭司}',
+      '{@creature 牦牛人武者|SKT|牦牛人武者}',
+    ],
+  },
+  {
+    id: 'zemnian',
+    name: '泽姆尼亚语',
+    nameEn: 'Zemnian',
+    type: 'Rare',
+    source: 'EGW',
+    typicalSpeakers: [],
+  },
 ];

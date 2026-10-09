@@ -1,11 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import {
-  readCache,
-  writeCache,
-  clearCache,
-  isCacheValid,
-  CACHE_TTL_MS,
-} from '../catalogCache';
+import { readCache, writeCache, clearCache, isCacheValid, CACHE_TTL_MS } from '../catalogCache';
 import { CatalogLoaderService } from '../catalogLoader';
 import { InMemoryCatalogService } from '@/catalog/catalog';
 
@@ -58,7 +52,6 @@ describe('Phase A-1: catalogCache (IndexedDB & Memory Fallback)', () => {
 });
 
 describe('Phase A-2: catalogLoader (数据加载服务与状态机)', () => {
-
   it('init 能驱动生命周期流转 (idle -> loading -> ready -> complete)', async () => {
     const testCatalog = new InMemoryCatalogService();
     const mockLoader: any = {
@@ -127,4 +120,3 @@ describe('Phase A-2: catalogLoader (数据加载服务与状态机)', () => {
     expect(service.getStats().sources.fiveetoolsCn.failedFiles).toBeGreaterThan(0);
   });
 });
-

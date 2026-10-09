@@ -36,7 +36,7 @@ export interface ContentReferenceSnapshot {
 export interface InventoryContainer {
   id: string;
   name: string;
-  itemId?: string;      // Used to pull base stats from the library (e.g. Mule, Wagon)
+  itemId?: string; // Used to pull base stats from the library (e.g. Mule, Wagon)
   customCapacity?: number; // Override capacity in lbs
   type: 'mount' | 'vehicle' | 'container' | 'other';
 }
@@ -46,7 +46,18 @@ export interface InventoryEntry {
   name: string;
   quantity?: number;
   source?: string;
-  category?: 'weapon' | 'armor' | 'shield' | 'gear' | 'package' | 'currency' | 'spell' | 'feature' | 'other' | 'tool' | 'vehicle';
+  category?:
+    | 'weapon'
+    | 'armor'
+    | 'shield'
+    | 'gear'
+    | 'package'
+    | 'currency'
+    | 'spell'
+    | 'feature'
+    | 'other'
+    | 'tool'
+    | 'vehicle';
   itemId?: string;
   equipped?: boolean;
   notes?: string;
@@ -64,15 +75,15 @@ export interface DeathSaveTrack {
 export interface FeatChoices {
   featId: string;
   ability?: keyof AbilityScores; // 专长带来的属性提升选择 (如 +1 力量)
-  asi?: Partial<AbilityScores>;  // 复杂属性提升 (如 ASI 专长的 +2 或 +1+1)
-  skills?: string[];             // 专长带来的技能熟练选择
-  tools?: string[];              // 专长带来的工具熟练选择
-  expertise?: string[];          // 专长带来的专精选择
-  languages?: string[];          // 专长带来的语言选择
-  spellList?: string;            // 专长带来的法术列表选择 (如：牧师、德鲁伊、法师)
-  spells?: string[];             // 专长带来的法术选择 (戏法或 1 环法术)
-  weaponMasteries?: string[];    // 专长带来的武器精通选择
-  other?: any;                   // 其他特定专长的自定义选择
+  asi?: Partial<AbilityScores>; // 复杂属性提升 (如 ASI 专长的 +2 或 +1+1)
+  skills?: string[]; // 专长带来的技能熟练选择
+  tools?: string[]; // 专长带来的工具熟练选择
+  expertise?: string[]; // 专长带来的专精选择
+  languages?: string[]; // 专长带来的语言选择
+  spellList?: string; // 专长带来的法术列表选择 (如：牧师、德鲁伊、法师)
+  spells?: string[]; // 专长带来的法术选择 (戏法或 1 环法术)
+  weaponMasteries?: string[]; // 专长带来的武器精通选择
+  other?: any; // 其他特定专长的自定义选择
 }
 
 export interface ClassSpellSelection {
@@ -81,7 +92,7 @@ export interface ClassSpellSelection {
   extra?: Record<string, string[]>; // 新增：choiceId -> [chosen spellIds]
   replaced?: string; // 兼容旧版：被替换的法术ID
   replacedCantrip?: string; // 2024规则：被替换的旧戏法ID
-  replacedSpell?: string;   // 2024规则：被替换的旧法术(1阶+)ID
+  replacedSpell?: string; // 2024规则：被替换的旧法术(1阶+)ID
 }
 
 export interface CustomMarker {
@@ -156,9 +167,9 @@ export interface CharacterState {
   attunedItemIds: string[]; // 新增：已同调的魔法物品 ID 列表
   currency: Currency;
   higherLevelGoldRolled?: boolean; // 新增：是否已掷高等级起始金币
-  higherLevelGoldAmount?: number;  // 新增：掷出的额外金币金额 (GP)
+  higherLevelGoldAmount?: number; // 新增：掷出的额外金币金额 (GP)
   higherLevelGoldApplied?: boolean; // 新增：是否已领取到钱包
-  selectedClassPackage?: string;   // 选择的具体职业套组方案
+  selectedClassPackage?: string; // 选择的具体职业套组方案
   startingEquipmentSynced?: boolean; // 是否已自动同步/初始化起始装备
 
   // Inventory & Encumbrance System

@@ -144,30 +144,30 @@ const BASE_TOOL_NAMES_ZH: Record<string, string> = {
   'chess set': '国际象棋组',
   'bowling set': '九柱球组',
   // 乐器
-  'bagpipes': '风笛',
-  'drum': '鼓',
-  'dulcimer': '扬琴',
-  'flute': '长笛',
-  'lute': '鲁特琴',
-  'lyre': '里拉琴',
-  'horn': '号角',
+  bagpipes: '风笛',
+  drum: '鼓',
+  dulcimer: '扬琴',
+  flute: '长笛',
+  lute: '鲁特琴',
+  lyre: '里拉琴',
+  horn: '号角',
   'pan flute': '排箫',
-  'shawm': '芦笛',
-  'viol': '提琴',
-  'birdpipes': '鸟箫',
-  'glaur': '格劳尔号',
+  shawm: '芦笛',
+  viol: '提琴',
+  birdpipes: '鸟箫',
+  glaur: '格劳尔号',
   'hand drum': '手鼓',
-  'longhorn': '长号角',
-  'songhorn': '歌唱号角',
-  'tantan': '镗镗',
-  'thelarr': '斯拉尔管',
-  'tocken': '托肯',
-  'wargong': '战锣',
-  'yarting': '雅廷琴',
-  'zulkoon': '咒昆琴',
-  'bandore': '班多里琴',
-  'cittern': '西特琴',
-  'violoncello': '大提琴',
+  longhorn: '长号角',
+  songhorn: '歌唱号角',
+  tantan: '镗镗',
+  thelarr: '斯拉尔管',
+  tocken: '托肯',
+  wargong: '战锣',
+  yarting: '雅廷琴',
+  zulkoon: '咒昆琴',
+  bandore: '班多里琴',
+  cittern: '西特琴',
+  violoncello: '大提琴',
   // 其他工具
   'disguise kit': '易容工具',
   'forgery kit': '文书伪造工具',
@@ -183,7 +183,12 @@ const BASE_TOOL_NAMES_ZH: Record<string, string> = {
 };
 
 function normalizeKey(str: string): string {
-  return String(str || '').toLowerCase().trim().replace(/['’]s/g, '').replace(/s['’]/g, 's').replace(/[^a-z0-9]/g, '');
+  return String(str || '')
+    .toLowerCase()
+    .trim()
+    .replace(/['’]s/g, '')
+    .replace(/s['’]/g, 's')
+    .replace(/[^a-z0-9]/g, '');
 }
 
 /**
@@ -243,7 +248,9 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
     if (!raw) continue;
     if (isMagicToolItem(raw, entry)) continue;
 
-    const rawType = String(raw.type || '').split('|')[0].toUpperCase();
+    const rawType = String(raw.type || '')
+      .split('|')[0]
+      .toUpperCase();
     let category: ToolCategory | undefined;
     if (rawType === 'AT') category = 'Artisan';
     else if (rawType === 'GS') category = 'Gaming';
@@ -278,7 +285,7 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
     for (const id of list) {
       const normKey = id.toLowerCase().trim();
       const dedupKey = `${normKey}:::PHB`;
-      if (!dedupSet.has(dedupKey) && !candidates.some(c => c.normKey === normKey)) {
+      if (!dedupSet.has(dedupKey) && !candidates.some((c) => c.normKey === normKey)) {
         dedupSet.add(dedupKey);
         candidates.push({
           normKey,
@@ -307,14 +314,16 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
   }
 
   // 4. 构建最终条目并区分多来源
-  const result: CatalogToolEntry[] = candidates.map(item => {
+  const result: CatalogToolEntry[] = candidates.map((item) => {
     const multiSources = keySourcesMap.get(item.normKey)!.size > 1;
     const sourceDisplay = getSourceDisplayName(item.source);
     const id = multiSources ? `${item.normKey}|${item.source.toLowerCase()}` : item.normKey;
     const name = multiSources ? `${item.name} [${sourceDisplay}]` : item.name;
 
     const cleanEntryId = item.entryId
-      ? (item.entryId.includes(':') ? item.entryId.split(':').pop()!.toLowerCase().trim() : item.entryId.toLowerCase().trim())
+      ? item.entryId.includes(':')
+        ? item.entryId.split(':').pop()!.toLowerCase().trim()
+        : item.entryId.toLowerCase().trim()
       : undefined;
 
     return {
@@ -324,7 +333,9 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
       category: item.category,
       source: item.source,
       isHomebrew: item.isHomebrew,
-      ...(cleanEntryId && cleanEntryId !== id && !cleanEntryId.includes('%') ? { aliasId: cleanEntryId } : {})
+      ...(cleanEntryId && cleanEntryId !== id && !cleanEntryId.includes('%')
+        ? { aliasId: cleanEntryId }
+        : {}),
     } as CatalogToolEntry;
   });
 
@@ -351,7 +362,7 @@ export function getCatalogToolEntries(): CatalogToolEntry[] {
  */
 export function getCatalogTools(category?: ToolCategory): string[] {
   const entries = getCatalogToolEntries();
-  const filtered = category ? entries.filter(e => e.category === category) : entries;
+  const filtered = category ? entries.filter((e) => e.category === category) : entries;
   const ids = new Set<string>();
   for (const e of filtered) {
     ids.add(e.id);
@@ -386,16 +397,18 @@ export function getToolCategory(term: string): ToolCategory | 'Unknown' {
 
   // 2. 常见语义别名快速判定
   if (norm.includes('artisan') || norm.includes('工匠')) return 'Artisan';
-  if (norm.includes('gaming') || norm.includes('赌具') || norm.includes('游戏套件')) return 'Gaming';
-  if (norm.includes('musical') || norm.includes('instrument') || norm.includes('乐器')) return 'Musical';
+  if (norm.includes('gaming') || norm.includes('赌具') || norm.includes('游戏套件'))
+    return 'Gaming';
+  if (norm.includes('musical') || norm.includes('instrument') || norm.includes('乐器'))
+    return 'Musical';
   if (norm.includes('vehicle') || norm.includes('载具')) return 'Vehicle';
 
   // 3. 静态回退比对
-  if (STANDARD_ARTISAN_TOOLS.some(t => normalizeKey(t) === norm)) return 'Artisan';
-  if (STANDARD_GAMING_SETS.some(t => normalizeKey(t) === norm)) return 'Gaming';
-  if (STANDARD_MUSICAL_INSTRUMENTS.some(t => normalizeKey(t) === norm)) return 'Musical';
-  if (STANDARD_OTHER_TOOLS.some(t => normalizeKey(t) === norm)) return 'Other';
-  if (STANDARD_VEHICLES.some(t => normalizeKey(t) === norm)) return 'Vehicle';
+  if (STANDARD_ARTISAN_TOOLS.some((t) => normalizeKey(t) === norm)) return 'Artisan';
+  if (STANDARD_GAMING_SETS.some((t) => normalizeKey(t) === norm)) return 'Gaming';
+  if (STANDARD_MUSICAL_INSTRUMENTS.some((t) => normalizeKey(t) === norm)) return 'Musical';
+  if (STANDARD_OTHER_TOOLS.some((t) => normalizeKey(t) === norm)) return 'Other';
+  if (STANDARD_VEHICLES.some((t) => normalizeKey(t) === norm)) return 'Vehicle';
 
   return 'Unknown';
 }
@@ -408,18 +421,20 @@ export function getToolDisplayName(term: string): string {
   const entries = getCatalogToolEntries();
 
   // 1. 精确匹配 entry.id (例如 "drum|xphb" 或 "birdpipes")
-  const exact = entries.find(e => e.id.toLowerCase() === term.toLowerCase());
+  const exact = entries.find((e) => e.id.toLowerCase() === term.toLowerCase());
   if (exact && exact.name) return exact.name;
 
   // 2. 如果包含来源区分符 (例如 "drum|xphb") 但未命中已存条目
   if (term.includes('|')) {
     const [baseKey, source] = term.split('|');
     const sourceDisplay = getSourceDisplayName(source.toUpperCase());
-    const matchedBase = entries.find(e => 
-      e.id.split('|')[0].toLowerCase() === baseKey.toLowerCase() ||
-      normalizeKey(e.nameEn) === normalizeKey(baseKey)
+    const matchedBase = entries.find(
+      (e) =>
+        e.id.split('|')[0].toLowerCase() === baseKey.toLowerCase() ||
+        normalizeKey(e.nameEn) === normalizeKey(baseKey),
     );
-    const pureName = matchedBase?.name?.replace(/\s*\[.*?\]$/, '') || BASE_TOOL_NAMES_ZH[baseKey] || baseKey;
+    const pureName =
+      matchedBase?.name?.replace(/\s*\[.*?\]$/, '') || BASE_TOOL_NAMES_ZH[baseKey] || baseKey;
     return `${pureName} [${sourceDisplay}]`;
   }
 
@@ -430,10 +445,11 @@ export function getToolDisplayName(term: string): string {
   if (BASE_TOOL_NAMES_ZH[term.toLowerCase()]) return BASE_TOOL_NAMES_ZH[term.toLowerCase()];
 
   // 4. 检查 Catalog 条目
-  const matched = entries.find(e => 
-    normalizeKey(e.id) === norm || 
-    normalizeKey(e.nameEn) === norm || 
-    normalizeKey(e.name.replace(/\s*\[.*?\]$/, '')) === norm
+  const matched = entries.find(
+    (e) =>
+      normalizeKey(e.id) === norm ||
+      normalizeKey(e.nameEn) === norm ||
+      normalizeKey(e.name.replace(/\s*\[.*?\]$/, '')) === norm,
   );
   if (matched && matched.name) {
     // 若查询的是基础名，返回其纯净基础中文名（去除括号后缀）

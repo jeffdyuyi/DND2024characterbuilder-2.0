@@ -12,18 +12,36 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { transform: scale(0.97); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes slideInRight {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 .sheetContainer {
@@ -36,18 +54,54 @@
 }
 
 /* Class Themes - Fantasy Overlays */
-.sheetContainer[data-class="barbarian"] { --color-primary: #e7623e; --shadow-primary: rgba(231, 98, 62, 0.3); }
-.sheetContainer[data-class="bard"] { --color-primary: #c084fc; --shadow-primary: rgba(192, 132, 252, 0.3); }
-.sheetContainer[data-class="cleric"] { --color-primary: #eab308; --shadow-primary: rgba(234, 179, 8, 0.3); }
-.sheetContainer[data-class="druid"] { --color-primary: #84cc16; --shadow-primary: rgba(132, 204, 22, 0.3); }
-.sheetContainer[data-class="fighter"] { --color-primary: #a855f7; --shadow-primary: rgba(168, 85, 247, 0.3); }
-.sheetContainer[data-class="monk"] { --color-primary: #06b6d4; --shadow-primary: rgba(6, 182, 212, 0.3); }
-.sheetContainer[data-class="paladin"] { --color-primary: #f59e0b; --shadow-primary: rgba(245, 158, 11, 0.3); }
-.sheetContainer[data-class="ranger"] { --color-primary: #10b981; --shadow-primary: rgba(16, 185, 129, 0.3); }
-.sheetContainer[data-class="rogue"] { --color-primary: #64748b; --shadow-primary: rgba(100, 116, 139, 0.3); }
-.sheetContainer[data-class="sorcerer"] { --color-primary: #ef4444; --shadow-primary: rgba(239, 68, 68, 0.3); }
-.sheetContainer[data-class="warlock"] { --color-primary: #a855f7; --shadow-primary: rgba(168, 85, 247, 0.3); }
-.sheetContainer[data-class="wizard"] { --color-primary: #3b82f6; --shadow-primary: rgba(59, 130, 246, 0.3); }
+.sheetContainer[data-class='barbarian'] {
+  --color-primary: #e7623e;
+  --shadow-primary: rgba(231, 98, 62, 0.3);
+}
+.sheetContainer[data-class='bard'] {
+  --color-primary: #c084fc;
+  --shadow-primary: rgba(192, 132, 252, 0.3);
+}
+.sheetContainer[data-class='cleric'] {
+  --color-primary: #eab308;
+  --shadow-primary: rgba(234, 179, 8, 0.3);
+}
+.sheetContainer[data-class='druid'] {
+  --color-primary: #84cc16;
+  --shadow-primary: rgba(132, 204, 22, 0.3);
+}
+.sheetContainer[data-class='fighter'] {
+  --color-primary: #a855f7;
+  --shadow-primary: rgba(168, 85, 247, 0.3);
+}
+.sheetContainer[data-class='monk'] {
+  --color-primary: #06b6d4;
+  --shadow-primary: rgba(6, 182, 212, 0.3);
+}
+.sheetContainer[data-class='paladin'] {
+  --color-primary: #f59e0b;
+  --shadow-primary: rgba(245, 158, 11, 0.3);
+}
+.sheetContainer[data-class='ranger'] {
+  --color-primary: #10b981;
+  --shadow-primary: rgba(16, 185, 129, 0.3);
+}
+.sheetContainer[data-class='rogue'] {
+  --color-primary: #64748b;
+  --shadow-primary: rgba(100, 116, 139, 0.3);
+}
+.sheetContainer[data-class='sorcerer'] {
+  --color-primary: #ef4444;
+  --shadow-primary: rgba(239, 68, 68, 0.3);
+}
+.sheetContainer[data-class='warlock'] {
+  --color-primary: #a855f7;
+  --shadow-primary: rgba(168, 85, 247, 0.3);
+}
+.sheetContainer[data-class='wizard'] {
+  --color-primary: #3b82f6;
+  --shadow-primary: rgba(59, 130, 246, 0.3);
+}
 
 .tabBar {
   border-bottom: 1px solid var(--color-border-dark);
@@ -110,7 +164,7 @@
   transform: scale(1.01);
 }
 
-:global([data-theme="light"]) .tabButtonActive {
+:global([data-theme='light']) .tabButtonActive {
   color: #ffffff;
 }
 
@@ -304,16 +358,16 @@
   .mainContent {
     padding: 20px 16px;
   }
-  
+
   .card {
     padding: 20px;
     border-radius: 16px;
   }
-  
+
   .trackerGrid {
     grid-template-columns: 1fr 1fr;
   }
-  
+
   .tabScroll {
     padding: 8px 16px;
   }
@@ -581,7 +635,6 @@
   background: var(--color-danger);
   color: #fff;
 }
-
 
 .exportDropdown summary {
   list-style: none;

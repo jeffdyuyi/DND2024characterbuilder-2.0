@@ -10,7 +10,11 @@ export interface Armor extends ItemItem {
 
 export type WeaponCategory = 'Simple' | 'Martial';
 export type WeaponRangeType = 'Melee' | 'Ranged';
-export interface WeaponMastery { name: string; nameEn: 'Slow' | 'Nick' | 'Vex' | 'Push' | 'Sap' | 'Cleave' | 'Graze' | 'Topple'; description: string }
+export interface WeaponMastery {
+  name: string;
+  nameEn: 'Slow' | 'Nick' | 'Vex' | 'Push' | 'Sap' | 'Cleave' | 'Graze' | 'Topple';
+  description: string;
+}
 export interface Weapon extends ItemItem {
   weaponCategory: WeaponCategory;
   weaponRange: WeaponRangeType;
@@ -20,7 +24,15 @@ export interface Weapon extends ItemItem {
   mastery: WeaponMastery;
 }
 
-export interface VehicleStats { speed?: string; crew?: string; passengers?: string; cargo?: string; ac?: number; hp?: number; damageThreshold?: number }
+export interface VehicleStats {
+  speed?: string;
+  crew?: string;
+  passengers?: string;
+  cargo?: string;
+  ac?: number;
+  hp?: number;
+  damageThreshold?: number;
+}
 export interface Gear extends ItemItem {
   quantity?: number;
   capacity?: string;
@@ -33,7 +45,11 @@ export interface Gear extends ItemItem {
   contentsDetailed?: { id?: string; name: string; quantity?: number; source?: string }[];
 }
 
-export interface ToolUtilize { action: string; dc: string; description: string }
+export interface ToolUtilize {
+  action: string;
+  dc: string;
+  description: string;
+}
 export interface Tool extends ItemItem {
   toolAbility?: string;
   toolUtilize?: ToolUtilize[];

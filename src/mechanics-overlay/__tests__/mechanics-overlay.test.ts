@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  getClassOverlay,
-  getSubclassOverlay,
-  getRaceOverlay,
-  mergeOverlay,
-} from '../index';
+import { getClassOverlay, getSubclassOverlay, getRaceOverlay, mergeOverlay } from '../index';
 import { CatalogEntry } from '@/catalog/types';
 import { defaultCatalog } from '@/catalog/catalog';
 import { catalogEntryToClass } from '@/catalog/adapters/classes';
@@ -13,7 +8,10 @@ import { computeCombatStats } from '@/engine/combat';
 import { computeSpellcasting } from '@/engine/spellcasting';
 import { CharacterState } from '@/types/characterState';
 
-const baseCharacterState = (): Omit<CharacterState, 'id' | 'name' | 'playerName' | 'classes' | 'baseAbilityScores'> => ({
+const baseCharacterState = (): Omit<
+  CharacterState,
+  'id' | 'name' | 'playerName' | 'classes' | 'baseAbilityScores'
+> => ({
   backgroundAbilityBonuses: {},
   selectedFeats: [],
   selectedSkills: [],
@@ -157,7 +155,9 @@ describe('Phase B: Mechanics Overlay 覆盖层与机制注入', () => {
       (defaultCatalog as any).registerAlias('barbarian', merged.id);
 
       const classDef = catalogEntryToClass(merged);
-      const uDef = classDef.features.find((f) => f.nameEn === 'Unarmored Defense' || f.name === '无甲防御');
+      const uDef = classDef.features.find(
+        (f) => f.nameEn === 'Unarmored Defense' || f.name === '无甲防御',
+      );
       expect(uDef?.mechanics?.acCalculation).toBeDefined();
       expect(uDef?.mechanics?.acCalculation?.base).toBe(10);
       expect(uDef?.mechanics?.acCalculation?.modifiers).toContain('dex');
@@ -198,7 +198,9 @@ describe('Phase B: Mechanics Overlay 覆盖层与机制注入', () => {
       (defaultCatalog as any).registerAlias('monk', merged.id);
 
       const classDef = catalogEntryToClass(merged);
-      const uDef = classDef.features.find((f) => f.nameEn === 'Unarmored Defense' || f.name === '无甲防御');
+      const uDef = classDef.features.find(
+        (f) => f.nameEn === 'Unarmored Defense' || f.name === '无甲防御',
+      );
       expect(uDef?.mechanics?.acCalculation?.modifiers).toContain('wis');
 
       const state: CharacterState = {
@@ -232,9 +234,29 @@ describe('Phase B: Mechanics Overlay 覆盖层与机制注入', () => {
       const mergedSub = mergeOverlay(rawSubEntry);
       defaultCatalog.register(mergedSub);
       defaultCatalog.register({
-        id: 'test:class:phb:sorcerer', kind: 'class', name: '术士', englishName: 'Sorcerer',
-        source: 'PHB', edition: '2024', sourcePackId: 'overlay-test',
-        raw: { hd: { faces: 6 }, progression: [], features: [], subClassInfo: { unlockLevel: 3, options: [{ catalogId: mergedSub.id, name: mergedSub.name, nameEn: mergedSub.englishName, traits: (mergedSub.raw as any).traits || [] }] } },
+        id: 'test:class:phb:sorcerer',
+        kind: 'class',
+        name: '术士',
+        englishName: 'Sorcerer',
+        source: 'PHB',
+        edition: '2024',
+        sourcePackId: 'overlay-test',
+        raw: {
+          hd: { faces: 6 },
+          progression: [],
+          features: [],
+          subClassInfo: {
+            unlockLevel: 3,
+            options: [
+              {
+                catalogId: mergedSub.id,
+                name: mergedSub.name,
+                nameEn: mergedSub.englishName,
+                traits: (mergedSub.raw as any).traits || [],
+              },
+            ],
+          },
+        },
       });
       (defaultCatalog as any).registerAlias('draconic sorcery', mergedSub.id);
       (defaultCatalog as any).registerAlias('draconic-sorcery', mergedSub.id);
@@ -249,7 +271,15 @@ describe('Phase B: Mechanics Overlay 覆盖层与机制注入', () => {
         name: 'Draco',
         playerName: '',
         baseAbilityScores: { str: 8, dex: 16, con: 14, int: 10, wis: 12, cha: 16 },
-        classes: [{ classId: 'Sorcerer', subclassId: 'draconic-sorcery', level: 3, source: 'PHB', isMulticlass: false }],
+        classes: [
+          {
+            classId: 'Sorcerer',
+            subclassId: 'draconic-sorcery',
+            level: 3,
+            source: 'PHB',
+            isMulticlass: false,
+          },
+        ],
         ...baseCharacterState(),
       };
 
@@ -327,16 +357,50 @@ describe('Phase B: Mechanics Overlay 覆盖层与机制注入', () => {
 
     it('奥法骑士在 3 级时能正确获得 1/3 施法槽 (2个 1 环法术槽)', () => {
       defaultCatalog.register({
-        id: 'test:class:phb:fighter', kind: 'class', name: '战士', englishName: 'Fighter',
-        source: 'PHB', edition: '2024', sourcePackId: 'overlay-test',
-        raw: { hd: { faces: 10 }, features: [], progression: [], subClassInfo: { unlockLevel: 3, options: [{ name: '奥术骑士', nameEn: 'Eldritch Knight', traits: [{ name: '施法', nameEn: 'Spellcasting', level: 3, mechanics: { spellcastingType: '1/3', spellcastingAbility: 'Intelligence' } }] }] } },
+        id: 'test:class:phb:fighter',
+        kind: 'class',
+        name: '战士',
+        englishName: 'Fighter',
+        source: 'PHB',
+        edition: '2024',
+        sourcePackId: 'overlay-test',
+        raw: {
+          hd: { faces: 10 },
+          features: [],
+          progression: [],
+          subClassInfo: {
+            unlockLevel: 3,
+            options: [
+              {
+                name: '奥术骑士',
+                nameEn: 'Eldritch Knight',
+                traits: [
+                  {
+                    name: '施法',
+                    nameEn: 'Spellcasting',
+                    level: 3,
+                    mechanics: { spellcastingType: '1/3', spellcastingAbility: 'Intelligence' },
+                  },
+                ],
+              },
+            ],
+          },
+        },
       });
       const state: CharacterState = {
         id: '6',
         name: 'Spellblade',
         playerName: '',
         baseAbilityScores: { str: 16, dex: 12, con: 14, int: 14, wis: 10, cha: 8 },
-        classes: [{ classId: 'Fighter', subclassId: 'Eldritch Knight', level: 3, source: 'PHB', isMulticlass: false }],
+        classes: [
+          {
+            classId: 'Fighter',
+            subclassId: 'Eldritch Knight',
+            level: 3,
+            source: 'PHB',
+            isMulticlass: false,
+          },
+        ],
         ...baseCharacterState(),
       };
 
@@ -348,12 +412,27 @@ describe('Phase B: Mechanics Overlay 覆盖层与机制注入', () => {
 
     it('游侠在 2 级时能正确获得半施法者法术槽 (2个 1 环法术槽)', () => {
       defaultCatalog.register({
-        id: 'test:class:phb:ranger', kind: 'class', name: '游侠', englishName: 'Ranger',
-        source: 'PHB', edition: '2024', sourcePackId: 'overlay-test',
-        raw: { hd: { faces: 10 }, casterProgression: 'half', spellcastingAbility: 'Wisdom', features: [], progression: [
-          { level: 1, featuresUnlocked: [] },
-          { level: 2, featuresUnlocked: [], spellcasting: { spellsPrepared: 2, spellSlots: { level1: 2 } } },
-        ] },
+        id: 'test:class:phb:ranger',
+        kind: 'class',
+        name: '游侠',
+        englishName: 'Ranger',
+        source: 'PHB',
+        edition: '2024',
+        sourcePackId: 'overlay-test',
+        raw: {
+          hd: { faces: 10 },
+          casterProgression: 'half',
+          spellcastingAbility: 'Wisdom',
+          features: [],
+          progression: [
+            { level: 1, featuresUnlocked: [] },
+            {
+              level: 2,
+              featuresUnlocked: [],
+              spellcasting: { spellsPrepared: 2, spellSlots: { level1: 2 } },
+            },
+          ],
+        },
       });
       const state: CharacterState = {
         id: '7',

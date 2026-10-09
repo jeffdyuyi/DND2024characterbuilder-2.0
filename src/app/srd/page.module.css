@@ -315,7 +315,9 @@
 .card:hover {
   transform: translateY(-2px);
   border-color: var(--color-gold-bright, #e6c278);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38), 0 0 10px rgba(230, 194, 120, 0.12);
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.38),
+    0 0 10px rgba(230, 194, 120, 0.12);
 }
 
 .cardTop {
@@ -617,4 +619,3 @@
   font-size: 0.84rem;
   color: #fbbf24;
 }
-

@@ -23,7 +23,10 @@ function numericBonus(value: unknown): number {
   return 0;
 }
 
-function matchesVariantCondition(raw: Record<string, any>, condition: Record<string, any>): boolean {
+function matchesVariantCondition(
+  raw: Record<string, any>,
+  condition: Record<string, any>,
+): boolean {
   return Object.entries(condition).every(([key, expected]) => {
     const actual = raw[key];
     return Array.isArray(expected) ? expected.includes(actual) : actual === expected;
@@ -31,24 +34,39 @@ function matchesVariantCondition(raw: Record<string, any>, condition: Record<str
 }
 
 /** 将 magicvariant 模板与符合 requires/excludes 的基础物品组合为可持有的实际物品。 */
-export function instantiateMagicVariants(catalog: import('../types').CatalogService, sourcePackId?: string): CatalogEntry[] {
-  const bases = [...catalog.list('baseitem'), ...catalog.list('item')].filter((entry) =>
-    entry.sourcePackId !== 'legacy' && !(entry.raw as any)?.magicVariantId
+export function instantiateMagicVariants(
+  catalog: import('../types').CatalogService,
+  sourcePackId?: string,
+): CatalogEntry[] {
+  const bases = [...catalog.list('baseitem'), ...catalog.list('item')].filter(
+    (entry) => entry.sourcePackId !== 'legacy' && !(entry.raw as any)?.magicVariantId,
   );
-  const variants = catalog.list('magicvariant').filter((entry) => !sourcePackId || entry.sourcePackId === sourcePackId);
+  const variants = catalog
+    .list('magicvariant')
+    .filter((entry) => !sourcePackId || entry.sourcePackId === sourcePackId);
   const instances: CatalogEntry[] = [];
   for (const variant of variants) {
     const variantRaw = variant.raw as any;
     const requirements = Array.isArray(variantRaw.requires) ? variantRaw.requires : [];
-    const exclusions = Array.isArray(variantRaw.excludes) ? variantRaw.excludes : variantRaw.excludes ? [variantRaw.excludes] : [];
+    const exclusions = Array.isArray(variantRaw.excludes)
+      ? variantRaw.excludes
+      : variantRaw.excludes
+        ? [variantRaw.excludes]
+        : [];
     for (const base of bases) {
       const baseRaw = base.raw as any;
-      if (requirements.length && !requirements.some((condition: any) => matchesVariantCondition(baseRaw, condition))) continue;
-      if (exclusions.some((condition: any) => matchesVariantCondition(baseRaw, condition))) continue;
+      if (
+        requirements.length &&
+        !requirements.some((condition: any) => matchesVariantCondition(baseRaw, condition))
+      )
+        continue;
+      if (exclusions.some((condition: any) => matchesVariantCondition(baseRaw, condition)))
+        continue;
       const inherits = variantRaw.inherits || {};
       const name = `${inherits.namePrefix || ''}${base.name}${inherits.nameSuffix || ''}`.trim();
       const englishBase = base.englishName || base.name;
-      const englishName = `${inherits.ENG_namePrefix || inherits.namePrefix || ''}${englishBase}${inherits.ENG_nameSuffix || inherits.nameSuffix || ''}`.trim();
+      const englishName =
+        `${inherits.ENG_namePrefix || inherits.namePrefix || ''}${englishBase}${inherits.ENG_nameSuffix || inherits.nameSuffix || ''}`.trim();
       const source = inherits.source || variant.source;
 
       let properties: string[] = Array.isArray(baseRaw.property)
@@ -57,13 +75,17 @@ export function instantiateMagicVariants(catalog: import('../types').CatalogServ
           ? [...baseRaw.properties]
           : [];
       if (inherits.propertyAdd) {
-        const toAdd = Array.isArray(inherits.propertyAdd) ? inherits.propertyAdd : [inherits.propertyAdd];
+        const toAdd = Array.isArray(inherits.propertyAdd)
+          ? inherits.propertyAdd
+          : [inherits.propertyAdd];
         for (const p of toAdd) {
           if (p && !properties.includes(p)) properties.push(p);
         }
       }
       if (inherits.propertyRemove) {
-        const toRemove = Array.isArray(inherits.propertyRemove) ? inherits.propertyRemove : [inherits.propertyRemove];
+        const toRemove = Array.isArray(inherits.propertyRemove)
+          ? inherits.propertyRemove
+          : [inherits.propertyRemove];
         properties = properties.filter((p) => !toRemove.includes(p));
       }
 
@@ -87,14 +109,31 @@ export function instantiateMagicVariants(catalog: import('../types').CatalogServ
         ...(resist.length ? { resist } : {}),
         baseItemId: base.id,
         magicVariantId: variant.id,
-        entries: [...(Array.isArray(baseRaw.entries) ? baseRaw.entries : []), ...(Array.isArray(inherits.entries) ? inherits.entries : [])],
+        entries: [
+          ...(Array.isArray(baseRaw.entries) ? baseRaw.entries : []),
+          ...(Array.isArray(inherits.entries) ? inherits.entries : []),
+        ],
       };
       instances.push({
-        id: makeEntryId({ packId: variant.sourcePackId, kind: 'item', source, name: englishName || name, parent: base.id }),
-        kind: 'item', name, englishName, source, edition: inferEditionFromSource(source),
-        sourcePackId: variant.sourcePackId, isHomebrew: variant.isHomebrew,
-        description: [base.description, flattenEntries(inherits.entries)].filter(Boolean).join('\n\n'),
-        entries: raw.entries, raw,
+        id: makeEntryId({
+          packId: variant.sourcePackId,
+          kind: 'item',
+          source,
+          name: englishName || name,
+          parent: base.id,
+        }),
+        kind: 'item',
+        name,
+        englishName,
+        source,
+        edition: inferEditionFromSource(source),
+        sourcePackId: variant.sourcePackId,
+        isHomebrew: variant.isHomebrew,
+        description: [base.description, flattenEntries(inherits.entries)]
+          .filter(Boolean)
+          .join('\n\n'),
+        entries: raw.entries,
+        raw,
       });
     }
   }
@@ -116,29 +155,34 @@ export function catalogEntryToItem(entry: CatalogEntry): AnyItem {
 
   // 5etools uses short armor type codes and stores AC as either a number or
   // an object. The combat engine consumes the structured form below.
-  const armorCategory = ({ LA: 'Light', MA: 'Medium', HA: 'Heavy', S: 'Shield' } as Record<string, string>)[raw.type] || raw.armorCategory;
+  const armorCategory =
+    ({ LA: 'Light', MA: 'Medium', HA: 'Heavy', S: 'Shield' } as Record<string, string>)[raw.type] ||
+    raw.armorCategory;
   const rawAc = typeof raw.ac === 'number' ? raw.ac : raw.ac?.ac;
-  const acStructured = armorCategory === 'Shield'
-    ? { base: 0, dexModEnabled: false, bonus: typeof rawAc === 'number' ? rawAc : 2 }
-    : typeof rawAc === 'number' && armorCategory
-      ? {
-          base: rawAc,
-          dexModEnabled: armorCategory !== 'Heavy',
-          ...(armorCategory === 'Medium' ? { dexModMax: 2 } : {}),
-        }
-      : raw.acStructured;
+  const acStructured =
+    armorCategory === 'Shield'
+      ? { base: 0, dexModEnabled: false, bonus: typeof rawAc === 'number' ? rawAc : 2 }
+      : typeof rawAc === 'number' && armorCategory
+        ? {
+            base: rawAc,
+            dexModEnabled: armorCategory !== 'Heavy',
+            ...(armorCategory === 'Medium' ? { dexModMax: 2 } : {}),
+          }
+        : raw.acStructured;
   const abilitySet = raw.abilitySet || raw.ability?.static || raw.ability;
-  const category = raw.category || (armorCategory === 'Shield'
-    ? 'shield'
-    : armorCategory
-      ? 'armor'
-      : ['AT', 'GS', 'INS', 'T'].includes(raw.type)
-        ? 'tool'
-        : ['MNT', 'VEH', 'SHP'].includes(raw.type)
-          ? 'vehicle'
-      : raw.weaponCategory || raw.dmg1
-        ? 'weapon'
-        : 'gear');
+  const category =
+    raw.category ||
+    (armorCategory === 'Shield'
+      ? 'shield'
+      : armorCategory
+        ? 'armor'
+        : ['AT', 'GS', 'INS', 'T'].includes(raw.type)
+          ? 'tool'
+          : ['MNT', 'VEH', 'SHP'].includes(raw.type)
+            ? 'vehicle'
+            : raw.weaponCategory || raw.dmg1
+              ? 'weapon'
+              : 'gear');
 
   let costStr = '';
   if (typeof raw.value === 'number') {
@@ -174,9 +218,15 @@ export function catalogEntryToItem(entry: CatalogEntry): AnyItem {
     bonusSavingThrow: numericBonus(raw.bonusSavingThrow),
     bonusSpellSaveDc: numericBonus(raw.bonusSpellSaveDc),
     bonusSpellAttack: numericBonus(raw.bonusSpellAttack),
-    abilitySet: abilitySet && typeof abilitySet === 'object' && !Array.isArray(abilitySet) ? abilitySet : undefined,
+    abilitySet:
+      abilitySet && typeof abilitySet === 'object' && !Array.isArray(abilitySet)
+        ? abilitySet
+        : undefined,
     requiresAttunement: Boolean(raw.requiresAttunement ?? raw.reqAttune),
-    attunementRequirement: typeof (raw.requiresAttunement ?? raw.reqAttune) === 'string' ? (raw.requiresAttunement ?? raw.reqAttune) : undefined,
+    attunementRequirement:
+      typeof (raw.requiresAttunement ?? raw.reqAttune) === 'string'
+        ? (raw.requiresAttunement ?? raw.reqAttune)
+        : undefined,
     baseItemId: raw.baseItemId,
     magicVariantId: raw.magicVariantId,
     damage: raw.damage || raw.dmg1,
@@ -191,9 +241,15 @@ export function isMagicItemDefinition(item: AnyItem | undefined): boolean {
   if (!item) return false;
   const value = item as any;
   return Boolean(
-    value.magicVariantId || value.rarity || value.requiresAttunement ||
-    value.bonusAc || value.bonusWeapon || value.bonusSavingThrow ||
-    value.bonusSpellSaveDc || value.bonusSpellAttack || value.abilitySet
+    value.magicVariantId ||
+    value.rarity ||
+    value.requiresAttunement ||
+    value.bonusAc ||
+    value.bonusWeapon ||
+    value.bonusSavingThrow ||
+    value.bonusSpellSaveDc ||
+    value.bonusSpellAttack ||
+    value.abilitySet,
   );
 }
 
@@ -236,7 +292,6 @@ export function getCatalogItems(options?: {
       }
     }
   }
-
 
   return items;
 }

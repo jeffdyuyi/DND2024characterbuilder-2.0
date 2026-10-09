@@ -77,7 +77,7 @@ export class InMemoryCatalogService implements CatalogService {
 
   public search(
     query: string,
-    options?: { kind?: EntryKind; edition?: Edition; limit?: number }
+    options?: { kind?: EntryKind; edition?: Edition; limit?: number },
   ): CatalogEntry[] {
     const q = query.trim().toLowerCase();
     if (!q) return [];

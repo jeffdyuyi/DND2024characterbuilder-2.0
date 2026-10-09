@@ -22,7 +22,13 @@ import {
   getSpellDefinition,
   getSubclassDefinition,
 } from '@/engine/characterData';
-import { formatSpellRange, formatSpellDuration, formatSpellComponent, translateSpellSchool, formatActionType } from '@/engine/terminology';
+import {
+  formatSpellRange,
+  formatSpellDuration,
+  formatSpellComponent,
+  translateSpellSchool,
+  formatActionType,
+} from '@/engine/terminology';
 import MarkdownText from '@/components/MarkdownText';
 import styles from '../sheet.module.css';
 
@@ -33,32 +39,29 @@ import ProfileTab from '../[id]/tabs/ProfileTab';
 import AdventureTab from '../[id]/tabs/AdventureTab';
 import OverviewTab from '../[id]/tabs/OverviewTab';
 
-const TABS = [
-  '主面板',
-  '法术',
-  '种族',
-  '职业',
-  '背景',
-  '专长',
-  '选项',
-  '物品',
-  '档案',
-  '冒险',
-];
+const TABS = ['主面板', '法术', '种族', '职业', '背景', '专长', '选项', '物品', '档案', '冒险'];
 
 const DeathSaveTracker = ({ successes, failures, onUpdate }: any) => (
   <div className={styles.trackerItem}>
     <div className={styles.trackerLabel}>死亡豁免</div>
     <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'center' }}>
       <div className={styles.bubbleRow}>
-        {[1, 2, 3].map(i => (
-          <div key={`s-${i}`} className={`${styles.bubble} ${i <= successes ? styles.bubbleSuccess : ''}`} onClick={() => onUpdate('success', i === successes ? i - 1 : i)} />
+        {[1, 2, 3].map((i) => (
+          <div
+            key={`s-${i}`}
+            className={`${styles.bubble} ${i <= successes ? styles.bubbleSuccess : ''}`}
+            onClick={() => onUpdate('success', i === successes ? i - 1 : i)}
+          />
         ))}
         <span style={{ fontSize: 10, marginLeft: 4, color: 'var(--color-success)' }}>成功</span>
       </div>
       <div className={styles.bubbleRow}>
-        {[1, 2, 3].map(i => (
-          <div key={`f-${i}`} className={`${styles.bubble} ${i <= failures ? styles.bubbleDanger : ''}`} onClick={() => onUpdate('failure', i === failures ? i - 1 : i)} />
+        {[1, 2, 3].map((i) => (
+          <div
+            key={`f-${i}`}
+            className={`${styles.bubble} ${i <= failures ? styles.bubbleDanger : ''}`}
+            onClick={() => onUpdate('failure', i === failures ? i - 1 : i)}
+          />
         ))}
         <span style={{ fontSize: 10, marginLeft: 4, color: 'var(--color-danger)' }}>失败</span>
       </div>
@@ -77,7 +80,13 @@ export default function CharacterSheetPage() {
   return <LoadedCharacterSheet key={character.id} character={character} catalogStats={stats} />;
 }
 
-function LoadedCharacterSheet({ character, catalogStats }: { character: CharacterState; catalogStats: CatalogStats }) {
+function LoadedCharacterSheet({
+  character,
+  catalogStats,
+}: {
+  character: CharacterState;
+  catalogStats: CatalogStats;
+}) {
   const router = useRouter();
   const id = character.id;
   const { updateActiveCharacter } = useCharacterStore();
@@ -97,31 +106,51 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
 
   // 增强的施法数据解析，修复 DC/攻击加值显示
   const safeAbilityKey = spellcasting.abilityKey;
-  const spellDC = final.spellSaveDc || (8 + proficiencyBonus + (safeAbilityKey ? (final.modifiers as any)[safeAbilityKey] || 0 : 0));
-  const spellAttack = final.spellAttackBonus || (proficiencyBonus + (safeAbilityKey ? (final.modifiers as any)[safeAbilityKey] || 0 : 0));
+  const spellDC =
+    final.spellSaveDc ||
+    8 + proficiencyBonus + (safeAbilityKey ? (final.modifiers as any)[safeAbilityKey] || 0 : 0);
+  const spellAttack =
+    final.spellAttackBonus ||
+    proficiencyBonus + (safeAbilityKey ? (final.modifiers as any)[safeAbilityKey] || 0 : 0);
 
   const species = getSpeciesDefinition(character!);
   const background = getBackgroundDefinition(character!);
-  const primaryClass = character?.classes[0] ? getClassDefinition(character.classes[0].classId) : undefined;
+  const primaryClass = character?.classes[0]
+    ? getClassDefinition(character.classes[0].classId)
+    : undefined;
   const subclass = getSubclassDefinition(character!);
 
   const innate = getInnateSpells(character);
-  const innateDefinitions = innate.map(s => getSpellDefinition(s.spellId)).filter(Boolean);
-  const cantripDetails = [...new Set([...(character.cantripIds || []), ...innateDefinitions.filter(s => s!.level === 0).map(s => s!.id)])].map(getSpellDefinition).filter(Boolean);
-  const spellDetails = [...new Set([...(character.preparedSpellIds || []), ...innateDefinitions.filter(s => s!.level > 0).map(s => s!.id)])].map(getSpellDefinition).filter(Boolean);
+  const innateDefinitions = innate.map((s) => getSpellDefinition(s.spellId)).filter(Boolean);
+  const cantripDetails = [
+    ...new Set([
+      ...(character.cantripIds || []),
+      ...innateDefinitions.filter((s) => s!.level === 0).map((s) => s!.id),
+    ]),
+  ]
+    .map(getSpellDefinition)
+    .filter(Boolean);
+  const spellDetails = [
+    ...new Set([
+      ...(character.preparedSpellIds || []),
+      ...innateDefinitions.filter((s) => s!.level > 0).map((s) => s!.id),
+    ]),
+  ]
+    .map(getSpellDefinition)
+    .filter(Boolean);
   const spellbookDetails = (character?.spellbookIds || []).map(getSpellDefinition).filter(Boolean);
 
   const spellSourceMap = useMemo(() => {
     const map: Record<string, string> = {};
     if (character) {
       const innateSpells = getInnateSpells(character);
-      innateSpells.forEach(s => {
+      innateSpells.forEach((s) => {
         map[s.spellId] = s.source;
       });
-      (character.cantripIds || []).forEach(id => {
+      (character.cantripIds || []).forEach((id) => {
         if (!map[id]) map[id] = primaryClass?.name || '职业';
       });
-      (character.preparedSpellIds || []).forEach(id => {
+      (character.preparedSpellIds || []).forEach((id) => {
         if (!map[id]) map[id] = primaryClass?.name || '职业';
       });
     }
@@ -154,11 +183,19 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
 
   const handleDownloadMD = () => {
     const md = exportToMarkdown(character!, {
-      species, background, primaryClass, subclass,
-      ability, combat, proficiencies, spellcasting,
-      featDetails: (character!.selectedFeats || []).map((f: any) => getFeatDefinition(f.featId)).filter(Boolean),
+      species,
+      background,
+      primaryClass,
+      subclass,
+      ability,
+      combat,
+      proficiencies,
+      spellcasting,
+      featDetails: (character!.selectedFeats || [])
+        .map((f: any) => getFeatDefinition(f.featId))
+        .filter(Boolean),
       spellDetails: spellDetails as any[],
-      cantripDetails: cantripDetails as any[]
+      cantripDetails: cantripDetails as any[],
     });
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -187,7 +224,10 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
   };
 
   return (
-    <div className={styles.sheetContainer} data-class={primaryClass?.nameEn.toLowerCase() || 'wizard'}>
+    <div
+      className={styles.sheetContainer}
+      data-class={primaryClass?.nameEn.toLowerCase() || 'wizard'}
+    >
       <GlassNav
         backLabel="角色库"
         backHref="/"
@@ -195,47 +235,113 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
         actions={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {/* 全局编辑开关 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px', borderRight: '1px solid #eee' }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: isEditMode ? 'var(--color-warning, #f59e0b)' : 'var(--color-text-tertiary)', whiteSpace: 'nowrap', transition: 'color 0.2s' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '0 12px',
+                borderRight: '1px solid #eee',
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: isEditMode
+                    ? 'var(--color-warning, #f59e0b)'
+                    : 'var(--color-text-tertiary)',
+                  whiteSpace: 'nowrap',
+                  transition: 'color 0.2s',
+                }}
+              >
                 {isEditMode ? '⚠ 编辑中' : '查看模式'}
               </span>
               <div
                 onClick={() => setIsEditMode(!isEditMode)}
-                style={{ width: 40, height: 20, borderRadius: 10, background: isEditMode ? 'var(--color-warning, #f59e0b)' : '#d2d2d7', position: 'relative', cursor: 'pointer', transition: 'background 0.3s', flexShrink: 0 }}
+                style={{
+                  width: 40,
+                  height: 20,
+                  borderRadius: 10,
+                  background: isEditMode ? 'var(--color-warning, #f59e0b)' : '#d2d2d7',
+                  position: 'relative',
+                  cursor: 'pointer',
+                  transition: 'background 0.3s',
+                  flexShrink: 0,
+                }}
               >
-                <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: isEditMode ? 22 : 2, transition: 'left 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                <div
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    background: '#fff',
+                    position: 'absolute',
+                    top: 2,
+                    left: isEditMode ? 22 : 2,
+                    transition: 'left 0.3s',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  }}
+                />
               </div>
             </div>
-            <PillButton size="sm" variant="outline" onClick={() => router.push(`/builder/species?id=${id}`)}>引导编辑</PillButton>
+            <PillButton
+              size="sm"
+              variant="outline"
+              onClick={() => router.push(`/builder/species?id=${id}`)}
+            >
+              引导编辑
+            </PillButton>
             <div className={styles.exportDropdown}>
               <details style={{ position: 'relative' }}>
                 <summary style={{ listStyle: 'none', cursor: 'pointer' }}>
-                  <PillButton size="sm" variant="outline">导出 / 导入 ▾</PillButton>
+                  <PillButton size="sm" variant="outline">
+                    导出 / 导入 ▾
+                  </PillButton>
                 </summary>
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: 'calc(100% + 6px)',
-                  background: 'var(--color-bg-surface)',
-                  border: '1px solid var(--color-border-dark)',
-                  borderRadius: '10px',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
-                  padding: '6px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px',
-                  minWidth: '150px',
-                  zIndex: 120,
-                  whiteSpace: 'nowrap'
-                }}>
-                  <button onClick={handleDownloadJSON} className={styles.dropdownItem}>导出 JSON 存档</button>
-                  <button onClick={() => document.getElementById('json-import-input')?.click()} className={styles.dropdownItem}>导入 JSON 存档</button>
-                  <button onClick={handleDownloadMD} className={styles.dropdownItem}>导出 Markdown (MD)</button>
-                  <button onClick={handleDownloadFVTT} className={styles.dropdownItem}>导出 Foundry VTT</button>
+                <div
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 'calc(100% + 6px)',
+                    background: 'var(--color-bg-surface)',
+                    border: '1px solid var(--color-border-dark)',
+                    borderRadius: '10px',
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+                    padding: '6px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '4px',
+                    minWidth: '150px',
+                    zIndex: 120,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <button onClick={handleDownloadJSON} className={styles.dropdownItem}>
+                    导出 JSON 存档
+                  </button>
+                  <button
+                    onClick={() => document.getElementById('json-import-input')?.click()}
+                    className={styles.dropdownItem}
+                  >
+                    导入 JSON 存档
+                  </button>
+                  <button onClick={handleDownloadMD} className={styles.dropdownItem}>
+                    导出 Markdown (MD)
+                  </button>
+                  <button onClick={handleDownloadFVTT} className={styles.dropdownItem}>
+                    导出 Foundry VTT
+                  </button>
                 </div>
               </details>
             </div>
-            <input id="json-import-input" type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportJSON} />
+            <input
+              id="json-import-input"
+              type="file"
+              accept=".json"
+              style={{ display: 'none' }}
+              onChange={handleImportJSON}
+            />
           </div>
         }
       />
@@ -258,7 +364,7 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
 
       <main className={styles.mainContent} key={activeTab}>
         {activeTab === 0 && (
-          <OverviewTab 
+          <OverviewTab
             character={character}
             species={species}
             background={background}
@@ -276,12 +382,12 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
         )}
 
         {activeTab === 1 && (
-          <SpellsTab 
+          <SpellsTab
             character={character}
             spellcasting={{
               ...spellcasting,
               spellDC: spellDC,
-              spellAttack: spellAttack
+              spellAttack: spellAttack,
             }}
             primaryClass={primaryClass}
             cantripDetails={cantripDetails}
@@ -295,24 +401,25 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
           />
         )}
 
-        {[2, 3, 4, 5, 6].map((idx, i) => (
-          activeTab === idx && (
-            <FeaturesTab 
-              key={idx}
-              character={character}
-              router={router}
-              id={id}
-              activeCategory={(['种族', '职业', '背景', '专长', '附加选项'] as const)[i]}
-              onUpdateResource={(name: string, val: any) => {
-                const current = character.resourceUsage || {};
-                updateActiveCharacter({ resourceUsage: { ...current, [name]: val } });
-              }}
-            />
-          )
-        ))}
+        {[2, 3, 4, 5, 6].map(
+          (idx, i) =>
+            activeTab === idx && (
+              <FeaturesTab
+                key={idx}
+                character={character}
+                router={router}
+                id={id}
+                activeCategory={(['种族', '职业', '背景', '专长', '附加选项'] as const)[i]}
+                onUpdateResource={(name: string, val: any) => {
+                  const current = character.resourceUsage || {};
+                  updateActiveCharacter({ resourceUsage: { ...current, [name]: val } });
+                }}
+              />
+            ),
+        )}
 
         {activeTab === 7 && (
-          <InventoryTab 
+          <InventoryTab
             character={character}
             updateActiveCharacter={updateActiveCharacter}
             isEditMode={isEditMode}
@@ -320,7 +427,12 @@ function LoadedCharacterSheet({ character, catalogStats }: { character: Characte
         )}
 
         {activeTab === 8 && (
-          <ProfileTab character={character} updateActiveCharacter={updateActiveCharacter} router={router} id={id} />
+          <ProfileTab
+            character={character}
+            updateActiveCharacter={updateActiveCharacter}
+            router={router}
+            id={id}
+          />
         )}
 
         {activeTab === 9 && (

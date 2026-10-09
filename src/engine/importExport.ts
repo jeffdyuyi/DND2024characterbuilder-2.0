@@ -1,5 +1,11 @@
 import { CharacterState } from '../types/characterState';
-import { SpeciesSchema, BackgroundSchema, FeatSchema, SpellSchema, ClassDataSchema } from '../types/schemas';
+import {
+  SpeciesSchema,
+  BackgroundSchema,
+  FeatSchema,
+  SpellSchema,
+  ClassDataSchema,
+} from '../types/schemas';
 import { z } from 'zod';
 
 /**
@@ -23,30 +29,41 @@ export async function importFromJSON(jsonStr: string): Promise<CharacterState> {
 /**
  * Markdown 导出引擎
  */
-export function exportToMarkdown(character: CharacterState, context: {
-  species?: any,
-  background?: any,
-  primaryClass?: any,
-  subclass?: any,
-  ability: any,
-  combat: any,
-  proficiencies: any,
-  spellcasting: any,
-  featDetails: any[],
-  spellDetails: any[],
-  cantripDetails: any[]
-}): string {
-  const { 
-    species, background, primaryClass, subclass, 
-    ability, combat, proficiencies, spellcasting,
-    featDetails, spellDetails, cantripDetails 
+export function exportToMarkdown(
+  character: CharacterState,
+  context: {
+    species?: any;
+    background?: any;
+    primaryClass?: any;
+    subclass?: any;
+    ability: any;
+    combat: any;
+    proficiencies: any;
+    spellcasting: any;
+    featDetails: any[];
+    spellDetails: any[];
+    cantripDetails: any[];
+  },
+): string {
+  const {
+    species,
+    background,
+    primaryClass,
+    subclass,
+    ability,
+    combat,
+    proficiencies,
+    spellcasting,
+    featDetails,
+    spellDetails,
+    cantripDetails,
   } = context;
 
   const totalLevel = character.classes?.reduce((acc, c) => acc + c.level, 0) || 1;
   const pb = Math.floor((totalLevel - 1) / 4) + 2;
 
   let md = `# ${character.name || '未命名角色'} · 角色卡\n\n`;
-  
+
   md += `## 1. 基础信息\n`;
   md += `- **玩家名**：${character.playerName || '未填写'}\n`;
   md += `- **种族**：${species?.name || '未选择'}\n`;
@@ -64,7 +81,14 @@ export function exportToMarkdown(character: CharacterState, context: {
     const isProf = proficiencies.saves.some((s: any) => s.id === key);
     const modStr = mod >= 0 ? `+${mod}` : mod;
     const saveStr = isProf ? `✅ ${mod + pb >= 0 ? `+${mod + pb}` : mod + pb}` : '--';
-    const labelMap: Record<string, string> = { str: '力量', dex: '敏捷', con: '体质', int: '智力', wis: '感知', cha: '魅力' };
+    const labelMap: Record<string, string> = {
+      str: '力量',
+      dex: '敏捷',
+      con: '体质',
+      int: '智力',
+      wis: '感知',
+      cha: '魅力',
+    };
     md += `| ${labelMap[key]} | ${val} | ${modStr} | ${saveStr} |\n`;
   });
   md += `\n`;
@@ -81,18 +105,46 @@ export function exportToMarkdown(character: CharacterState, context: {
   md += `| 技能 | 加值 | 熟练度 |\n`;
   md += `| :--- | :--- | :--- |\n`;
   const skillToAbility: Record<string, string> = {
-    arcana: 'int', history: 'int', investigation: 'int', nature: 'int', religion: 'int',
-    athletics: 'str', acrobatics: 'dex', sleightOfHand: 'dex', stealth: 'dex',
-    insight: 'wis', animalHandling: 'wis', medicine: 'wis', perception: 'wis', survival: 'wis',
-    deception: 'cha', intimidation: 'cha', performance: 'cha', persuasion: 'cha'
+    arcana: 'int',
+    history: 'int',
+    investigation: 'int',
+    nature: 'int',
+    religion: 'int',
+    athletics: 'str',
+    acrobatics: 'dex',
+    sleightOfHand: 'dex',
+    stealth: 'dex',
+    insight: 'wis',
+    animalHandling: 'wis',
+    medicine: 'wis',
+    perception: 'wis',
+    survival: 'wis',
+    deception: 'cha',
+    intimidation: 'cha',
+    performance: 'cha',
+    persuasion: 'cha',
   };
   const skillNames: Record<string, string> = {
-    arcana: '奥秘', history: '历史', investigation: '调查', nature: '自然', religion: '宗教',
-    athletics: '运动', acrobatics: '体操', sleightOfHand: '巧手', stealth: '隐匿',
-    insight: '洞悉', animalHandling: '驯兽', medicine: '医药', perception: '察觉', survival: '生存',
-    deception: '欺瞒', intimidation: '威吓', performance: '表演', persuasion: '游说'
+    arcana: '奥秘',
+    history: '历史',
+    investigation: '调查',
+    nature: '自然',
+    religion: '宗教',
+    athletics: '运动',
+    acrobatics: '体操',
+    sleightOfHand: '巧手',
+    stealth: '隐匿',
+    insight: '洞悉',
+    animalHandling: '驯兽',
+    medicine: '医药',
+    perception: '察觉',
+    survival: '生存',
+    deception: '欺瞒',
+    intimidation: '威吓',
+    performance: '表演',
+    persuasion: '游说',
   };
-  
+
   Object.entries(skillNames).forEach(([id, name]) => {
     const prof = proficiencies.skills.find((p: any) => p.id === id);
     const isExp = character.expertiseSkills?.includes(id);
@@ -118,18 +170,18 @@ export function exportToMarkdown(character: CharacterState, context: {
     md += `- **施法属性**：${spellcasting.spellcastingAbility.toUpperCase()}\n`;
     md += `- **法术 DC**：${spellcasting.spellDC}\n`;
     md += `- **法术攻击**：${spellcasting.spellAttack >= 0 ? `+${spellcasting.spellAttack}` : spellcasting.spellAttack}\n\n`;
-    
+
     md += `### 戏法\n`;
-    cantripDetails.forEach(s => md += `- ${s.name}\n`);
+    cantripDetails.forEach((s) => (md += `- ${s.name}\n`));
     md += `\n### 已准备法术\n`;
-    spellDetails.forEach(s => md += `- ${s.name} (${s.level}环)\n`);
+    spellDetails.forEach((s) => (md += `- ${s.name} (${s.level}环)\n`));
     md += `\n`;
   }
 
   md += `## 7. 装备与财富\n`;
   md += `- **货币**：GP: ${character.currency.gp}, SP: ${character.currency.sp}, CP: ${character.currency.cp}\n`;
   md += `- **库存**：\n`;
-  character.inventoryEntries.forEach(e => md += `  - ${e.name} (x${e.quantity || 1})\n`);
+  character.inventoryEntries.forEach((e) => (md += `  - ${e.name} (x${e.quantity || 1})\n`));
   md += `\n`;
 
   md += `## 8. 背景与描述\n`;

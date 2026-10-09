@@ -7,9 +7,15 @@ import OptionCard from '@/components/OptionCard';
 import styles from '../species/page.module.css';
 
 const ALIGNMENTS = [
-  { id: 'LG', name: '守序善良' }, { id: 'NG', name: '中立善良' }, { id: 'CG', name: '混乱善良' },
-  { id: 'LN', name: '守序中立' }, { id: 'TN', name: '绝对中立' }, { id: 'CN', name: '混乱中立' },
-  { id: 'LE', name: '守序邪恶' }, { id: 'NE', name: '中立邪恶' }, { id: 'CE', name: '混乱邪恶' },
+  { id: 'LG', name: '守序善良' },
+  { id: 'NG', name: '中立善良' },
+  { id: 'CG', name: '混乱善良' },
+  { id: 'LN', name: '守序中立' },
+  { id: 'TN', name: '绝对中立' },
+  { id: 'CN', name: '混乱中立' },
+  { id: 'LE', name: '守序邪恶' },
+  { id: 'NE', name: '中立邪恶' },
+  { id: 'CE', name: '混乱邪恶' },
 ];
 
 export default function AlignmentPage() {
@@ -34,14 +40,22 @@ export default function AlignmentPage() {
       </div>
 
       <div className={styles.content}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, width: '100%', maxWidth: 800 }}>
-          {ALIGNMENTS.map(a => (
-            <OptionCard 
-              key={a.id} 
-              title={a.name} 
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(3, 1fr)',
+            gap: 16,
+            width: '100%',
+            maxWidth: 800,
+          }}
+        >
+          {ALIGNMENTS.map((a) => (
+            <OptionCard
+              key={a.id}
+              title={a.name}
               subtitle={a.id}
-              selected={character.alignment === a.id} 
-              onClick={() => updateActiveCharacter({ alignment: a.id })} 
+              selected={character.alignment === a.id}
+              onClick={() => updateActiveCharacter({ alignment: a.id })}
             />
           ))}
         </div>

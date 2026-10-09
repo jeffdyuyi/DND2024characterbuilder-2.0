@@ -18,21 +18,21 @@ export function totalInCP(currency: Currency): number {
  */
 export function fromCPToCurrency(totalCp: number): Currency {
   let remaining = totalCp;
-  
+
   const pp = Math.floor(remaining / 1000);
   remaining %= 1000;
-  
+
   const gp = Math.floor(remaining / 100);
   remaining %= 100;
-  
+
   const ep = Math.floor(remaining / 50);
   remaining %= 50;
-  
+
   const sp = Math.floor(remaining / 10);
   remaining %= 10;
-  
+
   const cp = remaining;
-  
+
   return { pp, gp, ep, sp, cp };
 }
 
@@ -41,12 +41,12 @@ export function fromCPToCurrency(totalCp: number): Currency {
  */
 export function deductCP(current: Currency, cpToDeduct: number): Currency {
   const totalCp = totalInCP(current);
-  
+
   if (totalCp < cpToDeduct) {
     console.warn('Insufficient funds');
     return current;
   }
-  
+
   const remainingCp = totalCp - cpToDeduct;
   return fromCPToCurrency(remainingCp);
 }
@@ -63,22 +63,28 @@ export function deductCurrency(current: Currency, gpToDeduct: number): Currency 
  */
 export function parsePriceToCP(priceStr: string): number {
   if (!priceStr) return 0;
-  
+
   const normalized = priceStr.trim().toUpperCase();
   const match = normalized.match(/^([\d.]+)\s*(PP|GP|EP|SP|CP)$/);
-  
+
   if (!match) return 0;
-  
+
   const value = parseFloat(match[1]);
   const unit = match[2];
-  
+
   switch (unit) {
-    case 'PP': return value * 1000;
-    case 'GP': return value * 100;
-    case 'EP': return value * 50;
-    case 'SP': return value * 10;
-    case 'CP': return value;
-    default: return 0;
+    case 'PP':
+      return value * 1000;
+    case 'GP':
+      return value * 100;
+    case 'EP':
+      return value * 50;
+    case 'SP':
+      return value * 10;
+    case 'CP':
+      return value;
+    default:
+      return 0;
   }
 }
 
@@ -87,11 +93,11 @@ export function parsePriceToCP(priceStr: string): number {
  */
 export function getCurrencyWeight(currency: Currency): number {
   if (!currency) return 0;
-  const totalCoins = 
-    (currency.pp || 0) + 
-    (currency.gp || 0) + 
-    (currency.ep || 0) + 
-    (currency.sp || 0) + 
+  const totalCoins =
+    (currency.pp || 0) +
+    (currency.gp || 0) +
+    (currency.ep || 0) +
+    (currency.sp || 0) +
     (currency.cp || 0);
   return totalCoins / 50;
 }

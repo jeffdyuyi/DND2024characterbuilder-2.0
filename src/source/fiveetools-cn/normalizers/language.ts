@@ -20,7 +20,7 @@ export function normalizeLanguage(raw: Record<string, any>, packId = '5etools-cn
     name: englishName || name,
   });
 
-  const description = raw.entries ? flattenEntries(raw.entries) : (raw.origin || '');
+  const description = raw.entries ? flattenEntries(raw.entries) : raw.origin || '';
 
   return {
     id,

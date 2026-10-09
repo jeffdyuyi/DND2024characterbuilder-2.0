@@ -1,8 +1,14 @@
 import { defaultCatalog } from '../catalog';
 import { CatalogEntry, EntryKind } from '../types';
 
-export const CHARACTER_OPTION_KINDS = ['optionalfeature', 'charoption', 'reward', 'boon', 'cult'] as const;
-export type CharacterOptionKind = typeof CHARACTER_OPTION_KINDS[number];
+export const CHARACTER_OPTION_KINDS = [
+  'optionalfeature',
+  'charoption',
+  'reward',
+  'boon',
+  'cult',
+] as const;
+export type CharacterOptionKind = (typeof CHARACTER_OPTION_KINDS)[number];
 
 export interface CharacterOptionDefinition {
   id: string;
@@ -22,7 +28,11 @@ export interface CharacterOptionDefinition {
 export function catalogEntryToCharacterOption(entry: CatalogEntry): CharacterOptionDefinition {
   const raw = entry.raw as any;
   const featureTypes = [
-    ...(Array.isArray(raw.featureType) ? raw.featureType : raw.featureType ? [raw.featureType] : []),
+    ...(Array.isArray(raw.featureType)
+      ? raw.featureType
+      : raw.featureType
+        ? [raw.featureType]
+        : []),
     ...(Array.isArray(raw.optionType) ? raw.optionType : raw.optionType ? [raw.optionType] : []),
   ];
   return {
@@ -41,9 +51,13 @@ export function catalogEntryToCharacterOption(entry: CatalogEntry): CharacterOpt
   };
 }
 
-export function getCatalogCharacterOptions(options?: { kind?: CharacterOptionKind; source?: string }): CharacterOptionDefinition[] {
+export function getCatalogCharacterOptions(options?: {
+  kind?: CharacterOptionKind;
+  source?: string;
+}): CharacterOptionDefinition[] {
   const kinds: EntryKind[] = options?.kind ? [options.kind] : [...CHARACTER_OPTION_KINDS];
-  return kinds.flatMap((kind) => defaultCatalog.list(kind, { source: options?.source }))
+  return kinds
+    .flatMap((kind) => defaultCatalog.list(kind, { source: options?.source }))
     .map(catalogEntryToCharacterOption)
     .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
 }
@@ -52,10 +66,12 @@ export function getCatalogCharacterOptions(options?: { kind?: CharacterOptionKin
  * 检索可选特性 (Optional Features)
  * @param featureType 可选特性类型代码，如 'EI' 代表魔能祈唤 (Eldritch Invocations)
  */
-export function getCatalogOptionalFeatures(featureType?: string, source?: string): CharacterOptionDefinition[] {
+export function getCatalogOptionalFeatures(
+  featureType?: string,
+  source?: string,
+): CharacterOptionDefinition[] {
   const all = getCatalogCharacterOptions({ kind: 'optionalfeature', source });
   if (!featureType) return all;
   const target = featureType.toUpperCase();
   return all.filter((opt) => opt.featureTypes.some((t) => t.toUpperCase() === target));
 }
-

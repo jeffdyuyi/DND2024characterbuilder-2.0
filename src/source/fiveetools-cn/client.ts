@@ -12,7 +12,11 @@ import { RuleSource, FetchResult, DataSourceConfig } from '../types';
 import { readCache, writeCache, isCacheValid } from '@/platform/catalogCache';
 
 const CDN_FALLBACK_BASE_URL = 'https://cdn.jsdelivr.net/gh/tjliqy/5etools-cn@cn2.0';
-const configuredMirrors = (value?: string) => (value || '').split(',').map((item) => item.trim().replace(/\/$/, '')).filter(Boolean);
+const configuredMirrors = (value?: string) =>
+  (value || '')
+    .split(',')
+    .map((item) => item.trim().replace(/\/$/, ''))
+    .filter(Boolean);
 
 export interface SourceDiagnostics {
   requests: number;
@@ -48,7 +52,16 @@ export class FiveEToolsCnSource implements RuleSource {
   private readonly maxRetries: number;
   private readonly fetcher: typeof fetch;
   private refreshListeners = new Set<(path: string, result: FetchResult<unknown>) => void>();
-  private diagnostics: SourceDiagnostics = { requests: 0, freshCacheHits: 0, staleCacheHits: 0, networkRequests: 0, mirrorHits: 0, failures: 0, downloadedBytes: 0, revisions: {} };
+  private diagnostics: SourceDiagnostics = {
+    requests: 0,
+    freshCacheHits: 0,
+    staleCacheHits: 0,
+    networkRequests: 0,
+    mirrorHits: 0,
+    failures: 0,
+    downloadedBytes: 0,
+    revisions: {},
+  };
 
   /** 简单内存 revision 缓存：path -> revision string */
   private revisionCache: Map<string, string> = new Map();
@@ -58,7 +71,9 @@ export class FiveEToolsCnSource implements RuleSource {
     this.name = config.name;
     this.kind = config.kind;
     this.baseUrl = config.baseUrl.replace(/\/$/, '');
-    this.mirrorUrls = (config.mirrorUrls || []).map((url) => url.replace(/\/$/, '')).filter((url) => url !== this.baseUrl);
+    this.mirrorUrls = (config.mirrorUrls || [])
+      .map((url) => url.replace(/\/$/, ''))
+      .filter((url) => url !== this.baseUrl);
     this.timeoutMs = config.timeoutMs ?? 15_000;
     this.maxRetries = Math.max(0, config.maxRetries ?? 1);
     this.fetcher = normalizeFetcher(fetcher);
@@ -68,14 +83,16 @@ export class FiveEToolsCnSource implements RuleSource {
     return { ...this.diagnostics, revisions: { ...this.diagnostics.revisions } };
   }
 
-  public subscribeRefresh(listener: (path: string, result: FetchResult<unknown>) => void): () => void {
+  public subscribeRefresh(
+    listener: (path: string, result: FetchResult<unknown>) => void,
+  ): () => void {
     this.refreshListeners.add(listener);
     return () => this.refreshListeners.delete(listener);
   }
 
   public async fetchJson<T>(
     path: string,
-    options?: { signal?: AbortSignal; refresh?: boolean }
+    options?: { signal?: AbortSignal; refresh?: boolean },
   ): Promise<FetchResult<T>> {
     const cleanPath = path.replace(/^\//, '');
     const primaryUrl = `${this.baseUrl}/${cleanPath}`;
@@ -99,11 +116,14 @@ export class FiveEToolsCnSource implements RuleSource {
       // 缓存过期但存在：先用旧缓存返回，后台发起静默更新
       if (!options?.refresh) {
         this.diagnostics.staleCacheHits++;
-        this.fetchAndCache<T>(primaryUrl, cleanPath).then((result) => {
-          for (const listener of this.refreshListeners) listener(cleanPath, result as FetchResult<unknown>);
-        }).catch((err) => {
-          console.warn(`[FiveEToolsCnSource] 后台刷新 "${cleanPath}" 失败:`, err);
-        });
+        this.fetchAndCache<T>(primaryUrl, cleanPath)
+          .then((result) => {
+            for (const listener of this.refreshListeners)
+              listener(cleanPath, result as FetchResult<unknown>);
+          })
+          .catch((err) => {
+            console.warn(`[FiveEToolsCnSource] 后台刷新 "${cleanPath}" 失败:`, err);
+          });
         return {
           body: cached.body as T,
           revision: cached.revision,
@@ -121,7 +141,7 @@ export class FiveEToolsCnSource implements RuleSource {
   private async fetchAndCache<T>(
     primaryUrl: string,
     cleanPath: string,
-    signal?: AbortSignal
+    signal?: AbortSignal,
   ): Promise<FetchResult<T>> {
     const bases = [this.baseUrl, ...this.mirrorUrls];
     const errors: string[] = [];
@@ -139,7 +159,8 @@ export class FiveEToolsCnSource implements RuleSource {
           const candidate = await this.fetcher(url, { signal: controller.signal });
           if (!candidate.ok) throw new Error(`HTTP ${candidate.status}`);
           const parsed = await candidate.json();
-          if (parsed === null || (typeof parsed !== 'object')) throw new Error('响应不是 JSON 对象或数组');
+          if (parsed === null || typeof parsed !== 'object')
+            throw new Error('响应不是 JSON 对象或数组');
           response = candidate;
           body = parsed as T;
           if (baseIndex > 0) this.diagnostics.mirrorHits++;
@@ -186,7 +207,10 @@ export class FiveEToolsCnSource implements RuleSource {
   }
 
   /** 按规范 §6，通过 index.json 动态发现所有分文件，绝不硬编码文件名 */
-  public async listIndexedFiles(indexPath: string, options?: { signal?: AbortSignal; refresh?: boolean }): Promise<string[]> {
+  public async listIndexedFiles(
+    indexPath: string,
+    options?: { signal?: AbortSignal; refresh?: boolean },
+  ): Promise<string[]> {
     const result = await this.fetchJson<Record<string, string>>(indexPath, options);
     return Object.values(result.body);
   }
@@ -234,4 +258,3 @@ export const TJLIQY_HOMEBREW_CONFIG: DataSourceConfig = {
 export function createDefaultHomebrewSource(): FiveEToolsCnSource {
   return new FiveEToolsCnSource(TJLIQY_HOMEBREW_CONFIG);
 }
-

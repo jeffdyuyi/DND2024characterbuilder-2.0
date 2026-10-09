@@ -20,7 +20,7 @@ export const ALL_GAME_LANGUAGES: typeof STATIC_LANGUAGES = new Proxy(STATIC_LANG
       return value.bind(dynamic);
     }
     return value;
-  }
+  },
 });
 
 export const allLanguages = ALL_GAME_LANGUAGES;

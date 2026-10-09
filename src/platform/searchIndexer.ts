@@ -1,4 +1,11 @@
-import { getCatalogSpells, getCatalogClasses, getCatalogFeats, getCatalogBackgrounds, getCatalogSpecies, getCatalogItems } from '@/catalog';
+import {
+  getCatalogSpells,
+  getCatalogClasses,
+  getCatalogFeats,
+  getCatalogBackgrounds,
+  getCatalogSpecies,
+  getCatalogItems,
+} from '@/catalog';
 import { useHomebrewStore } from '@/store/homebrewStore';
 
 export interface SearchResultItem {
@@ -15,12 +22,13 @@ export interface SearchResultItem {
   raw: any;
 }
 
-export type CategoryFilter = 'all' | 'spell' | 'feat' | 'item' | 'species' | 'background' | 'monster' | 'class';
+export type CategoryFilter =
+  'all' | 'spell' | 'feat' | 'item' | 'species' | 'background' | 'monster' | 'class';
 
 export function searchAll(
   query: string,
   editionFilter: '5e' | '2024' | 'all' = 'all',
-  categoryFilter: CategoryFilter = 'all'
+  categoryFilter: CategoryFilter = 'all',
 ): SearchResultItem[] {
   const normalizedQuery = query.trim().toLowerCase();
   const results: SearchResultItem[] = [];
@@ -225,7 +233,6 @@ export function searchAll(
       });
     });
 
-
     homebrewState.items.forEach((item: any) => {
       if (item.enabled === false) return;
       results.push({
@@ -283,22 +290,32 @@ export function searchAll(
 
   let filtered = results;
   if (editionFilter === '2024') {
-    filtered = filtered.filter((r) => r.isHomebrew || r.source.includes('2024') || r.source === 'XPHB' || r.source.includes('2024'));
+    filtered = filtered.filter(
+      (r) =>
+        r.isHomebrew ||
+        r.source.includes('2024') ||
+        r.source === 'XPHB' ||
+        r.source.includes('2024'),
+    );
   } else if (editionFilter === '5e') {
-    filtered = filtered.filter((r) => r.isHomebrew || (!r.source.includes('2024') && r.source !== 'XPHB'));
+    filtered = filtered.filter(
+      (r) => r.isHomebrew || (!r.source.includes('2024') && r.source !== 'XPHB'),
+    );
   }
 
   if (!normalizedQuery) {
     return filtered.slice(0, 100);
   }
 
-  return filtered.filter((item) => {
-    return (
-      item.name.toLowerCase().includes(normalizedQuery) ||
-      item.nameEn.toLowerCase().includes(normalizedQuery) ||
-      item.id.toLowerCase().includes(normalizedQuery) ||
-      item.description.toLowerCase().includes(normalizedQuery) ||
-      item.source.toLowerCase().includes(normalizedQuery)
-    );
-  }).slice(0, 150);
+  return filtered
+    .filter((item) => {
+      return (
+        item.name.toLowerCase().includes(normalizedQuery) ||
+        item.nameEn.toLowerCase().includes(normalizedQuery) ||
+        item.id.toLowerCase().includes(normalizedQuery) ||
+        item.description.toLowerCase().includes(normalizedQuery) ||
+        item.source.toLowerCase().includes(normalizedQuery)
+      );
+    })
+    .slice(0, 150);
 }

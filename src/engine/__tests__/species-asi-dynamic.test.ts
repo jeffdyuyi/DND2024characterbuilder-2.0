@@ -252,10 +252,10 @@ describe('Phase D: 2024 / 5etools 种族 ASI 动态分配与引擎计算', () =>
                 id: 'subspecies:warding',
                 name: '警戒龙纹',
                 nameEn: 'Mark of Warding',
-                abilityScoreIncrease: { int: 1 }
-              }
-            ]
-          }
+                abilityScoreIncrease: { int: 1 },
+              },
+            ],
+          },
         },
       };
       defaultCatalog.register(dwarfMarkOfWardingEntry);
@@ -298,4 +298,3 @@ describe('Phase D: 2024 / 5etools 种族 ASI 动态分配与引擎计算', () =>
     });
   });
 });
-

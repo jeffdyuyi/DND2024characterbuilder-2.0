@@ -1,7 +1,11 @@
 import { CharacterState, AbilityScores } from '../types/characterState';
 import { getCatalogSpecies } from '@/catalog';
 import { normalizeAbilityKey } from './terminology';
-import { getActiveItemDefinitions, getClassDefinition, getSubclassDefinition } from './characterData';
+import {
+  getActiveItemDefinitions,
+  getClassDefinition,
+  getSubclassDefinition,
+} from './characterData';
 
 export function calculateAbilityModifier(score: number): number {
   return Math.floor((score - 10) / 2);
@@ -22,7 +26,7 @@ export function computeAbilityScores(state: CharacterState): {
 } {
   const base = state.baseAbilityScores || { str: 8, dex: 8, con: 8, int: 8, wis: 8, cha: 8 };
   const bgBonus = state.backgroundAbilityBonuses || {};
-  
+
   const breakdown = {
     base: { ...base },
     background: {
@@ -43,11 +47,19 @@ export function computeAbilityScores(state: CharacterState): {
   // Add bonuses from species (controlled by switch)
   if (state.useSpeciesASI !== false) {
     const speciesList = getCatalogSpecies();
-    const species = speciesList.find((s: any) => 
-      (s.id === state.speciesId || s.nameEn === state.speciesId || s.name === state.speciesId) &&
-      (!state.speciesSource || s.source === state.speciesSource)
-    ) || speciesList.find((s: any) => s.id === state.speciesId || s.nameEn === state.speciesId || s.name === state.speciesId);
-    
+    const species =
+      speciesList.find(
+        (s: any) =>
+          (s.id === state.speciesId ||
+            s.nameEn === state.speciesId ||
+            s.name === state.speciesId) &&
+          (!state.speciesSource || s.source === state.speciesSource),
+      ) ||
+      speciesList.find(
+        (s: any) =>
+          s.id === state.speciesId || s.nameEn === state.speciesId || s.name === state.speciesId,
+      );
+
     if (species) {
       const applySpeciesBonus = (bonusObj: any) => {
         if (!bonusObj) return;
@@ -63,11 +75,12 @@ export function computeAbilityScores(state: CharacterState): {
       let selectedSub: any = undefined;
       if (state.subspeciesId && species.subSpecies?.options) {
         const normSubId = state.subspeciesId.toLowerCase().replace(/[-_\s]+/g, '');
-        selectedSub = species.subSpecies.options.find((ss: any) => 
-          ss.id === state.subspeciesId || 
-          ss.id.toLowerCase().replace(/[-_\s]+/g, '') === normSubId ||
-          ss.nameEn.toLowerCase().replace(/[-_\s]+/g, '') === normSubId || 
-          ss.name.toLowerCase().replace(/[-_\s]+/g, '') === normSubId
+        selectedSub = species.subSpecies.options.find(
+          (ss: any) =>
+            ss.id === state.subspeciesId ||
+            ss.id.toLowerCase().replace(/[-_\s]+/g, '') === normSubId ||
+            ss.nameEn.toLowerCase().replace(/[-_\s]+/g, '') === normSubId ||
+            ss.name.toLowerCase().replace(/[-_\s]+/g, '') === normSubId,
         );
       }
 
@@ -88,8 +101,9 @@ export function computeAbilityScores(state: CharacterState): {
 
       // 2. 动态/自由属性分配 (Phase D: 2024 / 5etools choose 格式)
       // 方案 A: 角色显式指定了 speciesAbilityBonuses (如 { str: 1, dex: 1 } 或 { int: 2 })
-      const hasExplicitSpeciesBonuses = state.speciesAbilityBonuses && 
-        Object.values(state.speciesAbilityBonuses).some(v => typeof v === 'number' && v !== 0);
+      const hasExplicitSpeciesBonuses =
+        state.speciesAbilityBonuses &&
+        Object.values(state.speciesAbilityBonuses).some((v) => typeof v === 'number' && v !== 0);
 
       if (hasExplicitSpeciesBonuses) {
         Object.entries(state.speciesAbilityBonuses!).forEach(([key, val]) => {
@@ -102,25 +116,30 @@ export function computeAbilityScores(state: CharacterState): {
         // 方案 B: 角色通过 speciesSelections 选择 (如人类自选、半精灵自选、5etools choose)
         Object.entries(state.speciesSelections || {}).forEach(([traitId, values]) => {
           const lowerTraitId = traitId.toLowerCase();
-          const isASITrait = lowerTraitId.includes('ability-score-increase') || 
-                             lowerTraitId.includes('asi') || 
-                             lowerTraitId.includes('属性值') ||
-                             lowerTraitId.includes('choose');
-                             
+          const isASITrait =
+            lowerTraitId.includes('ability-score-increase') ||
+            lowerTraitId.includes('asi') ||
+            lowerTraitId.includes('属性值') ||
+            lowerTraitId.includes('choose');
+
           if (isASITrait && Array.isArray(values)) {
             // 若亚种全面覆盖了属性值提升，且当前选项不属于亚种作用域，则母种族的自选加成被抑制
             if (shouldOverwriteAbility && selectedSub) {
-              const isSubTrait = traitId.includes(`:sub:${selectedSub.id}:`) || 
-                                 (selectedSub.traits && selectedSub.traits.some((st: any) => traitId.includes(`:trait:${st.id || st.name}:`)));
+              const isSubTrait =
+                traitId.includes(`:sub:${selectedSub.id}:`) ||
+                (selectedSub.traits &&
+                  selectedSub.traits.some((st: any) =>
+                    traitId.includes(`:trait:${st.id || st.name}:`),
+                  ));
               if (!isSubTrait) return;
             }
 
-            values.forEach(val => {
+            values.forEach((val) => {
               if (typeof val === 'string') {
                 // 支持 "str:+2", "dex:2", "力量 (+1)" 格式
                 let bonus = 1;
                 let statPart = val;
-                
+
                 if (val.includes(':')) {
                   const [k, b] = val.split(':');
                   statPart = k;
@@ -147,7 +166,7 @@ export function computeAbilityScores(state: CharacterState): {
   }
 
   // Add bonuses from feats
-  Object.values(state.featSelections || {}).forEach(choice => {
+  Object.values(state.featSelections || {}).forEach((choice) => {
     // Handle single choice (Legacy/Simple)
     if (choice.ability) {
       const key = choice.ability as keyof AbilityScores;
@@ -158,19 +177,19 @@ export function computeAbilityScores(state: CharacterState): {
       Object.entries(choice.asi).forEach(([key, val]) => {
         const k = key as keyof AbilityScores;
         if (breakdown.feats[k] !== undefined) {
-          breakdown.feats[k] += (val as number);
+          breakdown.feats[k] += val as number;
         }
       });
     }
   });
 
   // Add bonuses from class features (e.g. Primal Champion)
-  state.classes?.forEach(cEntry => {
+  state.classes?.forEach((cEntry) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
-    
-    const activeFeatures = classDef.features.filter(f => f.level <= cEntry.level);
-    activeFeatures.forEach(f => {
+
+    const activeFeatures = classDef.features.filter((f) => f.level <= cEntry.level);
+    activeFeatures.forEach((f) => {
       if (f.mechanics?.statBonus) {
         Object.entries(f.mechanics.statBonus).forEach(([key, val]) => {
           const k = normalizeAbilityKey(key) as keyof AbilityScores;
@@ -188,31 +207,63 @@ export function computeAbilityScores(state: CharacterState): {
     if (cEntry.subclassId) {
       const subclassDef = getSubclassDefinition(state);
       if (subclassDef) {
-        subclassDef.traits.filter(t => t.level <= cEntry.level).forEach(t => {
-          if (t.mechanics?.statBonus) {
-            Object.entries(t.mechanics.statBonus).forEach(([key, val]) => {
-              const k = normalizeAbilityKey(key) as keyof AbilityScores;
-              if (k && typeof val === 'number') breakdown.class[k] += val;
-            });
-          }
-          if (t.mechanics?.statMaxIncrease) {
-            Object.entries(t.mechanics.statMaxIncrease).forEach(([key, val]) => {
-              const k = normalizeAbilityKey(key) as keyof AbilityScores;
-              if (k && typeof val === 'number') maxScores[k] = Math.max(maxScores[k], val);
-            });
-          }
-        });
+        subclassDef.traits
+          .filter((t) => t.level <= cEntry.level)
+          .forEach((t) => {
+            if (t.mechanics?.statBonus) {
+              Object.entries(t.mechanics.statBonus).forEach(([key, val]) => {
+                const k = normalizeAbilityKey(key) as keyof AbilityScores;
+                if (k && typeof val === 'number') breakdown.class[k] += val;
+              });
+            }
+            if (t.mechanics?.statMaxIncrease) {
+              Object.entries(t.mechanics.statMaxIncrease).forEach(([key, val]) => {
+                const k = normalizeAbilityKey(key) as keyof AbilityScores;
+                if (k && typeof val === 'number') maxScores[k] = Math.max(maxScores[k], val);
+              });
+            }
+          });
       }
     }
   });
 
   const rawScores: AbilityScores = {
-    str: breakdown.base.str + breakdown.background.str + breakdown.species.str + breakdown.feats.str + breakdown.class.str,
-    dex: breakdown.base.dex + breakdown.background.dex + breakdown.species.dex + breakdown.feats.dex + breakdown.class.dex,
-    con: breakdown.base.con + breakdown.background.con + breakdown.species.con + breakdown.feats.con + breakdown.class.con,
-    int: breakdown.base.int + breakdown.background.int + breakdown.species.int + breakdown.feats.int + breakdown.class.int,
-    wis: breakdown.base.wis + breakdown.background.wis + breakdown.species.wis + breakdown.feats.wis + breakdown.class.wis,
-    cha: breakdown.base.cha + breakdown.background.cha + breakdown.species.cha + breakdown.feats.cha + breakdown.class.cha,
+    str:
+      breakdown.base.str +
+      breakdown.background.str +
+      breakdown.species.str +
+      breakdown.feats.str +
+      breakdown.class.str,
+    dex:
+      breakdown.base.dex +
+      breakdown.background.dex +
+      breakdown.species.dex +
+      breakdown.feats.dex +
+      breakdown.class.dex,
+    con:
+      breakdown.base.con +
+      breakdown.background.con +
+      breakdown.species.con +
+      breakdown.feats.con +
+      breakdown.class.con,
+    int:
+      breakdown.base.int +
+      breakdown.background.int +
+      breakdown.species.int +
+      breakdown.feats.int +
+      breakdown.class.int,
+    wis:
+      breakdown.base.wis +
+      breakdown.background.wis +
+      breakdown.species.wis +
+      breakdown.feats.wis +
+      breakdown.class.wis,
+    cha:
+      breakdown.base.cha +
+      breakdown.background.cha +
+      breakdown.species.cha +
+      breakdown.feats.cha +
+      breakdown.class.cha,
   };
 
   const scores: AbilityScores = {
@@ -232,7 +283,9 @@ export function computeAbilityScores(state: CharacterState): {
       const abilityKey = normalizeAbilityKey(key) as keyof AbilityScores;
       if (!abilityKey || typeof value !== 'number' || value <= scores[abilityKey]) return;
       scores[abilityKey] = value;
-      (itemSetTraces[abilityKey] ??= []).push(`${item.name} 将${abilityKey.toUpperCase()}设为 ${value}`);
+      (itemSetTraces[abilityKey] ??= []).push(
+        `${item.name} 将${abilityKey.toUpperCase()}设为 ${value}`,
+      );
     });
   });
 
@@ -246,14 +299,24 @@ export function computeAbilityScores(state: CharacterState): {
   };
 
   const statLabels: Record<keyof AbilityScores, string> = {
-    str: '力量', dex: '敏捷', con: '体质', int: '智力', wis: '感知', cha: '魅力'
+    str: '力量',
+    dex: '敏捷',
+    con: '体质',
+    int: '智力',
+    wis: '感知',
+    cha: '魅力',
   };
 
   const trace: Record<keyof AbilityScores, string[]> = {
-    str: [], dex: [], con: [], int: [], wis: [], cha: []
+    str: [],
+    dex: [],
+    con: [],
+    int: [],
+    wis: [],
+    cha: [],
   };
 
-  (Object.keys(statLabels) as (keyof AbilityScores)[]).forEach(k => {
+  (Object.keys(statLabels) as (keyof AbilityScores)[]).forEach((k) => {
     const list: string[] = [];
     list.push(`基础购买/掷骰: ${breakdown.base[k]}`);
     if (breakdown.background[k] > 0) list.push(`背景加成: +${breakdown.background[k]}`);
@@ -271,9 +334,9 @@ export function computeAbilityScores(state: CharacterState): {
     trace[k] = list;
   });
 
-  return { 
-    scores, 
-    modifiers, 
+  return {
+    scores,
+    modifiers,
     breakdown,
     caps: maxScores,
     trace,

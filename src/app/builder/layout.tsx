@@ -50,7 +50,7 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const filteredSteps = STEPS.filter(step => {
+  const filteredSteps = STEPS.filter((step) => {
     if (step.path === 'multiclass' && !character?.isMulticlassingEnabled) {
       return false;
     }
@@ -74,7 +74,7 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
   const handlePrev = () => navigateTo(stepIndex - 1);
   const handleNext = () => {
     if (!validateCurrentStep()) return;
-    
+
     if (stepIndex === filteredSteps.length - 1) {
       router.push(`/sheet/view/?id=${encodeURIComponent(charId)}`);
     } else {
@@ -97,13 +97,23 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
                 size="sm"
                 variant={character.allowHomebrew ? 'primary' : 'outline'}
                 onClick={handleToggleHomebrew}
-                title={character.allowHomebrew ? '点击禁用第三方扩展 / Homebrew' : '点击启用第三方扩展 / Homebrew'}
+                title={
+                  character.allowHomebrew
+                    ? '点击禁用第三方扩展 / Homebrew'
+                    : '点击启用第三方扩展 / Homebrew'
+                }
               >
-                {isHomebrewLoading ? '扩展载入中...' : `第三方扩展 / Homebrew: ${character.allowHomebrew ? '开' : '关'}`}
+                {isHomebrewLoading
+                  ? '扩展载入中...'
+                  : `第三方扩展 / Homebrew: ${character.allowHomebrew ? '开' : '关'}`}
               </PillButton>
             )}
             {charId && (
-              <PillButton size="sm" variant="outline" onClick={() => router.push(`/sheet/view/?id=${encodeURIComponent(charId)}`)}>
+              <PillButton
+                size="sm"
+                variant="outline"
+                onClick={() => router.push(`/sheet/view/?id=${encodeURIComponent(charId)}`)}
+              >
                 返回角色卡
               </PillButton>
             )}
@@ -116,10 +126,7 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
         <div className={styles.progress__bar}>
           {/* Background line */}
           <div className={styles.progress__line}>
-            <div
-              className={styles.progress__lineFill}
-              style={{ width: `${progressPercent}%` }}
-            />
+            <div className={styles.progress__lineFill} style={{ width: `${progressPercent}%` }} />
           </div>
 
           {filteredSteps.map((step, i) => (
@@ -155,19 +162,12 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
       {/* Footer Navigation */}
       <div className={styles.builder__footer}>
         <div className={styles.builder__footerInner}>
-          <PillButton
-            variant="outline"
-            size="sm"
-            onClick={handlePrev}
-            disabled={stepIndex === 0}
-          >
+          <PillButton variant="outline" size="sm" onClick={handlePrev} disabled={stepIndex === 0}>
             <ChevronLeft size={14} />
             上一步
           </PillButton>
 
-          <span className={styles.builder__footerInfo}>
-            {STEPS[stepIndex]?.label}
-          </span>
+          <span className={styles.builder__footerInfo}>{STEPS[stepIndex]?.label}</span>
 
           <PillButton size="sm" onClick={handleNext}>
             {stepIndex === STEPS.length - 1 ? '完成' : '下一步'}

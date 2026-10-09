@@ -26,10 +26,12 @@ export default function CharacterLibrary() {
 
   function getClassSummary(char: CharacterState) {
     if (!char.classes || char.classes.length === 0) return '未选择职业';
-    return char.classes.map((c) => {
-      const def = getClassDefinition(c.classId);
-      return `${def?.name || c.classId} Lv.${c.level}`;
-    }).join(' / ');
+    return char.classes
+      .map((c) => {
+        const def = getClassDefinition(c.classId);
+        return `${def?.name || c.classId} Lv.${c.level}`;
+      })
+      .join(' / ');
   }
 
   function getSpeciesLabel(char: CharacterState) {
@@ -130,10 +132,22 @@ export default function CharacterLibrary() {
       {/* Card Grid */}
       <div className={styles.library__grid}>
         {/* Create Card */}
-        <div className={styles.createCard} onClick={() => !showCreateMenu && setShowCreateMenu(true)}>
+        <div
+          className={styles.createCard}
+          onClick={() => !showCreateMenu && setShowCreateMenu(true)}
+        >
           {showCreateMenu ? (
             <div className={styles.charCard__confirmOverlay}>
-              <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--color-gold-bright)', marginBottom: 8 }}>开始新的冒险</div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 16,
+                  color: 'var(--color-gold-bright)',
+                  marginBottom: 8,
+                }}
+              >
+                开始新的冒险
+              </div>
               <div className={styles.charCard__confirmActions}>
                 <PillButton
                   size="md"
@@ -171,21 +185,35 @@ export default function CharacterLibrary() {
             </div>
           ) : (
             <>
-              <div className={styles.createCardIcon} style={{
-                width: 64, 
-                height: 64, 
-                borderRadius: '50%', 
-                background: 'rgba(197, 160, 89, 0.1)', 
-                border: '1px solid var(--color-border-gold)',
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                color: 'var(--color-gold-bright)'
-              }}>
+              <div
+                className={styles.createCardIcon}
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '50%',
+                  background: 'rgba(197, 160, 89, 0.1)',
+                  border: '1px solid var(--color-border-gold)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--color-gold-bright)',
+                }}
+              >
                 <Plus size={32} />
               </div>
-              <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--color-gold-bright)', fontFamily: 'var(--font-family-serif)' }}>新建角色</div>
-              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>开启一段全新的 2024 传奇旅程</div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 18,
+                  color: 'var(--color-gold-bright)',
+                  fontFamily: 'var(--font-family-serif)',
+                }}
+              >
+                新建角色
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
+                开启一段全新的 2024 传奇旅程
+              </div>
             </>
           )}
         </div>
@@ -199,18 +227,10 @@ export default function CharacterLibrary() {
                   确定删除「{char.name || '未命名角色'}」？
                 </span>
                 <div className={styles.charCard__confirmActions}>
-                  <PillButton
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDelete(char.id)}
-                  >
+                  <PillButton variant="danger" size="sm" onClick={() => handleDelete(char.id)}>
                     确认删除
                   </PillButton>
-                  <PillButton
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDeleteConfirmId(null)}
-                  >
+                  <PillButton variant="outline" size="sm" onClick={() => setDeleteConfirmId(null)}>
                     取消
                   </PillButton>
                 </div>
@@ -218,20 +238,20 @@ export default function CharacterLibrary() {
             )}
 
             {/* Card Image / Avatar */}
-            <div 
+            <div
               className={styles.charCard__image}
               onClick={() => handleEdit(char.id)}
               style={{ cursor: 'pointer' }}
             >
               {char.avatarUrl ? (
-                <div 
-                  style={{ 
-                    width: '100%', 
-                    height: '100%', 
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
                     backgroundImage: `url(${char.avatarUrl})`,
                     backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }} 
+                    backgroundPosition: 'center',
+                  }}
                 />
               ) : (
                 <div className={styles.charCard__placeholder}>
@@ -239,20 +259,22 @@ export default function CharacterLibrary() {
                   <span style={{ fontSize: 12, opacity: 0.7 }}>未设置头像</span>
                 </div>
               )}
-              <div className={styles.charCard__levelBadge}>
-                Lv.{getTotalLevel(char)}
-              </div>
+              <div className={styles.charCard__levelBadge}>Lv.{getTotalLevel(char)}</div>
             </div>
 
             {/* Card Content */}
             <div className={styles.charCard__content}>
-              <div className={styles.charCard__name} onClick={() => handleEdit(char.id)} style={{ cursor: 'pointer' }}>
+              <div
+                className={styles.charCard__name}
+                onClick={() => handleEdit(char.id)}
+                style={{ cursor: 'pointer' }}
+              >
                 {char.name || '未命名英雄'}
               </div>
               <div className={styles.charCard__info}>
                 {getSpeciesLabel(char)} · {getClassSummary(char)}
               </div>
-              
+
               <div className={styles.charCard__actions}>
                 <PillButton size="sm" onClick={() => handleEdit(char.id)} style={{ flex: 1 }}>
                   详情卡

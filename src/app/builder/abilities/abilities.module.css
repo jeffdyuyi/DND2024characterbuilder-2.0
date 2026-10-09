@@ -158,7 +158,8 @@
   color: var(--color-text-primary);
 }
 
-.modernSelect, .modernInput {
+.modernSelect,
+.modernInput {
   width: 100%;
   padding: 8px 12px;
   border-radius: 10px;
@@ -310,11 +311,29 @@
 }
 
 @media (min-width: 1100px) {
-  .title { font-size: 21px; }
-  .subtitle, .modeSelector { margin-bottom: 16px; }
-  .mainPanel { padding: 18px; }
-  .pointBuyHeader { padding: 12px; margin-bottom: 16px; }
-  .standardArrayHeader { padding: 12px; margin-bottom: 16px; font-size: 13px; }
-  .verticalAbilitiesList { gap: 9px; }
-  .premiumAbilityCard { padding: 10px 16px; }
+  .title {
+    font-size: 21px;
+  }
+  .subtitle,
+  .modeSelector {
+    margin-bottom: 16px;
+  }
+  .mainPanel {
+    padding: 18px;
+  }
+  .pointBuyHeader {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  .standardArrayHeader {
+    padding: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .verticalAbilitiesList {
+    gap: 9px;
+  }
+  .premiumAbilityCard {
+    padding: 10px 16px;
+  }
 }

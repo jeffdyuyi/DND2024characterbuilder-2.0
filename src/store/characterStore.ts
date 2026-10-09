@@ -8,13 +8,13 @@ import { migrateCharacterCatalogReferences } from '@/catalog/references';
 interface CharacterStore {
   characters: Record<string, CharacterState>;
   activeCharacterId: string | null;
-  
+
   // Library Actions
   createCharacter: () => string;
   loadCharacter: (id: string) => void;
   deleteCharacter: (id: string) => void;
   cloneCharacter: (id: string) => string;
-  
+
   // Active Character Updates
   updateActiveCharacter: (updates: Partial<CharacterState>) => void;
   updateManualOverrides: (overrides: Partial<CharacterState['manualOverrides']>) => void;
@@ -27,8 +27,7 @@ const generateId = (): string => {
     return crypto.randomUUID();
   }
   // Fallback for non-secure contexts or older environments
-  return Math.random().toString(36).substring(2, 15) + 
-         Math.random().toString(36).substring(2, 15);
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 };
 
 const createEmptyCharacter = (id: string): CharacterState => ({
@@ -114,12 +113,12 @@ export const useCharacterStore = create<CharacterStore>()(
         const state = get();
         const charToClone = state.characters[id];
         if (!charToClone) return '';
-        
+
         const newId = generateId();
         const clonedChar = structuredClone(charToClone);
         clonedChar.id = newId;
         clonedChar.name = `${charToClone.name} (副本)`;
-        
+
         set((s) => ({
           characters: { ...s.characters, [newId]: clonedChar },
         }));
@@ -157,10 +156,12 @@ export const useCharacterStore = create<CharacterStore>()(
 
       migrateCatalogReferences: () => {
         set((state) => ({
-          characters: Object.fromEntries(Object.entries(state.characters).map(([id, character]) => [
-            id,
-            migrateCharacterCatalogReferences(character, defaultCatalog),
-          ])),
+          characters: Object.fromEntries(
+            Object.entries(state.characters).map(([id, character]) => [
+              id,
+              migrateCharacterCatalogReferences(character, defaultCatalog),
+            ]),
+          ),
         }));
       },
     }),
@@ -170,11 +171,17 @@ export const useCharacterStore = create<CharacterStore>()(
       storage: createJSONStorage(() => safeLocalStorage),
       migrate: (persisted: any) => ({
         ...persisted,
-        characters: Object.fromEntries(Object.entries(persisted?.characters || {}).map(([id, value]) => [
-          id,
-          { ...(value as CharacterState), schemaVersion: 2, contentSnapshots: (value as CharacterState).contentSnapshots || {} },
-        ])),
+        characters: Object.fromEntries(
+          Object.entries(persisted?.characters || {}).map(([id, value]) => [
+            id,
+            {
+              ...(value as CharacterState),
+              schemaVersion: 2,
+              contentSnapshots: (value as CharacterState).contentSnapshots || {},
+            },
+          ]),
+        ),
       }),
-    }
-  )
+    },
+  ),
 );

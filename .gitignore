@@ -22,8 +22,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# Environment files (keep only the public template)
+.env*
+!.env.example
 
 # vercel
 .vercel
@@ -38,3 +39,24 @@ next-env.d.ts
 # Local upstream archives (runtime data is fetched from the configured sources)
 /5etools-cn-cn2.0.zip
 /homebrew-cn.zip
+
+# Local planning, reports and agent/editor instructions
+/基石文档/
+/AGENTS.md
+/.agent/
+/.agents/
+/.vscode/
+/local-only/
+
+# Local investigation and legacy utilities
+/scripts/archive/
+/scripts/classify-class-audit.mjs
+/scripts/sync-5etools-data.mjs
+/scripts/start-local.ps1
+/public/5etools-data/
+
+# Superseded UI modules with no imports; preserve only in the local workspace
+/src/app/sheet/[[]id]/tabs/AbilitiesTab.tsx
+/src/app/sheet/[[]id]/tabs/CombatTab.tsx
+/src/app/sheet/[[]id]/tabs/SkillsTab.tsx
+/src/app/sheet/[[]id]/tabs/StoryTab.tsx

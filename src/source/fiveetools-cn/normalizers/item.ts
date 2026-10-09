@@ -10,7 +10,7 @@ import { flattenEntries } from '../utils';
 export function normalizeItem(
   raw: Record<string, any>,
   packId = '5etools-cn',
-  kind: Extract<EntryKind, 'item' | 'baseitem' | 'magicvariant'> = 'item'
+  kind: Extract<EntryKind, 'item' | 'baseitem' | 'magicvariant'> = 'item',
 ): CatalogEntry {
   const name = raw.name || raw.ENG_name || '未命名物品';
   const englishName = raw.ENG_name || (raw.name !== name ? raw.name : undefined);

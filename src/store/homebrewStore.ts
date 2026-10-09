@@ -66,7 +66,9 @@ export interface HomebrewPack extends HomebrewPackMeta {
   data: HomebrewDataState;
 }
 
-export type HomebrewEntryOf<K extends keyof HomebrewDataState> = NonNullable<HomebrewDataState[K]>[number];
+export type HomebrewEntryOf<K extends keyof HomebrewDataState> = NonNullable<
+  HomebrewDataState[K]
+>[number];
 
 export interface HomebrewStore extends HomebrewDataState {
   // Pack 级管理架构（对标 4E-NEXT HomebrewPools 体系）
@@ -84,20 +86,24 @@ export interface HomebrewStore extends HomebrewDataState {
   addEntryToPack: <K extends keyof HomebrewDataState>(
     packId: string,
     category: K,
-    entry: HomebrewEntryOf<K>
+    entry: HomebrewEntryOf<K>,
   ) => void;
   updateEntryInPack: <K extends keyof HomebrewDataState>(
     packId: string,
     category: K,
     id: string,
-    updates: Partial<HomebrewEntryOf<K>>
+    updates: Partial<HomebrewEntryOf<K>>,
   ) => void;
-  deleteEntryFromPack: <K extends keyof HomebrewDataState>(packId: string, category: K, id: string) => void;
+  deleteEntryFromPack: <K extends keyof HomebrewDataState>(
+    packId: string,
+    category: K,
+    id: string,
+  ) => void;
   toggleEntryEnabledInPack: <K extends keyof HomebrewDataState>(
     packId: string,
     category: K,
     id: string,
-    enabled?: boolean
+    enabled?: boolean,
   ) => void;
 
   // 向下兼容 CRUD（默认作用于当前激活的包）
@@ -105,16 +111,29 @@ export interface HomebrewStore extends HomebrewDataState {
   updateEntry: <K extends keyof HomebrewDataState>(
     category: K,
     id: string,
-    updates: Partial<HomebrewEntryOf<K>>
+    updates: Partial<HomebrewEntryOf<K>>,
   ) => void;
   deleteEntry: <K extends keyof HomebrewDataState>(category: K, id: string) => void;
-  toggleEntryEnabled: <K extends keyof HomebrewDataState>(category: K, id: string, enabled?: boolean) => void;
+  toggleEntryEnabled: <K extends keyof HomebrewDataState>(
+    category: K,
+    id: string,
+    enabled?: boolean,
+  ) => void;
   clearCategory: (category: keyof HomebrewDataState) => void;
 
   // 导入与导出动作
   exportAsJSON: (packId?: string) => string;
-  exportSingleCardJSON: (category: keyof HomebrewDataState, id: string, packId?: string) => string | null;
-  importFromJSON: (jsonStr: string) => { success: boolean; count: number; skipped: number; error?: string };
+  exportSingleCardJSON: (
+    category: keyof HomebrewDataState,
+    id: string,
+    packId?: string,
+  ) => string | null;
+  importFromJSON: (jsonStr: string) => {
+    success: boolean;
+    count: number;
+    skipped: number;
+    error?: string;
+  };
 }
 
 /** 运行时防御清洗函数：过滤无效对象，确保关键标识与名称合法 */
@@ -250,7 +269,7 @@ export const useHomebrewStore = create<HomebrewStore>()(
       updatePack: (packId: string, updates: Partial<HomebrewPackMeta>) => {
         set((state) => {
           const nextPacks = state.packs.map((p) =>
-            p.id === packId ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p
+            p.id === packId ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p,
           );
           return {
             packs: nextPacks,
@@ -263,9 +282,9 @@ export const useHomebrewStore = create<HomebrewStore>()(
         set((state) => {
           const nextPacks = state.packs.filter((p) => p.id !== packId);
           // 若全部删完，补充一个默认包
-          const safePacks = nextPacks.length > 0 ? nextPacks : [createDefaultPack('我的原创私设包')];
-          const nextActiveId =
-            state.activePackId === packId ? safePacks[0].id : state.activePackId;
+          const safePacks =
+            nextPacks.length > 0 ? nextPacks : [createDefaultPack('我的原创私设包')];
+          const nextActiveId = state.activePackId === packId ? safePacks[0].id : state.activePackId;
           return {
             packs: safePacks,
             activePackId: nextActiveId,
@@ -324,7 +343,9 @@ export const useHomebrewStore = create<HomebrewStore>()(
           const nextPacks = state.packs.map((p) => {
             if (p.id !== packId) return p;
             const currentList = Array.isArray(p.data[category]) ? (p.data[category] as any[]) : [];
-            const nextList = currentList.map((item) => (item.id === id ? { ...item, ...updates } : item));
+            const nextList = currentList.map((item) =>
+              item.id === id ? { ...item, ...updates } : item,
+            );
             return {
               ...p,
               updatedAt: new Date().toISOString(),
@@ -512,7 +533,9 @@ export const useHomebrewStore = create<HomebrewStore>()(
           const items = sanitizeList<HomebrewDataState['items'][number]>(persisted.items);
           const feats = sanitizeList<HomebrewDataState['feats'][number]>(persisted.feats);
           const species = sanitizeList<HomebrewDataState['species'][number]>(persisted.species);
-          const backgrounds = sanitizeList<HomebrewDataState['backgrounds'][number]>(persisted.backgrounds);
+          const backgrounds = sanitizeList<HomebrewDataState['backgrounds'][number]>(
+            persisted.backgrounds,
+          );
           const classes = sanitizeList<any>(persisted.classes);
 
           const hasLegacy =
@@ -553,7 +576,7 @@ export const useHomebrewStore = create<HomebrewStore>()(
         }
 
         const activePackId =
-          (persisted.activePackId && packs.some((p) => p.id === persisted.activePackId))
+          persisted.activePackId && packs.some((p) => p.id === persisted.activePackId)
             ? persisted.activePackId
             : packs[0].id;
 
@@ -566,6 +589,6 @@ export const useHomebrewStore = create<HomebrewStore>()(
           ...activeData,
         };
       },
-    }
-  )
+    },
+  ),
 );

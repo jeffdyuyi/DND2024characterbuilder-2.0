@@ -1,6 +1,14 @@
 import { CharacterState } from '../types/characterState';
 import { computeAbilityScores } from './ability';
-import { getActiveItemDefinitions, getClassDefinition, getSpeciesDefinition, getSubspeciesDefinition, getSubclassDefinition, isProficientWithArmor, resolveInventoryItem } from './characterData';
+import {
+  getActiveItemDefinitions,
+  getClassDefinition,
+  getSpeciesDefinition,
+  getSubspeciesDefinition,
+  getSubclassDefinition,
+  isProficientWithArmor,
+  resolveInventoryItem,
+} from './characterData';
 import type { Armor } from '@/types/equipment';
 import { normalizeAbilityKey } from './terminology';
 
@@ -38,32 +46,35 @@ export function computeCombatStats(state: CharacterState): CombatStats {
   // Base AC Calculation
   let baseAc = 10 + modifiers.dex;
   if (armor?.acStructured) {
-    const armorDex =
-      armor.acStructured.dexModEnabled
-        ? armor.acStructured.dexModMax !== undefined
-          ? Math.min(modifiers.dex, armor.acStructured.dexModMax)
-          : modifiers.dex
-        : 0;
+    const armorDex = armor.acStructured.dexModEnabled
+      ? armor.acStructured.dexModMax !== undefined
+        ? Math.min(modifiers.dex, armor.acStructured.dexModMax)
+        : modifiers.dex
+      : 0;
     baseAc = armor.acStructured.base + armorDex + (armor.acStructured.bonus ?? 0);
     const dexDesc = armor.acStructured.dexModEnabled
-      ? (armor.acStructured.dexModMax !== undefined
-          ? `敏捷修正 (+${armorDex}，上限 +${armor.acStructured.dexModMax})`
-          : `敏捷修正 (+${armorDex})`)
+      ? armor.acStructured.dexModMax !== undefined
+        ? `敏捷修正 (+${armorDex}，上限 +${armor.acStructured.dexModMax})`
+        : `敏捷修正 (+${armorDex})`
       : '无敏捷加成';
     const bonusDesc = armor.acStructured.bonus ? ` + 强化 (+${armor.acStructured.bonus})` : '';
-    acTrace.push(`${armor.name || '护甲'} (基础 ${armor.acStructured.base}) + ${dexDesc}${bonusDesc} = ${baseAc}`);
+    acTrace.push(
+      `${armor.name || '护甲'} (基础 ${armor.acStructured.base}) + ${dexDesc}${bonusDesc} = ${baseAc}`,
+    );
   } else {
-    acTrace.push(`无甲基础: 10 + 敏捷修正 (${modifiers.dex >= 0 ? '+' : ''}${modifiers.dex}) = ${baseAc}`);
+    acTrace.push(
+      `无甲基础: 10 + 敏捷修正 (${modifiers.dex >= 0 ? '+' : ''}${modifiers.dex}) = ${baseAc}`,
+    );
   }
 
   // Trait-based Base AC (e.g., Draconic Resilience, Barbarian, Monk, Tortle)
   const traitBaseCalculations: { val: number; name: string; traceText: string }[] = [];
   const traitBonusCalculations: { val: number; name: string }[] = [];
   const isUnarmored = !armor || armor.armorCategory?.toLowerCase() === 'shield';
-  
+
   const processMechanicsForAc = (mechanics: any, sourceName: string) => {
     if (!mechanics) return;
-    
+
     // 1. Base AC Setting (acCalculation)
     if (mechanics.acCalculation) {
       const calc = mechanics.acCalculation;
@@ -103,7 +114,8 @@ export function computeCombatStats(state: CharacterState): CombatStats {
 
     // 2. Fixed Bonus (acBonus)
     if (mechanics.acBonus) {
-      const isActive = !mechanics.acBonusCondition || activeConditions.includes(mechanics.acBonusCondition);
+      const isActive =
+        !mechanics.acBonusCondition || activeConditions.includes(mechanics.acBonusCondition);
       if (isActive) {
         acBonusTotal += mechanics.acBonus;
         traitBonusCalculations.push({ val: mechanics.acBonus, name: sourceName });
@@ -114,28 +126,28 @@ export function computeCombatStats(state: CharacterState): CombatStats {
   let acBonusTotal = 0;
 
   // Species & Subspecies
-  [species, subspecies].forEach(entry => {
-    entry?.traits?.forEach(trait => {
+  [species, subspecies].forEach((entry) => {
+    entry?.traits?.forEach((trait) => {
       processMechanicsForAc(trait.features, trait.name);
       processMechanicsForAc(trait.mechanics, trait.name);
     });
   });
 
   // Class & Subclass Features
-  state.classes?.forEach(cEntry => {
+  state.classes?.forEach((cEntry) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
 
-    classDef.features?.forEach(f => {
+    classDef.features?.forEach((f) => {
       if (f.level <= cEntry.level) {
         processMechanicsForAc(f.mechanics, f.name);
-        
+
         // Choices (e.g., Draconic Sorcerer AC)
         if (f.mechanics?.choices) {
           f.mechanics.choices.forEach((choice: any) => {
             const selectionId = `${cEntry.classId}:${f.name}:${choice.id}`;
             const selections = state.classSelections?.[selectionId] || [];
-            selections.forEach(sel => {
+            selections.forEach((sel) => {
               const opt = choice.options.find((o: any) => o.name === sel || o.nameEn === sel);
               processMechanicsForAc(opt?.mechanics, opt?.name);
             });
@@ -145,8 +157,14 @@ export function computeCombatStats(state: CharacterState): CombatStats {
     });
 
     if (cEntry.subclassId) {
-      const subDef = classDef.subClassInfo?.options.find(o => o.catalogId === cEntry.subclassId || o.nameEn === cEntry.subclassId || o.name === cEntry.subclassId) || getSubclassDefinition(state);
-      subDef?.traits?.forEach(t => {
+      const subDef =
+        classDef.subClassInfo?.options.find(
+          (o) =>
+            o.catalogId === cEntry.subclassId ||
+            o.nameEn === cEntry.subclassId ||
+            o.name === cEntry.subclassId,
+        ) || getSubclassDefinition(state);
+      subDef?.traits?.forEach((t) => {
         if (t.level === undefined || t.level <= cEntry.level) {
           processMechanicsForAc(t.mechanics, t.name);
         }
@@ -154,7 +172,8 @@ export function computeCombatStats(state: CharacterState): CombatStats {
     }
   });
 
-  const acSources: { name: string; value: number; type: 'base' | 'trait' | 'bonus' | 'shield' }[] = [];
+  const acSources: { name: string; value: number; type: 'base' | 'trait' | 'bonus' | 'shield' }[] =
+    [];
 
   // Track Base/Armor AC
   if (armor?.acStructured) {
@@ -163,14 +182,21 @@ export function computeCombatStats(state: CharacterState): CombatStats {
         ? Math.min(modifiers.dex, armor.acStructured.dexModMax)
         : modifiers.dex
       : 0;
-    acSources.push({ name: armor.name || '护甲', value: armor.acStructured.base + armorDex, type: 'base' });
+    acSources.push({
+      name: armor.name || '护甲',
+      value: armor.acStructured.base + armorDex,
+      type: 'base',
+    });
   } else {
     acSources.push({ name: '无甲 (10 + 敏捷)', value: 10 + modifiers.dex, type: 'base' });
   }
 
   // Handle Trait Bases
   if (traitBaseCalculations.length > 0) {
-    const bestTrait = traitBaseCalculations.reduce((best, curr) => curr.val > best.val ? curr : best, traitBaseCalculations[0]);
+    const bestTrait = traitBaseCalculations.reduce(
+      (best, curr) => (curr.val > best.val ? curr : best),
+      traitBaseCalculations[0],
+    );
     if (bestTrait.val > baseAc) {
       baseAc = bestTrait.val;
       acSources.length = 0; // Clear base armor if trait is higher
@@ -180,7 +206,7 @@ export function computeCombatStats(state: CharacterState): CombatStats {
   }
 
   // Add Bonus Sources
-  traitBonusCalculations.forEach(b => {
+  traitBonusCalculations.forEach((b) => {
     acTrace.push(`${b.name}: +${b.val}`);
   });
 
@@ -237,7 +263,9 @@ export function computeCombatStats(state: CharacterState): CombatStats {
             base = hitDie;
             const lvlHp = Math.max(1, base + conMod);
             maxHp += lvlHp;
-            hpTrace.push(`1级 ${clsName}: 满生命骰 (${hitDie}) + 体质修正 (${conMod >= 0 ? '+' : ''}${conMod}) = ${lvlHp}`);
+            hpTrace.push(
+              `1级 ${clsName}: 满生命骰 (${hitDie}) + 体质修正 (${conMod >= 0 ? '+' : ''}${conMod}) = ${lvlHp}`,
+            );
           } else {
             const roll = hpLevelRolls[totalLevel];
             let rollLabel = '固定均值';
@@ -249,7 +277,9 @@ export function computeCombatStats(state: CharacterState): CombatStats {
             }
             const lvlHp = Math.max(1, base + conMod);
             maxHp += lvlHp;
-            hpTrace.push(`${totalLevel}级 ${clsName}: ${rollLabel} (${base}) + 体质修正 (${conMod >= 0 ? '+' : ''}${conMod}) = ${lvlHp}`);
+            hpTrace.push(
+              `${totalLevel}级 ${clsName}: ${rollLabel} (${base}) + 体质修正 (${conMod >= 0 ? '+' : ''}${conMod}) = ${lvlHp}`,
+            );
           }
         }
       });
@@ -267,7 +297,7 @@ export function computeCombatStats(state: CharacterState): CombatStats {
           hpTrace.push(`${trait.name}: 每级 +${b} (共 +${b * totalLevel})`);
         }
         return b;
-      })
+      }),
     );
     const traitHpTotal = hpBonusPerLevel.reduce((sum, bonus) => sum + bonus, 0) * totalLevel;
     maxHp += traitHpTotal;
@@ -279,15 +309,17 @@ export function computeCombatStats(state: CharacterState): CombatStats {
   const baseSpeed = species?.speed ?? 30;
   speedTrace.push(`种族基础速度: ${baseSpeed} 尺`);
 
-  const speedBonus = [species, subspecies].flatMap((entry) =>
-    (entry?.traits ?? []).map((trait) => {
-      const b = trait.features?.speedBonus ?? 0;
-      if (b > 0) {
-        speedTrace.push(`${trait.name}: +${b} 尺`);
-      }
-      return b;
-    })
-  ).reduce((sum, bonus) => sum + bonus, 0);
+  const speedBonus = [species, subspecies]
+    .flatMap((entry) =>
+      (entry?.traits ?? []).map((trait) => {
+        const b = trait.features?.speedBonus ?? 0;
+        if (b > 0) {
+          speedTrace.push(`${trait.name}: +${b} 尺`);
+        }
+        return b;
+      }),
+    )
+    .reduce((sum, bonus) => sum + bonus, 0);
 
   const finalSpeed = baseSpeed + speedBonus;
   speedTrace.push(`最终步行速度: ${finalSpeed} 尺`);

@@ -14,9 +14,15 @@ function getPidsOnPort(port) {
   const pids = new Set();
   try {
     if (process.platform === 'win32') {
-      const output = execSync('netstat -ano', { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      const output = execSync('netstat -ano', {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
       for (const line of output.split('\n')) {
-        if (line.includes('LISTENING') && (line.includes(`:${port} `) || line.includes(`:${port}\t`))) {
+        if (
+          line.includes('LISTENING') &&
+          (line.includes(`:${port} `) || line.includes(`:${port}\t`))
+        ) {
           const parts = line.trim().split(/\s+/);
           const pid = parts[parts.length - 1];
           if (pid && pid !== '0' && pid !== String(process.pid)) {
@@ -25,7 +31,10 @@ function getPidsOnPort(port) {
         }
       }
     } else {
-      const output = execSync(`lsof -ti :${port}`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      const output = execSync(`lsof -ti :${port}`, {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
       for (const pid of output.trim().split('\n')) {
         if (pid && pid !== String(process.pid)) {
           pids.add(pid.trim());
@@ -49,7 +58,9 @@ function releasePort(port) {
       } else {
         execSync(`kill -9 ${pid}`, { stdio: 'ignore' });
       }
-      console.log(`\x1b[32m[开发自愈守护]\x1b[0m 发现端口 ${port} 被残留进程 (PID: ${pid}) 占用，已自动安全释放。`);
+      console.log(
+        `\x1b[32m[开发自愈守护]\x1b[0m 发现端口 ${port} 被残留进程 (PID: ${pid}) 占用，已自动安全释放。`,
+      );
     } catch {
       // 忽略已退出的进程
     }

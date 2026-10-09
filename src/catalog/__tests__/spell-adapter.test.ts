@@ -5,8 +5,6 @@ import { getSpellDefinition } from '@/engine/characterData';
 import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
 
 describe('Catalog Spell Adapter & Integration Tests', () => {
-
-
   it('should prioritize 5etools spell when registered into catalog', () => {
     // 模拟从 5etools-cn 加载一个新法术
     const raw5eSpell = {
@@ -42,4 +40,3 @@ describe('Catalog Spell Adapter & Integration Tests', () => {
     expect(found).toBeDefined();
   });
 });
-

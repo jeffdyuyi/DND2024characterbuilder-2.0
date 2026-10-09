@@ -190,8 +190,8 @@
   color: var(--color-gold-bright);
 }
 
-:global(:root:not([data-theme="light"])) .createCard,
-:global(:root:not([data-theme="light"])) .charCard {
+:global(:root:not([data-theme='light'])) .createCard,
+:global(:root:not([data-theme='light'])) .charCard {
   border-radius: 0;
   border-style: solid;
   border-width: 2px;
@@ -199,13 +199,13 @@
   transition: none;
 }
 
-:global(:root:not([data-theme="light"])) .createCard:hover,
-:global(:root:not([data-theme="light"])) .charCard:hover {
+:global(:root:not([data-theme='light'])) .createCard:hover,
+:global(:root:not([data-theme='light'])) .charCard:hover {
   transform: translate(2px, 2px);
   box-shadow: 2px 2px 0 var(--color-apple-blue);
 }
 
-:global(:root:not([data-theme="light"])) .createCardIcon {
+:global(:root:not([data-theme='light'])) .createCardIcon {
   border-radius: 0 !important;
   border-width: 2px !important;
   background: var(--color-bg-surface-elevated) !important;
@@ -227,7 +227,9 @@
   font-family: var(--font-family);
   font-weight: 700;
   font-size: 14px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), var(--shadow-gold-glow);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.6),
+    var(--shadow-gold-glow);
   align-items: center;
   gap: 8px;
   cursor: pointer;
@@ -242,7 +244,7 @@
   .library__hero {
     padding: 20px 16px 8px 16px;
   }
-  
+
   .library__grid {
     grid-template-columns: 1fr;
     padding: 16px;
@@ -289,8 +291,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Import Label */

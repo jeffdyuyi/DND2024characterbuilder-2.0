@@ -5,7 +5,7 @@
   background: var(--color-surface-elevated);
   padding: var(--space-md);
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(0,0,0,0.04);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .levelLabel {
@@ -65,7 +65,7 @@
   background: var(--color-bg-light);
   border-radius: var(--radius-lg);
   padding: 16px;
-  border: 1px dashed rgba(0,0,0,0.1);
+  border: 1px dashed rgba(0, 0, 0, 0.1);
 }
 
 .mcGrid {
@@ -78,7 +78,7 @@
 .mcOption {
   padding: 10px;
   background: var(--color-surface-card);
-  border: 1px solid rgba(0,0,0,0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-md);
   text-align: center;
   font-size: 14px;

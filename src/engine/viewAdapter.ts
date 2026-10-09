@@ -37,10 +37,10 @@ export interface CharacterSheetView {
     passivePerception: number;
     traces: CalculationTraces;
   };
-  
+
   // 存储在 character 中的原始覆盖数据
   overrides: CharacterState['manualOverrides'];
-  
+
   // 最终展示给用户的值 (优先取 overrides，否则取 computed)
   final: {
     ability: AbilityScores;
@@ -57,7 +57,7 @@ export interface CharacterSheetView {
     spellAttackBonus: number;
     traces: CalculationTraces;
   };
-  
+
   // 状态标记，用于 UI 显示“手动”标签
   flags: {
     isAcManual: boolean;
@@ -87,16 +87,20 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
   const pb = Math.floor((totalLevel - 1) / 4) + 2;
 
   // 计算自动被动察觉
-  const isPerceptionProf = character.proficiencies?.skills?.includes('perception') || 
-                           character.selectedSkills?.includes('perception') ||
-                           profRes.skills.some(s => s.id === 'perception');
+  const isPerceptionProf =
+    character.proficiencies?.skills?.includes('perception') ||
+    character.selectedSkills?.includes('perception') ||
+    profRes.skills.some((s) => s.id === 'perception');
   const isPerceptionExpert = character.expertiseSkills?.includes('perception');
-  const perceptionBonus = abilityRes.modifiers.wis + (isPerceptionProf ? pb : 0) + (isPerceptionExpert ? pb : 0);
+  const perceptionBonus =
+    abilityRes.modifiers.wis + (isPerceptionProf ? pb : 0) + (isPerceptionExpert ? pb : 0);
   const computedPassivePerception = 10 + perceptionBonus;
 
   // 构造被动察觉追溯
   const passivePerceptionTrace: string[] = ['基础值: 10'];
-  passivePerceptionTrace.push(`感知修正: ${abilityRes.modifiers.wis >= 0 ? '+' : ''}${abilityRes.modifiers.wis}`);
+  passivePerceptionTrace.push(
+    `感知修正: ${abilityRes.modifiers.wis >= 0 ? '+' : ''}${abilityRes.modifiers.wis}`,
+  );
   if (isPerceptionProf) passivePerceptionTrace.push(`察觉熟练: +${pb}`);
   if (isPerceptionExpert) passivePerceptionTrace.push(`察觉专精: +${pb}`);
   passivePerceptionTrace.push(`最终被动察觉: ${computedPassivePerception}`);
@@ -118,7 +122,7 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
   // 3. 构建 Final 与 Flags
   const finalAbility = { ...abilityRes.scores };
   const manualAbilityScores: (keyof AbilityScores)[] = [];
-  
+
   if (ov.abilityScores) {
     Object.entries(ov.abilityScores).forEach(([key, val]) => {
       const k = key as keyof AbilityScores;
@@ -140,13 +144,34 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
 
   // 构建带有人工覆盖注记的 finalTraces
   const finalTraces: CalculationTraces = {
-    ac: ov.ac !== undefined ? [...computedTraces.ac, `玩家手动设定 (覆盖生效): ${ov.ac}`] : [...computedTraces.ac],
-    hp: ov.maxHp !== undefined ? [...computedTraces.hp, `玩家手动设定 (覆盖生效): ${ov.maxHp}`] : [...computedTraces.hp],
-    initiative: ov.initiative !== undefined ? [...computedTraces.initiative, `玩家手动设定 (覆盖生效): ${ov.initiative}`] : [...computedTraces.initiative],
-    speed: ov.speed !== undefined ? [...computedTraces.speed, `玩家手动设定 (覆盖生效): ${ov.speed}`] : [...computedTraces.speed],
-    passivePerception: ov.passivePerception !== undefined ? [...computedTraces.passivePerception, `玩家手动设定 (覆盖生效): ${ov.passivePerception}`] : [...computedTraces.passivePerception],
-    spellSaveDc: ov.spellSaveDc !== undefined ? [...computedTraces.spellSaveDc, `玩家手动设定 (覆盖生效): ${ov.spellSaveDc}`] : [...computedTraces.spellSaveDc],
-    spellAttack: ov.spellAttackBonus !== undefined ? [...computedTraces.spellAttack, `玩家手动设定 (覆盖生效): ${ov.spellAttackBonus}`] : [...computedTraces.spellAttack],
+    ac:
+      ov.ac !== undefined
+        ? [...computedTraces.ac, `玩家手动设定 (覆盖生效): ${ov.ac}`]
+        : [...computedTraces.ac],
+    hp:
+      ov.maxHp !== undefined
+        ? [...computedTraces.hp, `玩家手动设定 (覆盖生效): ${ov.maxHp}`]
+        : [...computedTraces.hp],
+    initiative:
+      ov.initiative !== undefined
+        ? [...computedTraces.initiative, `玩家手动设定 (覆盖生效): ${ov.initiative}`]
+        : [...computedTraces.initiative],
+    speed:
+      ov.speed !== undefined
+        ? [...computedTraces.speed, `玩家手动设定 (覆盖生效): ${ov.speed}`]
+        : [...computedTraces.speed],
+    passivePerception:
+      ov.passivePerception !== undefined
+        ? [...computedTraces.passivePerception, `玩家手动设定 (覆盖生效): ${ov.passivePerception}`]
+        : [...computedTraces.passivePerception],
+    spellSaveDc:
+      ov.spellSaveDc !== undefined
+        ? [...computedTraces.spellSaveDc, `玩家手动设定 (覆盖生效): ${ov.spellSaveDc}`]
+        : [...computedTraces.spellSaveDc],
+    spellAttack:
+      ov.spellAttackBonus !== undefined
+        ? [...computedTraces.spellAttack, `玩家手动设定 (覆盖生效): ${ov.spellAttackBonus}`]
+        : [...computedTraces.spellAttack],
     abilities: { ...computedTraces.abilities },
   };
 
@@ -154,7 +179,10 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
     Object.entries(ov.abilityScores).forEach(([k, val]) => {
       const key = k as keyof AbilityScores;
       if (val !== undefined) {
-        finalTraces.abilities[key] = [...(finalTraces.abilities[key] || []), `玩家手动设定 (覆盖生效): ${val}`];
+        finalTraces.abilities[key] = [
+          ...(finalTraces.abilities[key] || []),
+          `玩家手动设定 (覆盖生效): ${val}`,
+        ];
       }
     });
   }
@@ -182,8 +210,17 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
       speed: ov.speed ?? combatRes.speed,
       proficiencyBonus: ov.proficiencyBonus ?? pb,
       passivePerception: ov.passivePerception ?? computedPassivePerception,
-      spellSaveDc: ov.spellSaveDc ?? (8 + pb + (spellRes.abilityKey ? (finalModifiers as any)[spellRes.abilityKey] || 0 : 0) + (spellRes.spellSaveDcBonus || 0)),
-      spellAttackBonus: ov.spellAttackBonus ?? (pb + (spellRes.abilityKey ? (finalModifiers as any)[spellRes.abilityKey] || 0 : 0) + (spellRes.spellAttackBonus || 0)),
+      spellSaveDc:
+        ov.spellSaveDc ??
+        8 +
+          pb +
+          (spellRes.abilityKey ? (finalModifiers as any)[spellRes.abilityKey] || 0 : 0) +
+          (spellRes.spellSaveDcBonus || 0),
+      spellAttackBonus:
+        ov.spellAttackBonus ??
+        pb +
+          (spellRes.abilityKey ? (finalModifiers as any)[spellRes.abilityKey] || 0 : 0) +
+          (spellRes.spellAttackBonus || 0),
       traces: finalTraces,
     },
     flags: {
@@ -196,6 +233,6 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
       isSpellSaveDcManual: ov.spellSaveDc !== undefined,
       isSpellAttackBonusManual: ov.spellAttackBonus !== undefined,
       manualAbilityScores,
-    }
+    },
   };
 }

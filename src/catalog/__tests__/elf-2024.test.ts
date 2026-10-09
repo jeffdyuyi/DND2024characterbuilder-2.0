@@ -8,7 +8,9 @@ import { CharacterState } from '@/types/characterState';
 describe('2024 Elf regressions and display structure', () => {
   it('correctly assigns Elven Lineage as representsSubSpecies host instead of darkvision', () => {
     const rawRaces = JSON.parse(readFileSync('tests/fixtures/races.json', 'utf8'));
-    const elfRaw = rawRaces.race.find((r: any) => (r.name === '精灵' || r.ENG_name === 'Elf') && r.source === 'XPHB');
+    const elfRaw = rawRaces.race.find(
+      (r: any) => (r.name === '精灵' || r.ENG_name === 'Elf') && r.source === 'XPHB',
+    );
     const entry = normalizeRace(elfRaw);
     defaultCatalog.register(entry);
 
@@ -26,10 +28,10 @@ describe('2024 Elf regressions and display structure', () => {
     const species = getSpeciesDefinition(character)!;
 
     // 1. 验证代表亚种的宿主特质为【精灵血系】，而不是【黑暗视觉】
-    const darkvision = species.traits.find(t => t.id === 'darkvision' || t.name === '黑暗视觉');
+    const darkvision = species.traits.find((t) => t.id === 'darkvision' || t.name === '黑暗视觉');
     expect(darkvision?.representsSubSpecies).toBeFalsy();
 
-    const lineage = species.traits.find(t => t.id === 'elvenlineage' || t.name === '精灵血系');
+    const lineage = species.traits.find((t) => t.id === 'elvenlineage' || t.name === '精灵血系');
     expect(lineage?.representsSubSpecies).toBe(true);
 
     // 2. 验证宿主特质不会被错误挂上表格中高等精灵特有的自选戏法
@@ -37,17 +39,17 @@ describe('2024 Elf regressions and display structure', () => {
 
     // 3. 验证亚种选项拥有干净的名字且包含正确的加成和专属特质
     expect(species.subSpecies?.options).toHaveLength(3);
-    const drow = species.subSpecies!.options.find(o => o.name.includes('卓尔'))!;
-    const highElf = species.subSpecies!.options.find(o => o.name.includes('高等精灵'))!;
-    const woodElf = species.subSpecies!.options.find(o => o.name.includes('木精灵'))!;
+    const drow = species.subSpecies!.options.find((o) => o.name.includes('卓尔'))!;
+    const highElf = species.subSpecies!.options.find((o) => o.name.includes('高等精灵'))!;
+    const woodElf = species.subSpecies!.options.find((o) => o.name.includes('木精灵'))!;
 
     expect(drow.name).toBe('卓尔血统');
     expect(drow.features?.senseUpgrade?.darkvision).toBe(120);
-    expect(drow.traits.some(t => t.name.includes('卓尔'))).toBe(true);
+    expect(drow.traits.some((t) => t.name.includes('卓尔'))).toBe(true);
 
     expect(highElf.name).toBe('高等精灵血系');
-    expect(highElf.traits.some(t => t.name.includes('高等精灵'))).toBe(true);
-    
+    expect(highElf.traits.some((t) => t.name.includes('高等精灵'))).toBe(true);
+
     // 4. 验证高等精灵法术列表结构：包含默认预设戏法魔法伎俩与法师戏法筛选器，以及3级/5级法术
     const highElfSpells = highElf.features?.spells || [];
     expect(highElfSpells).toHaveLength(3);
@@ -68,6 +70,6 @@ describe('2024 Elf regressions and display structure', () => {
 
     expect(woodElf.name).toBe('木精灵血系');
     expect(woodElf.features?.speedBonus).toBe(5);
-    expect(woodElf.traits.some(t => t.name.includes('木精灵'))).toBe(true);
+    expect(woodElf.traits.some((t) => t.name.includes('木精灵'))).toBe(true);
   });
 });

@@ -12,8 +12,8 @@ describe('Condition Catalog Adapter & 5etools Normalizer', () => {
       page: 361,
       entries: [
         '目盲状态期间，你将遭受以下效应。',
-        '你无法视物，且会自动失败于任何需要视觉的属性检定。'
-      ]
+        '你无法视物，且会自动失败于任何需要视觉的属性检定。',
+      ],
     };
 
     const entry = normalizeCondition(raw5e, '5etools-cn');
@@ -35,7 +35,7 @@ describe('Condition Catalog Adapter & 5etools Normalizer', () => {
   it('未加载外部数据时平滑回退到静态兜底列表', () => {
     const conditions = getCatalogConditions(ALL_CONDITIONS);
     expect(conditions.length).toBeGreaterThanOrEqual(15);
-    expect(conditions.some(c => c.id === 'paralyzed')).toBe(true);
-    expect(ALL_CONDITIONS.some(c => c.name === '力竭')).toBe(true);
+    expect(conditions.some((c) => c.id === 'paralyzed')).toBe(true);
+    expect(ALL_CONDITIONS.some((c) => c.name === '力竭')).toBe(true);
   });
 });

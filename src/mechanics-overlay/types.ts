@@ -17,7 +17,8 @@ export interface FeatureMechanicsOverlay {
   statBonus?: Record<string, number>;
   statMaxIncrease?: Record<string, number>;
   spellcastingType?: 'full' | 'half' | 'third' | 'warlock' | '1/2' | '1/3';
-  spellcastingAbility?: 'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma' | string;
+  spellcastingAbility?:
+    'Strength' | 'Dexterity' | 'Constitution' | 'Intelligence' | 'Wisdom' | 'Charisma' | string;
   [key: string]: any;
 }
 

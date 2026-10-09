@@ -65,10 +65,15 @@ function extractSubraceFluffDescription(raw: Record<string, any>): string {
 }
 
 export function normalizeSubrace(raw: Record<string, any>, packId = '5etools-cn'): CatalogEntry {
-  const fallbackAbstractName = raw._versions?.[0]?._abstract?.name ? String(raw._versions[0]._abstract.name).replace(/\{\{.*?\}\}/g, '变体') : undefined;
-  const fallbackAbstractEn = raw._versions?.[0]?._abstract?.ENG_name ? String(raw._versions[0]._abstract.ENG_name).replace(/\{\{.*?\}\}/g, 'Variant') : undefined;
+  const fallbackAbstractName = raw._versions?.[0]?._abstract?.name
+    ? String(raw._versions[0]._abstract.name).replace(/\{\{.*?\}\}/g, '变体')
+    : undefined;
+  const fallbackAbstractEn = raw._versions?.[0]?._abstract?.ENG_name
+    ? String(raw._versions[0]._abstract.ENG_name).replace(/\{\{.*?\}\}/g, 'Variant')
+    : undefined;
   const name = raw.name || raw.ENG_name || fallbackAbstractName || '亚种变体';
-  const englishName = raw.ENG_name || fallbackAbstractEn || (raw.name !== name ? raw.name : undefined);
+  const englishName =
+    raw.ENG_name || fallbackAbstractEn || (raw.name !== name ? raw.name : undefined);
   const raceName = raw.raceName || '';
   const source = raw.source || 'PHB';
   const edition = inferEditionFromSource(source);

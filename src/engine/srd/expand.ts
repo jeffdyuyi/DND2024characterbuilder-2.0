@@ -32,10 +32,12 @@ export function expandCopies(items: Raw[], templates: Raw[] = []): Raw[] {
     const parent = items.find(
       (p) =>
         p !== item &&
-        (copy.abbreviation ? p.abbreviation === copy.abbreviation : [p.name, p.ENG_name].includes(copy.name)) &&
+        (copy.abbreviation
+          ? p.abbreviation === copy.abbreviation
+          : [p.name, p.ENG_name].includes(copy.name)) &&
         (p.source || p.inherits?.source) === copy.source &&
         (!copy.raceName || p.raceName === copy.raceName) &&
-        (!copy.raceSource || p.raceSource === copy.raceSource)
+        (!copy.raceSource || p.raceSource === copy.raceSource),
     );
     if (!parent) return item;
     const base = structuredClone(resolve(parent, new Set([...seen, item])));
@@ -44,7 +46,7 @@ export function expandCopies(items: Raw[], templates: Raw[] = []): Raw[] {
       if (!copy._preserve?.[key] && !copy._preserve?.['*']) delete base[key];
     }
     const applied = (copy._templates || []).map((t: Raw) =>
-      templates.find((v) => [v.name, v.ENG_name].includes(t.name) && v.source === t.source)
+      templates.find((v) => [v.name, v.ENG_name].includes(t.name) && v.source === t.source),
     );
     if (applied.some((t: Raw | undefined) => !t)) return item;
     for (const template of applied) {
@@ -76,7 +78,9 @@ export function expandCopies(items: Raw[], templates: Raw[] = []): Raw[] {
           continue;
         }
         if (change.mode === 'setProp') {
-          const parts = (change.prop ? (path === '_' ? '' : path + '.') + change.prop : path).split('.');
+          const parts = (change.prop ? (path === '_' ? '' : path + '.') + change.prop : path).split(
+            '.',
+          );
           if (parts.some((p: string) => ['__proto__', 'constructor', 'prototype'].includes(p))) {
             supported = false;
             continue;
@@ -91,13 +95,17 @@ export function expandCopies(items: Raw[], templates: Raw[] = []): Raw[] {
           result.senses ||= [];
           for (const sense of list(change.senses)) {
             const label =
-              ({
-                darkvision: '黑暗视觉',
-                blindsight: '盲视',
-                tremorsense: '震颤感知',
-                truesight: '真实视觉',
-              } as Record<string, string>)[sense.type] || sense.type;
-            const index = result.senses.findIndex((v: string) => v.startsWith(label) || v.startsWith(sense.type));
+              (
+                {
+                  darkvision: '黑暗视觉',
+                  blindsight: '盲视',
+                  tremorsense: '震颤感知',
+                  truesight: '真实视觉',
+                } as Record<string, string>
+              )[sense.type] || sense.type;
+            const index = result.senses.findIndex(
+              (v: string) => v.startsWith(label) || v.startsWith(sense.type),
+            );
             if (index < 0) result.senses.push(`${label} ${sense.range}尺`);
             else if (Number(String(result.senses[index]).match(/\d+/)?.[0] || 0) < sense.range) {
               result.senses[index] = `${label} ${sense.range}尺`;
@@ -121,17 +129,29 @@ export function expandCopies(items: Raw[], templates: Raw[] = []): Raw[] {
             typeof v === 'string'
               ? v.replace(regex, String(change.with))
               : Array.isArray(v)
-              ? v.map(replace)
-              : v && typeof v === 'object'
-              ? Object.fromEntries(
-                  Object.entries(v).map(([k, value]) => [
-                    k,
-                    ['name', 'ENG_name'].includes(k) && !change.props?.includes(k) ? value : replace(value),
-                  ])
-                )
-              : v;
+                ? v.map(replace)
+                : v && typeof v === 'object'
+                  ? Object.fromEntries(
+                      Object.entries(v).map(([k, value]) => [
+                        k,
+                        ['name', 'ENG_name'].includes(k) && !change.props?.includes(k)
+                          ? value
+                          : replace(value),
+                      ]),
+                    )
+                  : v;
           if (path === '*') {
-            for (const field of ['trait', 'action', 'bonus', 'reaction', 'legendary', 'mythic', 'variant', 'spellcasting', 'entries']) {
+            for (const field of [
+              'trait',
+              'action',
+              'bonus',
+              'reaction',
+              'legendary',
+              'mythic',
+              'variant',
+              'spellcasting',
+              'entries',
+            ]) {
               if (result[field]) result[field] = replace(result[field]);
             }
           } else {
@@ -152,7 +172,12 @@ export function expandCopies(items: Raw[], templates: Raw[] = []): Raw[] {
           const at =
             typeof change.replace?.index === 'number'
               ? change.replace.index
-              : values.findIndex((v) => v === change.replace || v?.name === change.replace || v?.ENG_name === change.replace);
+              : values.findIndex(
+                  (v) =>
+                    v === change.replace ||
+                    v?.name === change.replace ||
+                    v?.ENG_name === change.replace,
+                );
           if (at >= 0 && at < values.length) values.splice(at, 1, ...additions);
           else if (change.mode === 'replaceOrAppendArr') values.push(...additions);
           else supported = false;
@@ -177,10 +202,10 @@ export function expandVersions(raw: Raw): Raw[] {
             typeof v === 'string'
               ? v.replace(/\{\{(\w+)}}/g, (all, key) => variables[key] ?? all)
               : Array.isArray(v)
-              ? v.map(replace)
-              : v && typeof v === 'object'
-              ? Object.fromEntries(Object.entries(v).map(([k, value]) => [k, replace(value)]))
-              : v;
+                ? v.map(replace)
+                : v && typeof v === 'object'
+                  ? Object.fromEntries(Object.entries(v).map(([k, value]) => [k, replace(value)]))
+                  : v;
           return replace({ ...version._abstract, ...implementation });
         })
       : [version];
@@ -189,7 +214,12 @@ export function expandVersions(raw: Raw): Raw[] {
       delete base._versions;
       const item = {
         ...variant,
-        _copy: { name: base.name, source: base.source, _preserve: { '*': true }, _mod: variant._mod },
+        _copy: {
+          name: base.name,
+          source: base.source,
+          _preserve: { '*': true },
+          _mod: variant._mod,
+        },
       };
       const expanded = expandCopies([base, item])[1];
       if (expanded) {
@@ -206,7 +236,7 @@ export function expandVersions(raw: Raw): Raw[] {
 /** 亚种继承主种族特质 */
 export function inheritSubrace(raw: Raw, races: Raw[]): Raw {
   const parent = races.find(
-    (r) => [r.name, r.ENG_name].includes(raw.raceName) && r.source === (raw.raceSource || 'PHB')
+    (r) => [r.name, r.ENG_name].includes(raw.raceName) && r.source === (raw.raceSource || 'PHB'),
   );
   if (!parent) return { ...raw, _unresolvedParent: true };
   const merged: Raw = {
@@ -223,7 +253,9 @@ export function inheritSubrace(raw: Raw, races: Raw[]): Raw {
   const parentEntries = structuredClone(parent.entries || []);
   for (const entry of raw.entries || []) {
     const overwrite = typeof entry === 'object' && entry?.data?.overwrite;
-    const index = overwrite ? parentEntries.findIndex((e: Raw) => e.name === overwrite || e.ENG_name === overwrite) : -1;
+    const index = overwrite
+      ? parentEntries.findIndex((e: Raw) => e.name === overwrite || e.ENG_name === overwrite)
+      : -1;
     if (index >= 0) parentEntries[index] = entry;
     else parentEntries.push(entry);
   }
@@ -275,14 +307,22 @@ export function readableEntries(raw: Raw, category: string): unknown[] {
     // 施法时间
     if (raw.time && Array.isArray(raw.time) && raw.time.length) {
       const t = raw.time[0];
-      const unitMap: Record<string, string> = { action: '动作', bonus: '附赠动作', reaction: '反应', minute: '分钟', hour: '小时' };
+      const unitMap: Record<string, string> = {
+        action: '动作',
+        bonus: '附赠动作',
+        reaction: '反应',
+        minute: '分钟',
+        hour: '小时',
+      };
       spellMetaLines.push(`**施法时间**：${t.number || 1} ${unitMap[t.unit] || t.unit}`);
     }
 
     // 距离
     if (raw.range) {
       if (raw.range.type === 'point' && raw.range.distance) {
-        spellMetaLines.push(`**施法距离**：${raw.range.distance.amount || ''} ${raw.range.distance.type === 'feet' ? '尺' : raw.range.distance.type}`);
+        spellMetaLines.push(
+          `**施法距离**：${raw.range.distance.amount || ''} ${raw.range.distance.type === 'feet' ? '尺' : raw.range.distance.type}`,
+        );
       } else if (raw.range.type === 'self') {
         spellMetaLines.push(`**施法距离**：自身`);
       } else if (raw.range.type === 'touch') {
@@ -296,7 +336,8 @@ export function readableEntries(raw: Raw, category: string): unknown[] {
       if (raw.components.v) compParts.push('声音 (V)');
       if (raw.components.s) compParts.push('姿势 (S)');
       if (raw.components.m) {
-        const mat = typeof raw.components.m === 'string' ? raw.components.m : raw.components.m.text || '材料';
+        const mat =
+          typeof raw.components.m === 'string' ? raw.components.m : raw.components.m.text || '材料';
         compParts.push(`材料 (M, ${mat})`);
       }
       spellMetaLines.push(`**法术成分**：${compParts.join('、')}`);
@@ -309,7 +350,9 @@ export function readableEntries(raw: Raw, category: string): unknown[] {
         spellMetaLines.push(`**持续时间**：立即`);
       } else if (d.type === 'timed') {
         const conc = d.concentration ? '专注，' : '';
-        spellMetaLines.push(`**持续时间**：${conc}至多 ${d.duration?.amount || ''} ${d.duration?.type === 'minute' ? '分钟' : d.duration?.type === 'round' ? '轮' : d.duration?.type === 'hour' ? '小时' : d.duration?.type}`);
+        spellMetaLines.push(
+          `**持续时间**：${conc}至多 ${d.duration?.amount || ''} ${d.duration?.type === 'minute' ? '分钟' : d.duration?.type === 'round' ? '轮' : d.duration?.type === 'hour' ? '小时' : d.duration?.type}`,
+        );
       }
     }
 

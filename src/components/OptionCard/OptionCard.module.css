@@ -48,20 +48,20 @@
   line-height: 1.4;
 }
 
-:global(:root:not([data-theme="light"])) .card {
+:global(:root:not([data-theme='light'])) .card {
   border-radius: 0;
   border-width: 2px;
   box-shadow: 3px 3px 0 #10111e;
   transition: none;
 }
 
-:global(:root:not([data-theme="light"])) .card:hover {
+:global(:root:not([data-theme='light'])) .card:hover {
   border-color: var(--color-apple-blue);
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 var(--color-apple-blue);
 }
 
-:global(:root:not([data-theme="light"])) .card--selected {
+:global(:root:not([data-theme='light'])) .card--selected {
   background: var(--color-bg-surface-elevated) !important;
   box-shadow: 3px 3px 0 var(--color-gold-accent) !important;
 }

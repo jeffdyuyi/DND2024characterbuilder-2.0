@@ -66,7 +66,6 @@ export interface CatalogEntry {
   /** 所属父条目标识或名称 (例如职业名称之于子职业，主种族名称之于亚种) */
   parent?: string;
 
-
   /** 文本段落条目或 5etools entries 树状结构 */
   entries?: unknown[];
 
@@ -108,7 +107,10 @@ export interface CatalogService {
   list(kind: EntryKind, options?: { edition?: Edition; source?: string }): CatalogEntry[];
 
   /** 全局/分类型搜索 */
-  search(query: string, options?: { kind?: EntryKind; edition?: Edition; limit?: number }): CatalogEntry[];
+  search(
+    query: string,
+    options?: { kind?: EntryKind; edition?: Edition; limit?: number },
+  ): CatalogEntry[];
 
   /** 注册单个条目 (用于动态加载或 Homebrew 扩充) */
   register(entry: CatalogEntry): void;

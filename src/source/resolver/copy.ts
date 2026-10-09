@@ -123,21 +123,33 @@ function applyModOperation(entry: any, rawMod: any, defaultPath?: string): Resol
       case 'appendArr': {
         if (!path) break;
         const arr = Array.isArray(getNestedProp(entry, path)) ? getNestedProp(entry, path) : [];
-        const toAdd = Array.isArray(rawMod.items) ? rawMod.items : (rawMod.items !== undefined ? [rawMod.items] : []);
+        const toAdd = Array.isArray(rawMod.items)
+          ? rawMod.items
+          : rawMod.items !== undefined
+            ? [rawMod.items]
+            : [];
         setNestedProp(entry, path, [...arr, ...toAdd]);
         break;
       }
       case 'prependArr': {
         if (!path) break;
         const arr = Array.isArray(getNestedProp(entry, path)) ? getNestedProp(entry, path) : [];
-        const toAdd = Array.isArray(rawMod.items) ? rawMod.items : (rawMod.items !== undefined ? [rawMod.items] : []);
+        const toAdd = Array.isArray(rawMod.items)
+          ? rawMod.items
+          : rawMod.items !== undefined
+            ? [rawMod.items]
+            : [];
         setNestedProp(entry, path, [...toAdd, ...arr]);
         break;
       }
       case 'appendIfNotExistsArr': {
         if (!path) break;
         const arr = Array.isArray(getNestedProp(entry, path)) ? getNestedProp(entry, path) : [];
-        const toAdd = Array.isArray(rawMod.items) ? rawMod.items : (rawMod.items !== undefined ? [rawMod.items] : []);
+        const toAdd = Array.isArray(rawMod.items)
+          ? rawMod.items
+          : rawMod.items !== undefined
+            ? [rawMod.items]
+            : [];
         setNestedProp(entry, path, appendIfNotExists(arr, toAdd));
         break;
       }
@@ -147,14 +159,18 @@ function applyModOperation(entry: any, rawMod: any, defaultPath?: string): Resol
       }
       case 'removeArr': {
         if (!path) break;
-        const arr: any[] = Array.isArray(getNestedProp(entry, path)) ? getNestedProp(entry, path) : [];
-        const names: string[] = rawMod.names || (Array.isArray(rawMod.items) ? rawMod.items : (rawMod.items ? [rawMod.items] : []));
+        const arr: any[] = Array.isArray(getNestedProp(entry, path))
+          ? getNestedProp(entry, path)
+          : [];
+        const names: string[] =
+          rawMod.names ||
+          (Array.isArray(rawMod.items) ? rawMod.items : rawMod.items ? [rawMod.items] : []);
         setNestedProp(
           entry,
           path,
           names.length
             ? arr.filter((item) => !names.includes(typeof item === 'string' ? item : item?.name))
-            : []
+            : [],
         );
         break;
       }
@@ -165,13 +181,16 @@ function applyModOperation(entry: any, rawMod: any, defaultPath?: string): Resol
         const replaceTarget = rawMod.replace;
         const itemsToInsert = Array.isArray(rawMod.items)
           ? rawMod.items
-          : (rawMod.items !== undefined ? [rawMod.items] : []);
+          : rawMod.items !== undefined
+            ? [rawMod.items]
+            : [];
 
         const nextArr: any[] = [];
         for (const item of arr) {
-          const isMatch = typeof item === 'string'
-            ? item === replaceTarget
-            : (item?.name === replaceTarget || item?.ENG_name === replaceTarget);
+          const isMatch =
+            typeof item === 'string'
+              ? item === replaceTarget
+              : item?.name === replaceTarget || item?.ENG_name === replaceTarget;
           if (isMatch) {
             nextArr.push(...itemsToInsert);
           } else {
@@ -185,7 +204,11 @@ function applyModOperation(entry: any, rawMod: any, defaultPath?: string): Resol
         if (!path) break;
         const currentVal = getNestedProp(entry, path);
         if (currentVal !== undefined) {
-          setNestedProp(entry, path, deepReplaceTxt(currentVal, rawMod.replace, rawMod.with, rawMod.flags));
+          setNestedProp(
+            entry,
+            path,
+            deepReplaceTxt(currentVal, rawMod.replace, rawMod.with, rawMod.flags),
+          );
         }
         break;
       }
@@ -203,8 +226,8 @@ function applyModOperation(entry: any, rawMod: any, defaultPath?: string): Resol
       case 'replaceSpells': {
         if (entry.additionalSpells && rawMod.spells) {
           Object.entries(rawMod.spells as Record<string, string>).forEach(([from, to]) => {
-            const idx = entry.additionalSpells.findIndex((s: any) =>
-              (typeof s === 'string' ? s : s?.name) === from
+            const idx = entry.additionalSpells.findIndex(
+              (s: any) => (typeof s === 'string' ? s : s?.name) === from,
             );
             if (idx >= 0) entry.additionalSpells[idx] = to;
           });
@@ -215,7 +238,7 @@ function applyModOperation(entry: any, rawMod: any, defaultPath?: string): Resol
         if (entry.additionalSpells) {
           const toRemove = new Set(rawMod.spells || []);
           entry.additionalSpells = entry.additionalSpells.filter(
-            (s: any) => !toRemove.has(typeof s === 'string' ? s : s?.name)
+            (s: any) => !toRemove.has(typeof s === 'string' ? s : s?.name),
           );
         }
         break;
@@ -274,12 +297,15 @@ export function getEntryKeys(entry: any): string[] {
   if (!source) return [];
   const keys: string[] = [];
   // Class records may share name/book while targeting different parent editions.
-  const scope = entry.className ? `::${[
-    entry.className, entry.classSource || 'PHB',
-    entry.subclassShortName || entry.shortName || entry.subclassName || '',
-    entry.subclassShortName || entry.subclassName ? entry.subclassSource || 'PHB' : '',
-    entry.level ?? '',
-  ].join('::')}` : '';
+  const scope = entry.className
+    ? `::${[
+        entry.className,
+        entry.classSource || 'PHB',
+        entry.subclassShortName || entry.shortName || entry.subclassName || '',
+        entry.subclassShortName || entry.subclassName ? entry.subclassSource || 'PHB' : '',
+        entry.level ?? '',
+      ].join('::')}`
+    : '';
   if (entry.name) keys.push(`${entry.name}::${source}${scope}`);
   if (entry.ENG_name) keys.push(`${entry.ENG_name}::${source}${scope}`);
   return keys;
@@ -292,7 +318,7 @@ function resolveSingleEntryNode(
   globalEntries: Map<string, any>,
   visitingKeys: Set<string>,
   warnings: ResolverWarning[],
-  matchesCopyScope?: (candidate: Record<string, any>, copy: Record<string, any>) => boolean
+  matchesCopyScope?: (candidate: Record<string, any>, copy: Record<string, any>) => boolean,
 ): any {
   const keys = getEntryKeys(rawEntry);
   const primaryKey = keys[0];
@@ -328,17 +354,31 @@ function resolveSingleEntryNode(
       // Some upstream copies omit parent fields. Resolve only a unique matching
       // record; never recreate the old name/book overwrite behavior.
       const names = new Set([copyRef.name, copyRef.ENG_name].filter(Boolean));
-      const matches = [...new Set([...localIndex.values(), ...globalEntries.values()])].filter(candidate =>
-        extractEntrySource(candidate) === copyRef.source &&
-        [candidate.name, candidate.ENG_name].some(name => names.has(name)) &&
-        (matchesCopyScope ? matchesCopyScope(candidate, copyRef) :
-          ['className', 'classSource', 'shortName', 'subclassShortName', 'subclassSource', 'level'].every(field =>
-            copyRef[field] === undefined || candidate[field] === copyRef[field])));
+      const matches = [...new Set([...localIndex.values(), ...globalEntries.values()])].filter(
+        (candidate) =>
+          extractEntrySource(candidate) === copyRef.source &&
+          [candidate.name, candidate.ENG_name].some((name) => names.has(name)) &&
+          (matchesCopyScope
+            ? matchesCopyScope(candidate, copyRef)
+            : [
+                'className',
+                'classSource',
+                'shortName',
+                'subclassShortName',
+                'subclassSource',
+                'level',
+              ].every(
+                (field) => copyRef[field] === undefined || candidate[field] === copyRef[field],
+              )),
+      );
       if (matches.length === 1) baseRaw = matches[0];
-      else if (matches.length > 1) warnings.push({
-        code: 'RESOLVE_ERROR', entry: cloned.name, target: copyRef,
-        message: `_copy 来源 "${copyKey}" 存在 ${matches.length} 个候选，未自动选择`,
-      });
+      else if (matches.length > 1)
+        warnings.push({
+          code: 'RESOLVE_ERROR',
+          entry: cloned.name,
+          target: copyRef,
+          message: `_copy 来源 "${copyKey}" 存在 ${matches.length} 个候选，未自动选择`,
+        });
     }
 
     if (!baseRaw) {
@@ -361,7 +401,7 @@ function resolveSingleEntryNode(
           globalEntries,
           visitingKeys,
           warnings,
-          matchesCopyScope
+          matchesCopyScope,
         );
       } else if (basePrimaryKey && resolvedMap.has(basePrimaryKey)) {
         resolvedBase = resolvedMap.get(basePrimaryKey);
@@ -374,7 +414,7 @@ function resolveSingleEntryNode(
       delete baseCopy._mod;
 
       const ownProps = Object.fromEntries(
-        Object.entries(cloned).filter(([k]) => !k.startsWith('_'))
+        Object.entries(cloned).filter(([k]) => !k.startsWith('_')),
       );
 
       const mergedInherits = {
@@ -430,7 +470,7 @@ function resolveSingleEntryNode(
 export function resolveEntries<T extends Record<string, any>>(
   entries: T[],
   globalEntries: Map<string, T> = new Map(),
-  matchesCopyScope?: (candidate: Record<string, any>, copy: Record<string, any>) => boolean
+  matchesCopyScope?: (candidate: Record<string, any>, copy: Record<string, any>) => boolean,
 ): ResolveResult<T> {
   const warnings: ResolverWarning[] = [];
 
@@ -454,7 +494,7 @@ export function resolveEntries<T extends Record<string, any>>(
       globalEntries,
       visitingKeys,
       warnings,
-      matchesCopyScope
+      matchesCopyScope,
     );
     resolved.push(result as T);
   }

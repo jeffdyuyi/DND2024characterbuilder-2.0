@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeItemProperty, normalizeItemMastery } from '@/source/fiveetools-cn/normalizers/rule';
+import {
+  normalizeItemProperty,
+  normalizeItemMastery,
+} from '@/source/fiveetools-cn/normalizers/rule';
 import { getCatalogMasteryData, getCatalogPropertyData } from '@/catalog/adapters/equipmentRules';
 import { MASTERY_DATA, PROPERTY_DATA } from '@/rules/equipment';
 
@@ -10,9 +13,7 @@ describe('Equipment Rules Catalog Adapter & Normalizer', () => {
       ENG_name: 'Cleave',
       source: 'XPHB',
       page: 214,
-      entries: [
-        '当你用这把武器进行的近战攻击检定命中一个生物时...'
-      ]
+      entries: ['当你用这把武器进行的近战攻击检定命中一个生物时...'],
     };
 
     const entry = normalizeItemMastery(rawMastery, '5etools-cn');
@@ -31,9 +32,9 @@ describe('Equipment Rules Catalog Adapter & Normalizer', () => {
         {
           name: '双手',
           ENG_name: 'Two-Handed',
-          entries: ['用双手武器攻击时，你需要双手并用。']
-        }
-      ]
+          entries: ['用双手武器攻击时，你需要双手并用。'],
+        },
+      ],
     };
 
     const entry = normalizeItemProperty(rawProp, '5etools-cn');

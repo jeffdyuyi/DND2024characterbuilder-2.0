@@ -4,9 +4,13 @@ import { getFeatureMechanicsOverlay } from '@/mechanics-overlay/features';
 import { parseFeatureChoices } from './featureChoicesParser';
 import { belongsToClass, createClassFeatureLookup } from './classReferences';
 
-type FeatureLookups = { classFeature: ReturnType<typeof createClassFeatureLookup>; subclassFeature: ReturnType<typeof createClassFeatureLookup> };
+type FeatureLookups = {
+  classFeature: ReturnType<typeof createClassFeatureLookup>;
+  subclassFeature: ReturnType<typeof createClassFeatureLookup>;
+};
 
-type RefValue = string | { classFeature?: string; subclassFeature?: string; gainSubclassFeature?: boolean };
+type RefValue =
+  string | { classFeature?: string; subclassFeature?: string; gainSubclassFeature?: boolean };
 
 function refText(ref: RefValue, kind: 'classFeature' | 'subclassFeature'): string {
   return typeof ref === 'string' ? ref : String(ref?.[kind] || '');
@@ -23,11 +27,16 @@ function toFeature(entry: CatalogEntry): ClassFeature {
     level: Number(raw.level || 0),
     description: entry.description || '',
     source: entry.source,
-    mechanics: (overlay || parsed.choices.length > 0 || raw.mechanics) ? {
-      ...(raw.mechanics || {}),
-      ...(parsed.choices.length > 0 ? { choices: [...existingChoices, ...parsed.choices] } : {}),
-      ...(overlay || {}),
-    } : undefined,
+    mechanics:
+      overlay || parsed.choices.length > 0 || raw.mechanics
+        ? {
+            ...(raw.mechanics || {}),
+            ...(parsed.choices.length > 0
+              ? { choices: [...existingChoices, ...parsed.choices] }
+              : {}),
+            ...(overlay || {}),
+          }
+        : undefined,
     options: raw.options,
   };
 }
@@ -62,13 +71,20 @@ export function collectClassAssemblyDiagnostics(catalog: CatalogService): ClassA
   const choiceParsing: string[] = [];
   const referenceFailures: ClassReferenceFailure[] = [];
 
-  const lookups = { classFeature: createClassFeatureLookup(catalog), subclassFeature: createClassFeatureLookup(catalog, true) };
+  const lookups = {
+    classFeature: createClassFeatureLookup(catalog),
+    subclassFeature: createClassFeatureLookup(catalog, true),
+  };
   for (const entry of catalog.list('class')) {
     if (entry.sourcePackId === 'legacy') continue;
     const assembled = assembleCatalogClass(entry, catalog, lookups);
-    unresolvedReferences.push(...assembled.unresolvedReferences.map((value) => `${entry.id}:${value}`));
+    unresolvedReferences.push(
+      ...assembled.unresolvedReferences.map((value) => `${entry.id}:${value}`),
+    );
     choiceParsing.push(...assembled.choiceDiagnostics.map((value) => `${entry.id}:${value}`));
-    referenceFailures.push(...assembled.referenceFailures.map(value => ({ ...value, parentClassId: entry.id })));
+    referenceFailures.push(
+      ...assembled.referenceFailures.map((value) => ({ ...value, parentClassId: entry.id })),
+    );
   }
 
   return {
@@ -79,7 +95,11 @@ export function collectClassAssemblyDiagnostics(catalog: CatalogService): ClassA
 }
 
 /** 将 5etools 的引用数组与独立特性条目组装为 UI/引擎可消费的职业树。 */
-export function assembleCatalogClass(entry: CatalogEntry, catalog: CatalogService, lookups?: FeatureLookups): ClassAssemblyResult {
+export function assembleCatalogClass(
+  entry: CatalogEntry,
+  catalog: CatalogService,
+  lookups?: FeatureLookups,
+): ClassAssemblyResult {
   const raw = entry.raw as any;
   const unresolvedReferences: string[] = [];
   const choiceDiagnostics: string[] = [];
@@ -93,7 +113,13 @@ export function assembleCatalogClass(entry: CatalogEntry, catalog: CatalogServic
     const found = findClassFeature(text, entry);
     if (!found) {
       if (text) unresolvedReferences.push(`classFeature:${text}`);
-      if (text) referenceFailures.push({ ownerId: entry.id, kind: 'classFeature', reference: text, referenceIndex });
+      if (text)
+        referenceFailures.push({
+          ownerId: entry.id,
+          kind: 'classFeature',
+          reference: text,
+          referenceIndex,
+        });
       return [];
     }
     const feature = toFeature(found);
@@ -101,7 +127,9 @@ export function assembleCatalogClass(entry: CatalogEntry, catalog: CatalogServic
     return [feature];
   });
 
-  const subclassCatalogEntries = catalog.list('subclass').filter(subclass => belongsToClass(subclass, entry));
+  const subclassCatalogEntries = catalog
+    .list('subclass')
+    .filter((subclass) => belongsToClass(subclass, entry));
 
   let subclassUnlockLevel = 20;
   for (const ref of featureRefs) {
@@ -123,7 +151,13 @@ export function assembleCatalogClass(entry: CatalogEntry, catalog: CatalogServic
       const found = findSubclassFeature(text, subclass);
       if (!found) {
         if (text) unresolvedReferences.push(`subclassFeature:${text}`);
-        if (text) referenceFailures.push({ ownerId: subclass.id, kind: 'subclassFeature', reference: text, referenceIndex });
+        if (text)
+          referenceFailures.push({
+            ownerId: subclass.id,
+            kind: 'subclassFeature',
+            reference: text,
+            referenceIndex,
+          });
         return [];
       }
       const feature = toFeature(found);
@@ -142,22 +176,31 @@ export function assembleCatalogClass(entry: CatalogEntry, catalog: CatalogServic
     };
   });
 
-  const spellRows = (raw.classTableGroups || []).find((group: any) => Array.isArray(group.rowsSpellProgression))?.rowsSpellProgression || [];
-  const preparedProgression = raw.preparedSpellsProgression || raw.spellsKnownProgressionFixed || [];
+  const spellRows =
+    (raw.classTableGroups || []).find((group: any) => Array.isArray(group.rowsSpellProgression))
+      ?.rowsSpellProgression || [];
+  const preparedProgression =
+    raw.preparedSpellsProgression || raw.spellsKnownProgressionFixed || [];
   const progression: ClassLevelProgression[] = Array.from({ length: 20 }, (_, index) => {
     const level = index + 1;
     const row = spellRows[index];
     return {
       level,
       proficiencyBonus: 2 + Math.floor((level - 1) / 4),
-      featuresUnlocked: features.filter((feature) => feature.level === level).map((feature) => feature.nameEn || feature.name),
-      ...(Array.isArray(row) ? {
-        spellcasting: {
-          cantripsKnown: Number(raw.cantripProgression?.[index] || 0),
-          spellsPrepared: Number(preparedProgression[index] || 0),
-          spellSlots: Object.fromEntries(row.map((count: number, slot: number) => [`level${slot + 1}`, count])),
-        },
-      } : {}),
+      featuresUnlocked: features
+        .filter((feature) => feature.level === level)
+        .map((feature) => feature.nameEn || feature.name),
+      ...(Array.isArray(row)
+        ? {
+            spellcasting: {
+              cantripsKnown: Number(raw.cantripProgression?.[index] || 0),
+              spellsPrepared: Number(preparedProgression[index] || 0),
+              spellSlots: Object.fromEntries(
+                row.map((count: number, slot: number) => [`level${slot + 1}`, count]),
+              ),
+            },
+          }
+        : {}),
     } as ClassLevelProgression;
   });
 
@@ -165,7 +208,8 @@ export function assembleCatalogClass(entry: CatalogEntry, catalog: CatalogServic
     features,
     progression,
     subclasses,
-    subclassUnlockLevel: subclassUnlockLevel === 20 && subclasses.length === 0 ? 3 : subclassUnlockLevel,
+    subclassUnlockLevel:
+      subclassUnlockLevel === 20 && subclasses.length === 0 ? 3 : subclassUnlockLevel,
     unresolvedReferences,
     choiceDiagnostics: Array.from(new Set(choiceDiagnostics)),
     referenceFailures,

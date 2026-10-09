@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { defaultCatalog } from '../catalog';
-import { getCatalogSpecies, getCatalogSubspecies, catalogEntryToSpecies, catalogEntryToSubspecies } from '../adapters/species';
+import {
+  getCatalogSpecies,
+  getCatalogSubspecies,
+  catalogEntryToSpecies,
+  catalogEntryToSubspecies,
+} from '../adapters/species';
 import { getSpeciesDefinition, getSubspeciesDefinition } from '@/engine/characterData';
 import { normalizeRace } from '@/source/fiveetools-cn/normalizers/race';
 import { CharacterState } from '@/types/characterState';
 
 describe('Catalog Species Adapter Tests', () => {
-
-
-
   it('should prioritize 5etools species when registered into catalog', () => {
     const raw5eRace = {
       name: '测试种族',
@@ -41,9 +43,16 @@ describe('Catalog Species Adapter Tests', () => {
 
   it('uses race fluff as the species description while keeping rule entries as traits', () => {
     const entry = normalizeRace({
-      name: '测试精灵', ENG_name: 'Test Elf', source: 'XPHB',
+      name: '测试精灵',
+      ENG_name: 'Test Elf',
+      source: 'XPHB',
       entries: [{ name: '黑暗视觉', ENG_name: 'Darkvision', entries: ['你拥有黑暗视觉。'] }],
-      fluff: { name: '测试精灵', ENG_name: 'Test Elf', source: 'XPHB', entries: ['这是未经改写的种族背景设定。'] },
+      fluff: {
+        name: '测试精灵',
+        ENG_name: 'Test Elf',
+        source: 'XPHB',
+        entries: ['这是未经改写的种族背景设定。'],
+      },
     });
     const species = catalogEntryToSpecies(entry);
 
@@ -51,4 +60,3 @@ describe('Catalog Species Adapter Tests', () => {
     expect(species.traits[0].description).toBe('你拥有黑暗视觉。');
   });
 });
-

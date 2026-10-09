@@ -6,9 +6,6 @@ import { normalizeBackground } from '@/source/fiveetools-cn/normalizers/backgrou
 import { CharacterState } from '@/types/characterState';
 
 describe('Catalog Background Adapter Tests', () => {
-
-
-
   it('should prioritize 5etools background when registered into catalog', () => {
     const raw5eBg = {
       name: '测试背景',
@@ -37,22 +34,39 @@ describe('Catalog Background Adapter Tests', () => {
   it('uses fluff as display description while preserving mechanical entries', () => {
     const mechanicalEntries = ['【属性值】力量、体质、魅力', '【专长】异种龙纹'];
     const entry = normalizeBackground({
-      name: '畸变继承人', ENG_name: 'Aberrant Heir', source: 'EFA', entries: mechanicalEntries,
-      fluff: { name: '畸变继承人', ENG_name: 'Aberrant Heir', source: 'EFA', entries: ['你的异种龙纹自显现以来就让生活充满挑战。'] },
+      name: '畸变继承人',
+      ENG_name: 'Aberrant Heir',
+      source: 'EFA',
+      entries: mechanicalEntries,
+      fluff: {
+        name: '畸变继承人',
+        ENG_name: 'Aberrant Heir',
+        source: 'EFA',
+        entries: ['你的异种龙纹自显现以来就让生活充满挑战。'],
+      },
     });
 
-    expect(catalogEntryToBackground(entry).description).toBe('你的异种龙纹自显现以来就让生活充满挑战。');
+    expect(catalogEntryToBackground(entry).description).toBe(
+      '你的异种龙纹自显现以来就让生活充满挑战。',
+    );
     expect(entry.entries).toEqual(mechanicalEntries);
   });
 
   it('adapts real 2024 background proficiency, feat and ability shapes', () => {
-    const entry = normalizeBackground({
-      name: '测试侍僧', ENG_name: 'Test Acolyte', source: 'XPHB',
-      ability: [{ choose: { weighted: { from: ['int', 'wis', 'cha'], weights: [2, 1] } } }],
-      feats: [{ '魔法学徒；牧师|xphb': true }], skillProficiencies: [{ insight: true, religion: true }],
-      toolProficiencies: [{ "calligrapher's supplies": true }], languageProficiencies: [{ anyStandard: 2 }],
-      startingEquipment: [{ A: [{ item: '书籍|xphb' }, { value: 800 }], B: [{ value: 5000 }] }],
-    }, 'test');
+    const entry = normalizeBackground(
+      {
+        name: '测试侍僧',
+        ENG_name: 'Test Acolyte',
+        source: 'XPHB',
+        ability: [{ choose: { weighted: { from: ['int', 'wis', 'cha'], weights: [2, 1] } } }],
+        feats: [{ '魔法学徒；牧师|xphb': true }],
+        skillProficiencies: [{ insight: true, religion: true }],
+        toolProficiencies: [{ "calligrapher's supplies": true }],
+        languageProficiencies: [{ anyStandard: 2 }],
+        startingEquipment: [{ A: [{ item: '书籍|xphb' }, { value: 800 }], B: [{ value: 5000 }] }],
+      },
+      'test',
+    );
     const background = catalogEntryToBackground(entry);
     expect(background.abilityScoreOptions).toEqual(['INT', 'WIS', 'CHA']);
     expect(background.feat?.name).toBe('魔法学徒；牧师');
@@ -65,11 +79,16 @@ describe('Catalog Background Adapter Tests', () => {
 
   it('expands tool categories (artisan tools, gaming sets, musical instruments) into concrete options', () => {
     // 模拟 2024 工匠 (Guild Artisan) 拥有工匠工具自选与单项标准语言自选
-    const artisanEntry = normalizeBackground({
-      name: '工匠', ENG_name: 'Artisan', source: 'XPHB',
-      toolProficiencies: [{ "artisan's tools": true }],
-      languageProficiencies: [{ anyStandard: 1 }],
-    }, '5etools-cn');
+    const artisanEntry = normalizeBackground(
+      {
+        name: '工匠',
+        ENG_name: 'Artisan',
+        source: 'XPHB',
+        toolProficiencies: [{ "artisan's tools": true }],
+        languageProficiencies: [{ anyStandard: 1 }],
+      },
+      '5etools-cn',
+    );
     const artisanBg = catalogEntryToBackground(artisanEntry);
 
     // 应该将工匠工具展开为具体的选择槽
@@ -90,10 +109,15 @@ describe('Catalog Background Adapter Tests', () => {
     });
 
     // 模拟 2024 贵族拥有游戏套件自选
-    const nobleEntry = normalizeBackground({
-      name: '贵族', ENG_name: 'Noble', source: 'XPHB',
-      toolProficiencies: [{ "gaming set": true }],
-    }, '5etools-cn');
+    const nobleEntry = normalizeBackground(
+      {
+        name: '贵族',
+        ENG_name: 'Noble',
+        source: 'XPHB',
+        toolProficiencies: [{ 'gaming set': true }],
+      },
+      '5etools-cn',
+    );
     const nobleBg = catalogEntryToBackground(nobleEntry);
     expect(nobleBg.toolProficiencies![0]).toMatchObject({
       name: '赌具自选',
@@ -104,14 +128,21 @@ describe('Catalog Background Adapter Tests', () => {
     expect(gamingOptions).toContain('dragonchess set');
 
     // 模拟 2014 复合选择：工匠工具或乐器任选 1 种
-    const compositeEntry = normalizeBackground({
-      name: '民俗艺人', ENG_name: 'Folk Entertainer', source: 'PHB',
-      toolProficiencies: [{ choose: { from: ["artisan's tools", "musical instrument"], count: 1 } }],
-    }, '5etools-cn');
+    const compositeEntry = normalizeBackground(
+      {
+        name: '民俗艺人',
+        ENG_name: 'Folk Entertainer',
+        source: 'PHB',
+        toolProficiencies: [
+          { choose: { from: ["artisan's tools", 'musical instrument'], count: 1 } },
+        ],
+      },
+      '5etools-cn',
+    );
     const compositeBg = catalogEntryToBackground(compositeEntry);
     const compositeOptions = (compositeBg.toolProficiencies![0] as any).options;
     expect(compositeOptions).toContain("woodcarver's tools");
-    expect(compositeOptions).toContain("lute");
+    expect(compositeOptions).toContain('lute');
     expect((compositeBg.toolProficiencies![0] as any).numToChoose).toBe(1);
   });
 
@@ -126,7 +157,7 @@ describe('Catalog Background Adapter Tests', () => {
           ENG_name: 'Feature: Criminal Contact',
           type: 'entries',
           entries: ['你有一个可靠可信的接头人，来帮你组织进罪犯们组成的联系网中。'],
-          data: { isFeature: true }
+          data: { isFeature: true },
         },
         {
           name: '手法',
@@ -135,11 +166,14 @@ describe('Catalog Background Adapter Tests', () => {
             {
               type: 'table',
               colLabels: ['d8', '手法'],
-              rows: [['1', '敲诈犯'], ['2', '盗窃犯']]
-            }
-          ]
-        }
-      ]
+              rows: [
+                ['1', '敲诈犯'],
+                ['2', '盗窃犯'],
+              ],
+            },
+          ],
+        },
+      ],
     };
 
     const entry = normalizeBackground(rawCriminal, '5etools-cn');
@@ -171,11 +205,11 @@ describe('Catalog Background Adapter Tests', () => {
             '高档服装|phb',
             {
               item: '小包|phb',
-              containsValue: 1000
-            }
-          ]
-        }
-      ]
+              containsValue: 1000,
+            },
+          ],
+        },
+      ],
     };
 
     const entry = normalizeBackground(rawAzorius, '5etools-cn');
@@ -195,12 +229,12 @@ describe('Catalog Background Adapter Tests', () => {
     expect(bg.equipment.choiceARecords!.length).toBeGreaterThanOrEqual(6);
 
     // 必须有独立的 10 GP 货币记录
-    const currencyRecord = bg.equipment.choiceARecords?.find(r => r.kind === 'currency');
+    const currencyRecord = bg.equipment.choiceARecords?.find((r) => r.kind === 'currency');
     expect(currencyRecord).toBeDefined();
     expect(currencyRecord?.currency?.gp).toBe(10);
 
     // 必须有小包物品记录
-    const pouchRecord = bg.equipment.choiceARecords?.find(r => r.label.includes('小包'));
+    const pouchRecord = bg.equipment.choiceARecords?.find((r) => r.label.includes('小包'));
     expect(pouchRecord).toBeDefined();
     expect(pouchRecord?.kind).toBe('item');
   });
@@ -217,11 +251,12 @@ describe('Catalog Background Adapter Tests', () => {
           items: [
             {
               name: '装备：',
-              entry: '一枚俄佐立徽章，一支记载着对你来说非常重要的法律条文的卷轴，一瓶{@item 墨水(1盎司/瓶)|phb|一瓶蓝墨水}，一支{@item 墨水笔|phb|笔}，一套{@item 高档服装|phb}，以及一条腰带{@item 小包|phb}内装有10gp（俄佐立发行的1齐诺硬币）'
-            }
-          ]
-        }
-      ]
+              entry:
+                '一枚俄佐立徽章，一支记载着对你来说非常重要的法律条文的卷轴，一瓶{@item 墨水(1盎司/瓶)|phb|一瓶蓝墨水}，一支{@item 墨水笔|phb|笔}，一套{@item 高档服装|phb}，以及一条腰带{@item 小包|phb}内装有10gp（俄佐立发行的1齐诺硬币）',
+            },
+          ],
+        },
+      ],
     };
 
     const entry = normalizeBackground(rawLegacyProse, '5etools-cn');
@@ -231,10 +266,12 @@ describe('Catalog Background Adapter Tests', () => {
     expect(bg.equipment.choiceA.length).toBeGreaterThanOrEqual(5);
 
     // 2. 修复了重复量词（"一瓶一瓶蓝墨水" -> "一瓶蓝墨水"）
-    expect(bg.equipment.choiceA.some(s => typeof s === 'string' && s.includes('一瓶一瓶'))).toBe(false);
+    expect(bg.equipment.choiceA.some((s) => typeof s === 'string' && s.includes('一瓶一瓶'))).toBe(
+      false,
+    );
 
     // 3. 提取了 10 GP 货币
-    const curRecord = bg.equipment.choiceARecords?.find(r => r.kind === 'currency');
+    const curRecord = bg.equipment.choiceARecords?.find((r) => r.kind === 'currency');
     expect(curRecord).toBeDefined();
     expect(curRecord?.currency?.gp).toBe(10);
   });
@@ -251,11 +288,12 @@ describe('Catalog Background Adapter Tests', () => {
           items: [
             {
               name: '装备：',
-              entry: '选择 A 或 B：(A) {@item 镰刀|XPHB}、{@item 木匠工具|XPHB}、{@item 医疗包|XPHB}、{@item 铁壶|XPHB}、{@item 铲子|XPHB}、{@item 旅行服装|XPHB}， 30 GP；或 (B) 50 GP'
-            }
-          ]
-        }
-      ]
+              entry:
+                '选择 A 或 B：(A) {@item 镰刀|XPHB}、{@item 木匠工具|XPHB}、{@item 医疗包|XPHB}、{@item 铁壶|XPHB}、{@item 铲子|XPHB}、{@item 旅行服装|XPHB}， 30 GP；或 (B) 50 GP',
+            },
+          ],
+        },
+      ],
     };
 
     const entry = normalizeBackground(rawFarmer2024, '5etools-cn');
@@ -269,11 +307,11 @@ describe('Catalog Background Adapter Tests', () => {
 
     // 2. choiceARecords 必须同时拥有旅行服装物品记录与 30 GP 货币记录
     expect(bg.equipment.choiceARecords).toBeDefined();
-    const clothesRecord = bg.equipment.choiceARecords?.find(r => r.label === '旅行服装');
+    const clothesRecord = bg.equipment.choiceARecords?.find((r) => r.label === '旅行服装');
     expect(clothesRecord).toBeDefined();
     expect(clothesRecord?.kind).toBe('item');
 
-    const goldRecord = bg.equipment.choiceARecords?.find(r => r.kind === 'currency');
+    const goldRecord = bg.equipment.choiceARecords?.find((r) => r.kind === 'currency');
     expect(goldRecord).toBeDefined();
     expect(goldRecord?.currency?.gp).toBe(30);
 
@@ -295,11 +333,12 @@ describe('Catalog Background Adapter Tests', () => {
           items: [
             {
               name: '装备：',
-              entry: '选择A或B：(A) 2把{@item 匕首|XPHB}，{@item 盗贼工具|XPHB}，2个{@item 小包|XPHB}，{@item 水袋|XPHB} 26GP；(B) 50GP'
-            }
-          ]
-        }
-      ]
+              entry:
+                '选择A或B：(A) 2把{@item 匕首|XPHB}，{@item 盗贼工具|XPHB}，2个{@item 小包|XPHB}，{@item 水袋|XPHB} 26GP；(B) 50GP',
+            },
+          ],
+        },
+      ],
     };
 
     const entry = normalizeBackground(rawComplex2024, '5etools-cn');
@@ -310,18 +349,16 @@ describe('Catalog Background Adapter Tests', () => {
     expect(bg.equipment.choiceA).toContain('26GP');
 
     // 数量词正确识别
-    const daggerRecord = bg.equipment.choiceARecords?.find(r => r.label.includes('匕首'));
+    const daggerRecord = bg.equipment.choiceARecords?.find((r) => r.label.includes('匕首'));
     expect(daggerRecord).toBeDefined();
     expect(daggerRecord?.quantity).toBe(2);
 
-    const pouchRecord = bg.equipment.choiceARecords?.find(r => r.label.includes('小包'));
+    const pouchRecord = bg.equipment.choiceARecords?.find((r) => r.label.includes('小包'));
     expect(pouchRecord).toBeDefined();
     expect(pouchRecord?.quantity).toBe(2);
 
     // 26 GP 货币记录
-    const curRecord = bg.equipment.choiceARecords?.find(r => r.kind === 'currency');
+    const curRecord = bg.equipment.choiceARecords?.find((r) => r.kind === 'currency');
     expect(curRecord?.currency?.gp).toBe(26);
   });
 });
-
-

@@ -15,7 +15,7 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
       page: 37,
       type: 'rare',
       origin: '深渊的恶魔',
-      typicalSpeakers: ['恶魔']
+      typicalSpeakers: ['恶魔'],
     };
 
     const entry = normalizeLanguage(raw5e, '5etools-cn');
@@ -35,9 +35,9 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
   it('未加载外部数据时平滑回退到本地权威兜底列表', () => {
     const fallbackList = getCatalogLanguages();
     expect(fallbackList.length).toBeGreaterThan(30);
-    expect(fallbackList.some(l => l.name === '通用语')).toBe(true);
+    expect(fallbackList.some((l) => l.name === '通用语')).toBe(true);
     expect(ALL_GAME_LANGUAGES.length).toBeGreaterThan(30);
-    expect(ALL_GAME_LANGUAGES.some(l => l.name === '精灵语')).toBe(true);
+    expect(ALL_GAME_LANGUAGES.some((l) => l.name === '精灵语')).toBe(true);
   });
 
   it('translateProficiency 确保所有 5etools 语言键均正确转换为中文', () => {
@@ -68,9 +68,9 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
     const mergedList = getCatalogLanguages();
     // 依然包含 80+ 种语言
     expect(mergedList.length).toBeGreaterThan(30);
-    expect(mergedList.some(l => l.id === 'auran')).toBe(true);
-    expect(mergedList.some(l => l.id === 'elvish')).toBe(true);
-    expect(mergedList.some(l => l.id === 'dwarvish')).toBe(true);
+    expect(mergedList.some((l) => l.id === 'auran')).toBe(true);
+    expect(mergedList.some((l) => l.id === 'elvish')).toBe(true);
+    expect(mergedList.some((l) => l.id === 'dwarvish')).toBe(true);
   });
 
   it('Kenku（天狗）5etools 语料解析后掌握语言正确转换为中文', () => {
@@ -83,20 +83,26 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
         {
           name: '语言',
           ENG_name: 'Languages',
-          entries: ['你可以读、写通用语和风族语，但你只能使用你的拟声特性来说话。']
-        }
-      ]
+          entries: ['你可以读、写通用语和风族语，但你只能使用你的拟声特性来说话。'],
+        },
+      ],
     };
     const traits: any[] = [
-      { id: 'languages', name: '语言', description: '你可以读、写通用语和风族语，但你只能使用你的拟声特性来说话。' }
+      {
+        id: 'languages',
+        name: '语言',
+        description: '你可以读、写通用语和风族语，但你只能使用你的拟声特性来说话。',
+      },
     ];
     addStructuredTraits(traits, kenkuRaw, '5etools-cn');
-    const langTrait = traits.find(t => t.id === 'languages');
+    const langTrait = traits.find((t) => t.id === 'languages');
     expect(langTrait).toBeDefined();
     expect(langTrait.features?.languages).toBeDefined();
 
     // 验证无论输出是 '风族语' 还是 'auran'，经由 translateProficiency 渲染后 100% 为中文
-    const displayedLanguages = langTrait.features.languages.map((l: string) => translateProficiency(l));
+    const displayedLanguages = langTrait.features.languages.map((l: string) =>
+      translateProficiency(l),
+    );
     expect(displayedLanguages).toContain('通用语');
     expect(displayedLanguages.some((l: string) => l === '风族语' || l === '气族语')).toBe(true);
     expect(displayedLanguages).not.toContain('auran');

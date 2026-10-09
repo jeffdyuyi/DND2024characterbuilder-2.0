@@ -78,7 +78,10 @@ describe('5etools Resolver & Normalizer Tests', () => {
       duration: [{ type: 'instant' }],
       entries: ['一道明亮的光线从你的指尖射向目标点...'],
       classes: {
-        fromClassList: [{ name: 'Wizard', source: 'XPHB' }, { name: 'Sorcerer', source: 'XPHB' }],
+        fromClassList: [
+          { name: 'Wizard', source: 'XPHB' },
+          { name: 'Sorcerer', source: 'XPHB' },
+        ],
       },
     };
 
@@ -130,21 +133,61 @@ describe('5etools Resolver & Normalizer Tests', () => {
   it('loads and joins background and race fluff by name plus source', async () => {
     const catalog = new InMemoryCatalogService();
     const bodies: Record<string, any> = {
-      'data/backgrounds.json': { background: [{ name: '测试继承人', ENG_name: 'Test Heir', source: 'XPHB', entries: ['机械摘要'] }] },
-      'data/fluff-backgrounds.json': { backgroundFluff: [{ name: '测试继承人', ENG_name: 'Test Heir', source: 'XPHB', entries: ['背景故事原文'] }] },
-      'data/races.json': { race: [{ name: '测试种族', ENG_name: 'Test Species', source: 'XPHB', entries: [{ name: '规则特质', entries: ['机械规则'] }] }] },
-      'data/fluff-races.json': { raceFluff: [{ name: '测试种族', ENG_name: 'Test Species', source: 'XPHB', entries: ['种族设定原文'] }] },
+      'data/backgrounds.json': {
+        background: [
+          { name: '测试继承人', ENG_name: 'Test Heir', source: 'XPHB', entries: ['机械摘要'] },
+        ],
+      },
+      'data/fluff-backgrounds.json': {
+        backgroundFluff: [
+          { name: '测试继承人', ENG_name: 'Test Heir', source: 'XPHB', entries: ['背景故事原文'] },
+        ],
+      },
+      'data/races.json': {
+        race: [
+          {
+            name: '测试种族',
+            ENG_name: 'Test Species',
+            source: 'XPHB',
+            entries: [{ name: '规则特质', entries: ['机械规则'] }],
+          },
+        ],
+      },
+      'data/fluff-races.json': {
+        raceFluff: [
+          { name: '测试种族', ENG_name: 'Test Species', source: 'XPHB', entries: ['种族设定原文'] },
+        ],
+      },
     };
     const client = {
-      id: 'test-pack', kind: '5etools-cn',
-      fetchJson: async (path: string) => ({ body: bodies[path], revision: `${path}-revision`, cached: false, fetchedAt: 0 }),
+      id: 'test-pack',
+      kind: '5etools-cn',
+      fetchJson: async (path: string) => ({
+        body: bodies[path],
+        revision: `${path}-revision`,
+        cached: false,
+        fetchedAt: 0,
+      }),
     } as any;
     const loader = new FiveEToolsCnLoader(client, catalog);
 
-    const [backgroundSummary, raceSummary] = await Promise.all([loader.loadBackgrounds(), loader.loadRaces()]);
+    const [backgroundSummary, raceSummary] = await Promise.all([
+      loader.loadBackgrounds(),
+      loader.loadRaces(),
+    ]);
 
-    expect(backgroundSummary).toMatchObject({ count: 1, expectedFiles: 2, loadedFiles: 2, failedFiles: 0 });
-    expect(raceSummary).toMatchObject({ count: 1, expectedFiles: 2, loadedFiles: 2, failedFiles: 0 });
+    expect(backgroundSummary).toMatchObject({
+      count: 1,
+      expectedFiles: 2,
+      loadedFiles: 2,
+      failedFiles: 0,
+    });
+    expect(raceSummary).toMatchObject({
+      count: 1,
+      expectedFiles: 2,
+      loadedFiles: 2,
+      failedFiles: 0,
+    });
     const background = catalog.list('background')[0];
     const race = catalog.list('race')[0];
     expect(background.description).toBe('背景故事原文');
@@ -158,8 +201,12 @@ describe('5etools Resolver & Normalizer Tests', () => {
   it('loads base items and materializes magic variants', async () => {
     const catalog = new InMemoryCatalogService();
     const bodies: Record<string, any> = {
-      'data/items-base.json': { baseitem: [{ name: 'Base Armor', source: 'PHB', type: 'LA', ac: 11 }] },
-      'data/items.json': { item: [null, { name: 'Magic Armor', source: 'DMG', type: 'LA', ac: 12 }] },
+      'data/items-base.json': {
+        baseitem: [{ name: 'Base Armor', source: 'PHB', type: 'LA', ac: 11 }],
+      },
+      'data/items.json': {
+        item: [null, { name: 'Magic Armor', source: 'DMG', type: 'LA', ac: 12 }],
+      },
       'data/magicvariants.json': { variant: [{ name: 'Magic Weapon Variant', source: 'DMG' }] },
     };
     const client = {
@@ -175,7 +222,9 @@ describe('5etools Resolver & Normalizer Tests', () => {
     expect(catalog.list('baseitem')).toHaveLength(1);
     expect(catalog.list('item')).toHaveLength(3);
     expect(catalog.list('magicvariant')).toHaveLength(1);
-    expect(summary.warnings.some((warning) => warning.message.includes('非对象物品条目'))).toBe(true);
+    expect(summary.warnings.some((warning) => warning.message.includes('非对象物品条目'))).toBe(
+      true,
+    );
     expect(catalog.list('baseitem')[0].id).toContain(':baseitem:');
     expect(catalog.list('baseitem')[0]).toMatchObject({ revision: 'test' });
     expect((catalog.list('baseitem')[0].raw as any)._provenance.path).toBe('data/items-base.json');
@@ -185,12 +234,26 @@ describe('5etools Resolver & Normalizer Tests', () => {
   it('loads every public character-option collection without inventing mechanics', async () => {
     const catalog = new InMemoryCatalogService();
     const bodies: Record<string, any> = {
-      'data/optionalfeatures.json': { optionalfeature: [{ name: '契约选项', source: 'TCE', featureType: ['EI'], entries: ['原文'] }] },
-      'data/charcreationoptions.json': { charoption: [{ name: '黑暗赠礼', source: 'VRGR', optionType: ['DG'], entries: ['原文'] }] },
-      'data/rewards.json': { reward: [{ name: '祝福', source: 'DMG', type: 'Blessing', entries: ['原文'] }] },
-      'data/cultsboons.json': { cult: [{ name: '教团', source: 'MTF', entries: ['原文'] }], boon: [{ name: '邪魔恩惠', source: 'MTF', type: 'Demonic', entries: ['原文'] }] },
+      'data/optionalfeatures.json': {
+        optionalfeature: [
+          { name: '契约选项', source: 'TCE', featureType: ['EI'], entries: ['原文'] },
+        ],
+      },
+      'data/charcreationoptions.json': {
+        charoption: [{ name: '黑暗赠礼', source: 'VRGR', optionType: ['DG'], entries: ['原文'] }],
+      },
+      'data/rewards.json': {
+        reward: [{ name: '祝福', source: 'DMG', type: 'Blessing', entries: ['原文'] }],
+      },
+      'data/cultsboons.json': {
+        cult: [{ name: '教团', source: 'MTF', entries: ['原文'] }],
+        boon: [{ name: '邪魔恩惠', source: 'MTF', type: 'Demonic', entries: ['原文'] }],
+      },
     };
-    const client = { id: 'test-pack', fetchJson: async (path: string) => ({ body: bodies[path] }) } as any;
+    const client = {
+      id: 'test-pack',
+      fetchJson: async (path: string) => ({ body: bodies[path] }),
+    } as any;
     const summary = await new FiveEToolsCnLoader(client, catalog).loadCharacterOptions();
     expect(summary.count).toBe(5);
     expect(summary.loadedFiles).toBe(4);
@@ -204,16 +267,23 @@ describe('5etools Resolver & Normalizer Tests', () => {
   it('loads mixed Homebrew target categories from manifest files', async () => {
     const catalog = new InMemoryCatalogService();
     const client = {
-      id: 'homebrew-tjliqy', kind: 'homebrew',
-      fetchJson: async () => ({ body: {
-        race: [{ name: '扩展种族', source: 'HB', entries: ['原文'] }],
-        background: [{ name: '扩展背景', source: 'HB', entries: ['原文'] }],
-        feat: [{ name: '扩展专长', source: 'HB', entries: ['原文'] }],
-        optionalfeature: [{ name: '扩展可选特性', source: 'HB', featureType: ['EI'], entries: ['原文'] }],
-        reward: [{ name: '扩展祝福', source: 'HB', type: 'Blessing', entries: ['原文'] }],
-      } }),
+      id: 'homebrew-tjliqy',
+      kind: 'homebrew',
+      fetchJson: async () => ({
+        body: {
+          race: [{ name: '扩展种族', source: 'HB', entries: ['原文'] }],
+          background: [{ name: '扩展背景', source: 'HB', entries: ['原文'] }],
+          feat: [{ name: '扩展专长', source: 'HB', entries: ['原文'] }],
+          optionalfeature: [
+            { name: '扩展可选特性', source: 'HB', featureType: ['EI'], entries: ['原文'] },
+          ],
+          reward: [{ name: '扩展祝福', source: 'HB', type: 'Blessing', entries: ['原文'] }],
+        },
+      }),
     } as any;
-    const summary = await new FiveEToolsCnLoader(client, catalog).loadClassFiles(['collection/all.json']);
+    const summary = await new FiveEToolsCnLoader(client, catalog).loadClassFiles([
+      'collection/all.json',
+    ]);
     expect(summary.count).toBe(5);
     expect(catalog.list('race')[0].isHomebrew).toBe(true);
     expect(catalog.list('background')).toHaveLength(1);
@@ -227,11 +297,22 @@ describe('5etools Resolver & Normalizer Tests', () => {
     const client = {
       id: 'test-public',
       listIndexedFiles: async () => ['class-rogue.json'],
-      fetchJson: async () => ({ body: {
-        subclassFeature: [{ name: '使用魔法装置', ENG_name: 'Use Magic Device', source: 'XPHB',
-          className: '游荡者', classSource: 'XPHB', subclassShortName: '盗贼', level: 13,
-          entries: [{ name: '同调', entries: ['你最多可以同时同调于四个魔法物品。'] }] }],
-      } }),
+      fetchJson: async () => ({
+        body: {
+          subclassFeature: [
+            {
+              name: '使用魔法装置',
+              ENG_name: 'Use Magic Device',
+              source: 'XPHB',
+              className: '游荡者',
+              classSource: 'XPHB',
+              subclassShortName: '盗贼',
+              level: 13,
+              entries: [{ name: '同调', entries: ['你最多可以同时同调于四个魔法物品。'] }],
+            },
+          ],
+        },
+      }),
     } as any;
     await new FiveEToolsCnLoader(client, catalog).loadClasses();
     expect(catalog.list('subclassFeature')).toHaveLength(1);
@@ -241,14 +322,44 @@ describe('5etools Resolver & Normalizer Tests', () => {
   it('resolves Homebrew class feature inheritance across files', async () => {
     const catalog = new InMemoryCatalogService();
     const bodies: Record<string, any> = {
-      'class/base.json': { classFeature: [{ name: 'Shared Feature', source: 'BASE', className: 'Example', classSource: 'BASE', level: 1, entries: ['base text'] }] },
-      'class/derived.json': { classFeature: [{ name: 'Derived Feature', source: 'EXT', className: 'Example', classSource: 'BASE', level: 2, _copy: { name: 'Shared Feature', source: 'BASE' } }] },
+      'class/base.json': {
+        classFeature: [
+          {
+            name: 'Shared Feature',
+            source: 'BASE',
+            className: 'Example',
+            classSource: 'BASE',
+            level: 1,
+            entries: ['base text'],
+          },
+        ],
+      },
+      'class/derived.json': {
+        classFeature: [
+          {
+            name: 'Derived Feature',
+            source: 'EXT',
+            className: 'Example',
+            classSource: 'BASE',
+            level: 2,
+            _copy: { name: 'Shared Feature', source: 'BASE' },
+          },
+        ],
+      },
     };
     const client = {
-      id: 'homebrew-tjliqy', kind: 'homebrew',
-      fetchJson: async (path: string) => ({ body: bodies[path], revision: 'test', cached: false, fetchedAt: 0 }),
+      id: 'homebrew-tjliqy',
+      kind: 'homebrew',
+      fetchJson: async (path: string) => ({
+        body: bodies[path],
+        revision: 'test',
+        cached: false,
+        fetchedAt: 0,
+      }),
     } as any;
-    const summary = await new FiveEToolsCnLoader(client, catalog).loadClassFiles(Object.keys(bodies));
+    const summary = await new FiveEToolsCnLoader(client, catalog).loadClassFiles(
+      Object.keys(bodies),
+    );
     const derived = catalog.list('classFeature').find((entry) => entry.name === 'Derived Feature');
     expect(summary.warnings).toEqual([]);
     expect(derived?.description).toContain('base text');
@@ -258,12 +369,16 @@ describe('5etools Resolver & Normalizer Tests', () => {
   it('uses the generated spell source lookup to attach versioned class grants', async () => {
     const catalog = new InMemoryCatalogService();
     const client = {
-      id: '5etools-cn', kind: '5etools-cn',
+      id: '5etools-cn',
+      kind: '5etools-cn',
       listIndexedFiles: async () => ['spells-test.json'],
       fetchJson: async (path: string) => {
-        if (path.includes('gendata-spell-source-lookup')) return { body: {
-          tst: { '测试飞弹': { class: { PHB: { 法师: true }, XPHB: { 法师: true } } } },
-        } };
+        if (path.includes('gendata-spell-source-lookup'))
+          return {
+            body: {
+              tst: { 测试飞弹: { class: { PHB: { 法师: true }, XPHB: { 法师: true } } } },
+            },
+          };
         return { body: { spell: [{ name: '测试飞弹', source: 'TST', level: 1 }] } };
       },
     } as any;
@@ -425,7 +540,12 @@ describe('5etools Resolver & Normalizer Tests', () => {
       };
 
       // 测试乱序排列输入，检验 DAG 递归解析
-      const { resolved, warnings } = resolveEntries([allSeeingBlade, studiousBlade, resistantBlade, baseWarning]);
+      const { resolved, warnings } = resolveEntries([
+        allSeeingBlade,
+        studiousBlade,
+        resistantBlade,
+        baseWarning,
+      ]);
       expect(warnings).toEqual([]);
 
       const allSeeing = resolved.find((r) => r.name === '全视卫护之刃') as any;
@@ -455,7 +575,9 @@ describe('5etools Resolver & Normalizer Tests', () => {
       };
 
       const { resolved, warnings } = resolveEntries([cycleA, cycleB]);
-      expect(warnings.some((w) => w.code === 'RESOLVE_ERROR' && w.message.includes('循环继承引用'))).toBe(true);
+      expect(
+        warnings.some((w) => w.code === 'RESOLVE_ERROR' && w.message.includes('循环继承引用')),
+      ).toBe(true);
       expect(resolved).toHaveLength(2);
     });
 
@@ -498,7 +620,12 @@ describe('5etools Resolver & Normalizer Tests', () => {
 
       const client = {
         id: '5etools-cn',
-        fetchJson: async (path: string) => ({ body: bodies[path], revision: 'p0a-test', cached: false, fetchedAt: 0 }),
+        fetchJson: async (path: string) => ({
+          body: bodies[path],
+          revision: 'p0a-test',
+          cached: false,
+          fetchedAt: 0,
+        }),
       } as any;
 
       const summary = await new FiveEToolsCnLoader(client, catalog).loadItems();

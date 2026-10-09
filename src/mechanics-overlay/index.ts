@@ -20,7 +20,10 @@ export * from './warlockInvocations';
 
 function normalizeKey(str?: string): string {
   if (!str) return '';
-  return str.toLowerCase().replace(/[-_\s]+/g, '').trim();
+  return str
+    .toLowerCase()
+    .replace(/[-_\s]+/g, '')
+    .trim();
 }
 
 /** 检索职业机制覆盖 */
@@ -86,13 +89,15 @@ export function mergeOverlay(entry: CatalogEntry): CatalogEntry {
       if (overlay.features && overlay.features.length > 0) {
         const existingFeatures: any[] = Array.isArray(raw.features)
           ? [...raw.features]
-          : (Array.isArray(raw.classFeature) ? [...raw.classFeature] : []);
+          : Array.isArray(raw.classFeature)
+            ? [...raw.classFeature]
+            : [];
 
         for (const featOverlay of overlay.features) {
           const matchIdx = existingFeatures.findIndex(
             (f) =>
               normalizeKey(f.name) === normalizeKey(featOverlay.name) ||
-              normalizeKey(f.nameEn) === normalizeKey(featOverlay.nameEn)
+              normalizeKey(f.nameEn) === normalizeKey(featOverlay.nameEn),
           );
           if (matchIdx >= 0) {
             existingFeatures[matchIdx] = {
@@ -132,7 +137,7 @@ export function mergeOverlay(entry: CatalogEntry): CatalogEntry {
           const matchIdx = existingTraits.findIndex(
             (t) =>
               normalizeKey(t.name) === normalizeKey(traitOverlay.name) ||
-              normalizeKey(t.nameEn) === normalizeKey(traitOverlay.nameEn)
+              normalizeKey(t.nameEn) === normalizeKey(traitOverlay.nameEn),
           );
           if (matchIdx >= 0) {
             existingTraits[matchIdx] = {
@@ -169,7 +174,7 @@ export function mergeOverlay(entry: CatalogEntry): CatalogEntry {
           const matchIdx = existingTraits.findIndex(
             (t) =>
               normalizeKey(t.name) === normalizeKey(traitOverlay.name) ||
-              normalizeKey(t.nameEn) === normalizeKey(traitOverlay.nameEn)
+              normalizeKey(t.nameEn) === normalizeKey(traitOverlay.nameEn),
           );
           if (matchIdx >= 0) {
             existingTraits[matchIdx] = {

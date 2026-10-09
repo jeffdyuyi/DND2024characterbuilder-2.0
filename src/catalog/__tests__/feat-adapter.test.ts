@@ -5,8 +5,6 @@ import { getFeatDefinition } from '@/engine/characterData';
 import { normalizeFeat } from '@/source/fiveetools-cn/normalizers/feat';
 
 describe('Catalog Feat Adapter Tests', () => {
-
-
   it('should prioritize 5etools feat when registered into catalog', () => {
     const raw5eFeat = {
       name: '测试专长',
@@ -32,4 +30,3 @@ describe('Catalog Feat Adapter Tests', () => {
     expect(found).toBeDefined();
   });
 });
-

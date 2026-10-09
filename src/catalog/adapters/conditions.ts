@@ -83,7 +83,10 @@ export const CONDITION_MECHANICS_OVERLAY: Record<string, Condition['mechanics']>
 };
 
 function normalizeConditionId(nameEnOrName: string): string {
-  return nameEnOrName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return nameEnOrName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 export function catalogEntryToCondition(entry: CatalogEntry): Condition {
@@ -112,7 +115,11 @@ export function getCatalogConditions(fallback: Condition[] = []): Condition[] {
     for (const entry of entries) {
       const cond = catalogEntryToCondition(entry);
       // XPHB 优先，其次 PHB
-      if (!map.has(cond.id) || entry.source === 'XPHB' || (entry.source === 'PHB' && !map.get(cond.id))) {
+      if (
+        !map.has(cond.id) ||
+        entry.source === 'XPHB' ||
+        (entry.source === 'PHB' && !map.get(cond.id))
+      ) {
         map.set(cond.id, cond);
       }
     }

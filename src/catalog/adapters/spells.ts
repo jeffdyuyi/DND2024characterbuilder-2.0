@@ -51,7 +51,9 @@ export function catalogEntryToSpell(entry: CatalogEntry): Spell {
   let higherLevel: string | undefined = undefined;
   if (Array.isArray(entry.raw?.entries)) {
     const hlObj = (entry.raw.entries as any[]).find(
-      (e) => typeof e === 'object' && (e.name === 'Higher Levels' || e.name === '升环施法效应' || e.name === '升环效应')
+      (e) =>
+        typeof e === 'object' &&
+        (e.name === 'Higher Levels' || e.name === '升环施法效应' || e.name === '升环效应'),
     );
     if (hlObj && Array.isArray(hlObj.entries)) {
       higherLevel = hlObj.entries.join('\n');
@@ -94,7 +96,11 @@ export function catalogEntryToSpell(entry: CatalogEntry): Spell {
  * 获取 Catalog 中注册的所有法术
  * 合并策略：按英文原名/规范化标识去重，5etools 来源优先，Legacy 作为兜底
  */
-export function getCatalogSpells(options?: { edition?: Edition; source?: string; allowHomebrew?: boolean }): Spell[] {
+export function getCatalogSpells(options?: {
+  edition?: Edition;
+  source?: string;
+  allowHomebrew?: boolean;
+}): Spell[] {
   const entries = defaultCatalog.list('spell', options);
   const spells: Spell[] = [];
   const seenKeys = new Set<string>();
@@ -127,5 +133,3 @@ export function getCatalogSpells(options?: { edition?: Edition; source?: string;
 
   return spells;
 }
-
-
