@@ -2974,15 +2974,15 @@ export default function SpeciesPage() {
       sourceMap.get(src)!.push(opt);
     });
 
-    // 排序逻辑：当前母种族所属规则书绝对置顶，其余扩展书按规则权重与首字母排序
+    // 统一书籍优先级；同优先级内优先当前母种族出处。
     const sortedSources = Array.from(sourceMap.keys()).sort((a, b) => {
       const aIsCore = a === (species.source || 'PHB').toUpperCase();
       const bIsCore = b === (species.source || 'PHB').toUpperCase();
-      if (aIsCore && !bIsCore) return -1;
-      if (!aIsCore && bIsCore) return 1;
       const wA = getSourceSortWeight(a);
       const wB = getSourceSortWeight(b);
       if (wA !== wB) return wA - wB;
+      if (aIsCore && !bIsCore) return -1;
+      if (!aIsCore && bIsCore) return 1;
       return a.localeCompare(b);
     });
 

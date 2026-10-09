@@ -118,21 +118,14 @@ export function getSourceSortWeight(sourceOrGroupName: string): number {
   }
 
   // 2. 2014 玩家手册 / 经典规则 (第二优先)
-  if (
-    s === 'PHB' ||
-    s === 'PH' ||
-    s.includes('2014') ||
-    s.includes('LEGACY') ||
-    s.includes('经典规则') ||
-    s.includes('玩家手册')
-  ) {
+  if (s === 'PHB' || s === 'PH' || s.includes('经典规则') || s.includes('玩家手册')) {
     return 2;
   }
 
   // 3. 官方重大核心拓展规则
-  if (s.includes('MPMM') || s.includes('MOTM') || s.includes('多元宇宙')) return 3;
-  if (s.includes('TCE') || s.includes('塔莎')) return 4;
-  if (s.includes('XGE') || s.includes('珊娜萨')) return 5;
+  if (s.includes('TCE') || s.includes('塔莎')) return 3;
+  if (s.includes('XGE') || s.includes('珊娜萨')) return 4;
+  if (s.includes('MPMM') || s.includes('MOTM') || s.includes('多元宇宙')) return 5;
   if (s.includes('VGM') || s.includes('瓦罗')) return 6;
   if (s.includes('MTF') || s.includes('众敌')) return 7;
   if (s.includes('FTD') || s.includes('巨龙宝库')) return 8;
@@ -156,4 +149,11 @@ export function getSourceSortWeight(sourceOrGroupName: string): number {
   if (s.includes('HOMEBREW') || s.includes('自制') || s.includes('第三方')) return 90;
 
   return 30;
+}
+
+/** 候选显示的统一出处顺序；排序副本，不改原数组与角色选择。 */
+export function sortBySourcePriority<T extends { source?: string }>(items: T[]): T[] {
+  return [...items].sort(
+    (a, b) => getSourceSortWeight(a.source || '') - getSourceSortWeight(b.source || ''),
+  );
 }

@@ -1,3 +1,4 @@
+import { sortBySourcePriority } from '@/config/sourceMapping';
 import * as catalog from './index';
 import type { CharacterState } from '@/types/characterState';
 import type { CatalogEntry, EntryKind } from './types';
@@ -76,23 +77,23 @@ export function createBuilderChoices(
       return options.filter((value) => allows(value, kinds));
     },
     getCatalogClasses: (options?: Parameters<typeof catalog.getCatalogClasses>[0]) =>
-      catalog.getCatalogClasses({ ...options, sourcePolicy }),
+      sortBySourcePriority(catalog.getCatalogClasses({ ...options, sourcePolicy })),
     getCatalogSpecies: (options?: Parameters<typeof catalog.getCatalogSpecies>[0]) =>
-      catalog.getCatalogSpecies({ ...options, sourcePolicy }),
+      sortBySourcePriority(catalog.getCatalogSpecies({ ...options, sourcePolicy })),
     getCatalogBackgrounds: (options?: Parameters<typeof catalog.getCatalogBackgrounds>[0]) =>
-      catalog.getCatalogBackgrounds({ ...options, sourcePolicy }),
+      sortBySourcePriority(catalog.getCatalogBackgrounds({ ...options, sourcePolicy })),
     getCatalogFeats: (options?: Parameters<typeof catalog.getCatalogFeats>[0]) =>
-      catalog.getCatalogFeats({ ...options, sourcePolicy }),
+      sortBySourcePriority(catalog.getCatalogFeats({ ...options, sourcePolicy })),
     getCatalogSpells: (options?: Parameters<typeof catalog.getCatalogSpells>[0]) =>
-      catalog.getCatalogSpells({ ...options, sourcePolicy }),
+      sortBySourcePriority(catalog.getCatalogSpells({ ...options, sourcePolicy })),
     getCatalogItems: (options?: Parameters<typeof catalog.getCatalogItems>[0]) =>
-      catalog.getCatalogItems({ ...options, sourcePolicy }),
+      sortBySourcePriority(catalog.getCatalogItems({ ...options, sourcePolicy })),
     getCatalogCharacterOptions: (
       options?: Parameters<typeof catalog.getCatalogCharacterOptions>[0],
-    ) => catalog.getCatalogCharacterOptions({ ...options, sourcePolicy }),
+    ) => sortBySourcePriority(catalog.getCatalogCharacterOptions({ ...options, sourcePolicy })),
     getCatalogTools: (category?: Parameters<typeof catalog.getCatalogTools>[0]) =>
       catalog.getCatalogTools(category, { sourcePolicy }),
-    getCatalogLanguages: () => catalog.getCatalogLanguages({ sourcePolicy }),
+    getCatalogLanguages: () => sortBySourcePriority(catalog.getCatalogLanguages({ sourcePolicy })),
   };
 }
 

@@ -203,12 +203,10 @@ export default function SourceBookPicker({
                   value={brewStatus.loadedFiles + brewStatus.failedFiles}
                 />
               )}
-              {!value.allowHomebrew && <p>本角色未启用第三方资料；已下载缓存仍会保留。</p>}
-              <button
-                type="button"
-                disabled={brewBusy || !value.allowHomebrew}
-                onClick={() => void loadBrew()}
-              >
+              {!value.allowHomebrew && (
+                <p>本角色未启用第三方资料；仍可下载资源，启用顶部第三方开关后才能用于此角色。</p>
+              )}
+              <button type="button" disabled={brewBusy} onClick={() => void loadBrew()}>
                 {brewBusy
                   ? '正在加载…'
                   : brewStatus.state === 'error' || brewStatus.state === 'partial'
@@ -219,11 +217,7 @@ export default function SourceBookPicker({
             {error && (
               <p role="alert">
                 {error}
-                <button
-                  type="button"
-                  disabled={brewBusy || !value.allowHomebrew}
-                  onClick={() => void loadBrew()}
-                >
+                <button type="button" disabled={brewBusy} onClick={() => void loadBrew()}>
                   重试
                 </button>
               </p>

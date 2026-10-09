@@ -1,3 +1,4 @@
+import { getSourceSortWeight } from '@/config/sourceMapping';
 import type { CharacterState } from '@/types/characterState';
 import type { CharacterSourcePolicy, SourceBook, SourceSelection } from '@/types/sourceSelection';
 import type { CatalogEntry, CatalogService, EntryKind } from './types';
@@ -155,5 +156,10 @@ export function getLoadedSourceBooks(catalog: CatalogService) {
         });
     }
   }
-  return [...books.values()].sort((a, b) => sourceBookKey(a).localeCompare(sourceBookKey(b)));
+  return [...books.values()].sort(
+    (a, b) =>
+      Number(a.isHomebrew) - Number(b.isHomebrew) ||
+      getSourceSortWeight(a.source) - getSourceSortWeight(b.source) ||
+      sourceBookKey(a).localeCompare(sourceBookKey(b)),
+  );
 }
