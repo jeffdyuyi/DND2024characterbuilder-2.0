@@ -23,6 +23,8 @@ export interface BackgroundEquipmentRecord {
   category?: BackgroundEquipmentCategory;
   currency?: BackgroundCurrency;
   selectionId?: string;
+  /** 每个二选一标签对应的原始结构化物品，保留数量、货币与出处。 */
+  choices?: Record<string, BackgroundEquipmentRecord[]>;
 }
 
 export interface BackgroundVariant {

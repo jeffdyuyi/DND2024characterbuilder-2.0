@@ -17,6 +17,7 @@ import {
   getCatalogTools,
   getToolCategory,
   getToolDisplayName,
+  findCatalogTool,
   ALL_STANDARD_TOOLS,
 } from '@/catalog/tools';
 
@@ -115,6 +116,7 @@ export default function BackgroundPage() {
   const [langCategory, setLangCategory] = useState<string>('Standard');
   const [langSource, setLangSource] = useState<string>('XPHB');
   const [toolCategory, setToolCategory] = useState<string>('All');
+  const [toolSource, setToolSource] = useState<string>('All');
 
   const detailsPanelRef = useRef<HTMLDivElement>(null);
 
@@ -375,12 +377,27 @@ export default function BackgroundPage() {
           return distinctCats.size > 1;
         })());
 
-    const displayOptions = isMultiCategoryTool
+    const categoryOptions = isMultiCategoryTool
       ? options.filter((opt) => {
           if (toolCategory === 'All') return true;
           return getToolCategory(opt) === toolCategory;
         })
       : options;
+    const toolSources =
+      category === 'tool'
+        ? Array.from(
+            new Set(
+              categoryOptions
+                .map((opt) => findCatalogTool(opt)?.source)
+                .filter((source): source is string => Boolean(source)),
+            ),
+          ).sort((a, b) => getSourceSortWeight(a) - getSourceSortWeight(b))
+        : [];
+    const effectiveSource = toolSources.includes(toolSource) ? toolSource : 'All';
+    const displayOptions =
+      category === 'tool' && effectiveSource !== 'All'
+        ? categoryOptions.filter((opt) => findCatalogTool(opt)?.source === effectiveSource)
+        : categoryOptions;
 
     return (
       <div
@@ -584,6 +601,60 @@ export default function BackgroundPage() {
           </div>
         )}
 
+        {toolSources.length > 0 && (
+          <label style={{ display: 'block', marginBottom: 12 }}>
+            工具出处：
+            <select
+              aria-label="工具出处"
+              value={effectiveSource}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => setToolSource(e.target.value)}
+            >
+              <option value="All">全部允许出处</option>
+              {toolSources.map((source) => (
+                <option key={source} value={source}>
+                  {getSourceDisplayName(source)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        {category === 'tool' &&
+          chosen.some(
+            (value) =>
+              !displayOptions.some(
+                (opt) =>
+                  opt === value ||
+                  (findCatalogTool(opt) && findCatalogTool(opt)?.id === findCatalogTool(value)?.id),
+              ),
+          ) && (
+            <div style={{ marginBottom: 12 }}>
+              已选工具（当前列表外，可点击取消）：
+              {chosen
+                .filter(
+                  (value) =>
+                    !displayOptions.some(
+                      (opt) =>
+                        opt === value ||
+                        (findCatalogTool(opt) &&
+                          findCatalogTool(opt)?.id === findCatalogTool(value)?.id),
+                    ),
+                )
+                .map((value) => (
+                  <PillButton
+                    key={value}
+                    size="sm"
+                    variant="primary"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelection(id, value, selection.numToChoose);
+                    }}
+                  >
+                    {getToolDisplayName(value)} ×
+                  </PillButton>
+                ))}
+            </div>
+          )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {displayOptions.length === 0 ? (
             <div
@@ -600,7 +671,14 @@ export default function BackgroundPage() {
               const optLow = opt.toLowerCase();
               const isPreSelected =
                 category === 'language' && preSelectedLanguages.includes(optLow);
-              const isChosen = chosen.includes(opt);
+              const isChosen =
+                chosen.includes(opt) ||
+                (category === 'tool' &&
+                  chosen.some(
+                    (value) =>
+                      findCatalogTool(value)?.id === findCatalogTool(opt)?.id &&
+                      Boolean(findCatalogTool(opt)),
+                  ));
 
               return (
                 <PillButton
@@ -611,7 +689,15 @@ export default function BackgroundPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     if (isPreSelected) return;
-                    handleSelection(id, opt, selection.numToChoose);
+                    const storedValue =
+                      category === 'tool'
+                        ? chosen.find(
+                            (value) =>
+                              findCatalogTool(value)?.id === findCatalogTool(opt)?.id &&
+                              Boolean(findCatalogTool(opt)),
+                          )
+                        : undefined;
+                    handleSelection(id, storedValue || opt, selection.numToChoose);
                   }}
                   style={{
                     padding: compact ? '5px 12px' : '8px 16px',
@@ -629,7 +715,11 @@ export default function BackgroundPage() {
                     border: isPreSelected ? '1px solid var(--color-border-dark)' : undefined,
                   }}
                 >
-                  {translateProficiency(opt)}
+                  {category === 'tool'
+                    ? getToolDisplayName(opt)
+                    : category
+                      ? translateProficiency(opt)
+                      : opt}
                   {isPreSelected && (
                     <span style={{ fontSize: '0.7rem', marginLeft: 4 }}>(已选)</span>
                   )}

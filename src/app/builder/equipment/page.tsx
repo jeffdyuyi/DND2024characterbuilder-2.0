@@ -1,4 +1,5 @@
 'use client';
+import { resolveBackgroundEquipmentChoices } from '@/engine/backgroundEquipment';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -411,11 +412,7 @@ function buildBackgroundEquipmentState(
 
   const selectedChoice = character.backgroundSelections?.[`bg:${background.id}:equipment`]?.[0];
   const useChoiceB = selectedChoice === 'choiceB';
-  const records = useChoiceB
-    ? background.equipment.choiceBRecord
-      ? [background.equipment.choiceBRecord]
-      : []
-    : background.equipment.choiceARecords || [];
+  const records = resolveBackgroundEquipmentChoices(background, character.backgroundSelections);
 
   if (records.length > 0) {
     return records.reduce(

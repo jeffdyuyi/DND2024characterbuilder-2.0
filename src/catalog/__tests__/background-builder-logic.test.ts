@@ -4,7 +4,7 @@ import { normalizeBackground } from '@/source/fiveetools-cn/normalizers/backgrou
 import { normalizeFeat } from '@/source/fiveetools-cn/normalizers/feat';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 import { getCatalogBackgrounds } from '../adapters/backgrounds';
-import { getCatalogTools, getCatalogToolEntries } from '../tools';
+import { getCatalogTools, getCatalogToolEntries, findCatalogTool } from '../tools';
 import { translateProficiency } from '@/engine/terminology';
 
 describe('Background Builder Page Logic & Data Integration Tests', () => {
@@ -444,7 +444,9 @@ describe('Background Builder Page Logic & Data Integration Tests', () => {
 
     // 重新获取全量乐器，验证第三方自建乐器已被全量动态提取
     const updatedInstruments = getCatalogTools('Musical');
-    expect(updatedInstruments).toContain('astral-lute');
+    expect(updatedInstruments).toContain('astral lute');
+    expect(updatedInstruments).not.toContain('astral-lute');
+    expect(findCatalogTool('astral-lute')?.id).toBe('astral lute');
   });
 
   it('filters magic item instruments and distinguishes tools existing across multiple editions by source', () => {

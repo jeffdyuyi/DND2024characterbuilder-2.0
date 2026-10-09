@@ -188,7 +188,7 @@ function normalizeKey(str: string): string {
     .trim()
     .replace(/['’]s/g, '')
     .replace(/s['’]/g, 's')
-    .replace(/[^a-z0-9]/g, '');
+    .replace(/[^\p{L}\p{N}]/gu, '');
 }
 
 /**
@@ -366,11 +366,26 @@ export function getCatalogTools(category?: ToolCategory): string[] {
   const ids = new Set<string>();
   for (const e of filtered) {
     ids.add(e.id);
-    if (e.aliasId && !e.aliasId.includes('%')) {
-      ids.add(e.aliasId);
-    }
   }
   return Array.from(ids);
+}
+
+/** 别名仅用于读取已有选择，不作为第二个可选项展示。来源明确时不跨版本匹配。 */
+export function findCatalogTool(term: string): CatalogToolEntry | undefined {
+  if (!term?.trim()) return undefined;
+  const entries = getCatalogToolEntries();
+  const exact = entries.find((e) => e.id.toLowerCase() === term.toLowerCase());
+  if (exact) return exact;
+  const [base, source] = term.split('|');
+  const norm = normalizeKey(base);
+  if (!norm) return undefined;
+  return entries.find(
+    (e) =>
+      (!source || e.source.toLowerCase() === source.toLowerCase()) &&
+      [e.id.split('|')[0], e.nameEn, e.name.replace(/\s*\[.*?\]$/, ''), e.aliasId || ''].some(
+        (value) => normalizeKey(value) === norm,
+      ),
+  );
 }
 
 /**
@@ -379,8 +394,11 @@ export function getCatalogTools(category?: ToolCategory): string[] {
  */
 export function getToolCategory(term: string): ToolCategory | 'Unknown' {
   if (!term) return 'Unknown';
+  const known = findCatalogTool(term);
+  if (known) return known.category;
   const baseTerm = term.includes('|') ? term.split('|')[0] : term;
   const norm = normalizeKey(baseTerm);
+  if (!norm) return 'Unknown';
 
   // 1. 尝试直接与已发现的 Catalog 条目匹配
   const entries = getCatalogToolEntries();
@@ -418,6 +436,8 @@ export function getToolCategory(term: string): ToolCategory | 'Unknown' {
  */
 export function getToolDisplayName(term: string): string {
   if (!term) return '';
+  const known = findCatalogTool(term);
+  if (known) return known.name;
   const entries = getCatalogToolEntries();
 
   // 1. 精确匹配 entry.id (例如 "drum|xphb" 或 "birdpipes")
@@ -439,6 +459,7 @@ export function getToolDisplayName(term: string): string {
   }
 
   const norm = normalizeKey(term);
+  if (!norm) return term;
 
   // 3. 检查内建映射
   if (BASE_TOOL_NAMES_ZH[term]) return BASE_TOOL_NAMES_ZH[term];

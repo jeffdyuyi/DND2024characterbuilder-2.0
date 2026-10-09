@@ -794,7 +794,7 @@ export const translateProficiency = (id: unknown): string => {
       .replace(/['’]s/g, '')
       .replace(/s['’]/g, 's')
       .replace(/[^a-z0-9]/g, '');
-    if (cleanId === cleanKey || cleanId === cleanKey.replace(/full$/, ''))
+    if (cleanId && (cleanId === cleanKey || cleanId === cleanKey.replace(/full$/, '')))
       return formatResult(TOOL_MAP[key]);
   }
 
@@ -820,7 +820,7 @@ export const translateProficiency = (id: unknown): string => {
       l.nameEn.toLowerCase() === lowId ||
       l.name === rawStr ||
       l.name === lowId ||
-      l.id.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanLangKey,
+      (Boolean(cleanLangKey) && l.id.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanLangKey),
   );
   if (language && language.name && /[\u4e00-\u9fa5]/.test(language.name)) {
     return formatResult(language.name);

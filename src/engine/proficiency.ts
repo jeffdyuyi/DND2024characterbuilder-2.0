@@ -199,8 +199,7 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
     // 处理背景中的 URI 模式选择项 (bg:[ID]:prof:[TYPE]:[IDX])
     Object.entries(state.backgroundSelections || {}).forEach(([key, chosen]) => {
       if (key.startsWith(`bg:${background.id}:prof:`)) {
-        const parts = key.split(':');
-        const type = parts[3]; // skill, tool, lang
+        const type = key.slice(`bg:${background.id}:prof:`.length).split(':')[0];
         const categoryMap: Record<string, ProficiencyCategory> = {
           skill: 'skills',
           tool: 'tools',

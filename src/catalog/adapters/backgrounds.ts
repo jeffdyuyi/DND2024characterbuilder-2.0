@@ -10,7 +10,9 @@
 
 import { CatalogEntry, Edition } from '../types';
 import { defaultCatalog } from '../catalog';
-import { Background, BackgroundEquipmentRecord, FlavorTable } from '@/types/background';
+import { Background, BackgroundEquipmentRecord } from '@/types/background';
+import { collectBackgroundContent } from './backgroundContent';
+import { constrainBackgroundTools } from './backgroundTools';
 import { Selection } from '@/types/species';
 import { Currency } from '@/types/characterState';
 import { clean5eTags, flattenEntries } from '@/source/fiveetools-cn/utils';
@@ -589,11 +591,13 @@ function parseStartingEquipmentAst(
             numToChoose: 1,
             options: [labelA, labelB],
           };
+          const selectionId = `equip-choiceA-${choiceA.length}`;
           choiceA.push(selection);
           choiceARecords.push({
             label: `${labelA} 或 ${labelB} 自选`,
             kind: 'unresolved',
-            selectionId: `bg-equip-choice-${idx}`,
+            selectionId,
+            choices: { [labelA]: subRecordsA, [labelB]: subRecordsB },
           });
         }
       }
@@ -953,7 +957,10 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
 
   // 技能与工具熟练
   const skillProficiencies = parseProficiencies(raw.skillProficiencies || raw.skills, 'skill');
-  const toolProficiencies = parseProficiencies(raw.toolProficiencies, 'tool');
+  const toolProficiencies = constrainBackgroundTools(
+    parseProficiencies(raw.toolProficiencies, 'tool'),
+    Array.isArray(raw.entries) ? raw.entries : [],
+  );
   const languages = parseProficiencies(raw.languageProficiencies || raw.languages, 'language');
 
   const entriesList = Array.isArray(raw.entries) ? raw.entries : [];
@@ -1045,91 +1052,16 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
     }
   }
 
-  // 风味表格提取 (如特点、理念、牵挂、缺陷、手法、命定事件等)
-  let flavorTables: FlavorTable[] | undefined = raw.flavorTables;
-  if (!flavorTables) {
-    const tables: FlavorTable[] = [];
-    for (const entryItem of entriesList) {
-      if (typeof entryItem === 'object' && entryItem !== null) {
-        const subList = Array.isArray(entryItem.entries) ? entryItem.entries : [entryItem];
-        for (const sub of subList) {
-          if (sub && typeof sub === 'object' && sub.type === 'table') {
-            const colLabels = sub.colLabels || [];
-            const diceMatch = colLabels[0]?.match(/d(\d+)/i);
-            const dice = diceMatch
-              ? diceMatch[1]
-              : sub.rows?.length
-                ? String(sub.rows.length)
-                : undefined;
-
-            // 提取第二列列名作为分类名 (如 "特点", "理念", "牵挂", "缺陷", "人格特质", "Personality Trait" 等)
-            const colCategory =
-              colLabels.length > 1 ? clean5eTags(String(colLabels[1])).trim() : '';
-
-            // 如果父 entry 名字是泛指性的“建议人物特征”或“特征/特性”，优先使用第二列分类名
-            const isGenericParent =
-              entryItem.name &&
-              (entryItem.name.includes('特征') ||
-                entryItem.name.includes('特性') ||
-                entryItem.name.toLowerCase().includes('characteristic') ||
-                entryItem.name.toLowerCase().includes('trait'));
-
-            let tableName = sub.caption;
-            if (!tableName && colCategory && (isGenericParent || subList.length > 1)) {
-              tableName = colCategory;
-            }
-            if (!tableName) {
-              tableName = colCategory || entryItem.name || '风味表格';
-            }
-
-            const rows = (sub.rows || []).map((row: any[], rIdx: number) => {
-              const id = parseInt(row[0], 10) || rIdx + 1;
-              const content = clean5eTags(row[1] || row[0] || '');
-              return { id, content };
-            });
-            if (rows.length > 0) {
-              tables.push({
-                name: clean5eTags(tableName),
-                dice,
-                rows,
-              });
-            }
-          }
-        }
-      }
-    }
-    if (tables.length > 0) {
-      flavorTables = tables;
-    }
-  }
-
-  // 描述文本提取：优先取正版故事风味文本，排除单纯列出“属性值/专长/技能熟练”的规则清单
-  let description = '';
-  if (raw.fluff?.entries && raw.fluff.entries.length > 0) {
-    description = flattenEntries(raw.fluff.entries);
-  } else if (entry.description) {
-    description = entry.description;
-  }
-  if (!description && entriesList.length > 0) {
-    const textEntries = entriesList.filter((e: any) => {
-      if (typeof e === 'string') return true;
-      if (
-        e.type === 'list' ||
-        e.data?.isFeature ||
-        (e.name && (e.name.includes('特性') || e.name.toLowerCase().includes('feature')))
-      )
-        return false;
-      return true;
-    });
-    description = flattenEntries(textEntries);
-  }
+  const { description, flavorTables } = collectBackgroundContent(raw);
 
   return {
     id: entry.id,
     source: entry.source,
     name: entry.name,
     nameEn: entry.englishName || entry.name,
-    description: description || '',
+    description:
+      description ||
+      (!entriesList.length && !raw.fluff?.entries?.length ? entry.description || '' : ''),
     variants: raw.variants,
     abilityScoreOptions:
       abilityScoreOptions.length > 0 ? abilityScoreOptions : raw.abilityScoreOptions,
