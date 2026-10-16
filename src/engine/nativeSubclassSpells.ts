@@ -60,6 +60,8 @@ export function getNativeSubclassSpellPlans(character: CharacterState) {
         if (rule.mode !== 'known' || rule.selection.kind !== 'choose' || !rule.selection.filter)
           return false;
         return (
+          // 候选解析能力扩展不应自动扩大已验收的授予范围。
+          rule.selection.filter.split('|').every((part) => /^(level|class)=/.test(part.trim())) &&
           rule.selection.filter.split('|').some((part) => part.trim() === 'level=0') &&
           resolveSpellGrantCandidates(parsed.origin, rule, []).diagnostics.every(
             (entry) => entry.code === 'no-loaded-spell-candidates',

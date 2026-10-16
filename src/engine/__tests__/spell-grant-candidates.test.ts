@@ -3,6 +3,7 @@ import { expect, it } from 'vitest';
 import { parseCatalogSpellGrants } from '@/catalog/adapters/spellGrants';
 import { catalogEntryToSpell } from '@/catalog/adapters/spells';
 import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
+import { normalizeFeat } from '@/source/fiveetools-cn/normalizers/feat';
 import type { CatalogEntry } from '@/catalog/types';
 import type { SpellGrantRule } from '@/types/spellGrant';
 import { resolveSpellGrantCandidates } from '../spellGrantCandidates';
@@ -135,7 +136,10 @@ it('第三方引用优先自身包；跨书可引用官方，不借用其他第�
 it('未知条件、空条件及不支持后缀不给出宽泛候选', () => {
   const pool = [spell('任意', 1, ['法师'])];
   for (const filter of [
-    'level=1|school=N',
+    'level=1|components=V',
+    'level=1|school=unknown',
+    'level=1|school=E;',
+    'level=1|school=E|school=N',
     'level=1|',
     'class=',
     'level=1|class=法师;',
@@ -159,6 +163,58 @@ it('未知条件、空条件及不支持后缀不给出宽泛候选', () => {
       pool,
     ).diagnostics[0].code,
   ).toBe('unsupported-spell-suffix');
+});
+
+it('在线原生入道专长的学派并集保持原筛选、环阶、次数与候选来源', () => {
+  // 2026-10-16只读核对cn2.0/data/feats.json的additionalSpells字段；非运行时语料。
+  const native = normalizeFeat({
+    name: '黑袍入道',
+    source: 'DSotDQ',
+    additionalSpells: [
+      {
+        ability: { choose: ['int', 'wis', 'cha'] },
+        innate: { _: { daily: { '1e': [{ choose: 'level=2|school=E;N' }] } } },
+      },
+    ],
+  });
+  const before = JSON.stringify(native);
+  const parsed = parseCatalogSpellGrants(native);
+  const grant = parsed.blocks[0].rules[0];
+  const enchantment = { ...spell('惑控候选', 2), school: 'E' };
+  const necromancy = { ...spell('死灵候选', 2), school: 'Necromancy' };
+  const illusion = { ...spell('幻术非候选', 2), school: 'I' };
+  const wrongLevel = { ...spell('其他环阶', 1), school: 'N' };
+  const pool = [enchantment, necromancy, illusion, wrongLevel];
+  expect(resolveSpellGrantCandidates(parsed.origin, grant, pool).spellIds).toEqual([
+    enchantment.id,
+    necromancy.id,
+  ]);
+  expect(resolveSpellGrantCandidates(parsed.origin, grant, [enchantment]).spellIds).toEqual([
+    enchantment.id,
+  ]);
+  expect(grant.selection).toEqual({ kind: 'choose', count: 1, filter: 'level=2|school=E;N' });
+  expect(grant.usage).toEqual({ kind: 'daily', key: '1e' });
+  expect(JSON.stringify(native)).toBe(before);
+});
+
+it('学派与职业、环阶同时约束；未知学派不能被静默忽略', () => {
+  const allowed = { ...spell('允许', 2, ['法师']), school: 'a' };
+  const otherClass = { ...spell('其他职业', 2, ['牧师']), school: 'A' };
+  const otherSchool = { ...spell('其他学派', 2, ['法师']), school: 'D' };
+  expect(
+    resolveSpellGrantCandidates(
+      origin,
+      rule({ kind: 'choose', count: 1, filter: 'school=Abjuration|class=法师|level=2' }),
+      [allowed, otherClass, otherSchool],
+    ).spellIds,
+  ).toEqual([allowed.id]);
+  const rejected = resolveSpellGrantCandidates(
+    origin,
+    rule({ kind: 'all', filter: 'level=2|school=A;unknown' }),
+    [allowed],
+  );
+  expect(rejected.spellIds).toEqual([]);
+  expect(rejected.diagnostics[0].code).toBe('unsupported-spell-filter');
 });
 
 it('多个不同ID同名同源时保持歧义，重复候选ID只计一次', () => {

@@ -1,5 +1,6 @@
 import type { ParsedSpellGrants, SpellGrantRule, SpellReference } from '@/types/spellGrant';
 import type { Spell } from '@/types/spell';
+import { SPELL_SCHOOL_MAP, translateSpellSchool } from './terminology';
 
 export interface SpellGrantCandidates {
   spellIds: string[];
@@ -52,7 +53,7 @@ export function resolveSpellGrantCandidates(
     const predicates: ((spell: Spell) => boolean)[] = [];
     const fields = new Set<string>();
     for (const clause of filter.split('|')) {
-      const match = clause.trim().match(/^(level|class)=([^=|]+)$/);
+      const match = clause.trim().match(/^(level|class|school)=([^=|]+)$/);
       if (!match || fields.has(match[1])) {
         report('unsupported-spell-filter', filter);
         return result;
@@ -65,8 +66,19 @@ export function resolveSpellGrantCandidates(
         return result;
       }
       if (field === 'level') predicates.push((spell) => values.includes(String(spell.level)));
-      else
+      else if (field === 'class')
         predicates.push((spell) => spell.classes.some((name) => values.includes(normalize(name))));
+      else {
+        const schools = values.map(
+          (value) =>
+            Object.entries(SPELL_SCHOOL_MAP).find(([key]) => normalize(key) === value)?.[1],
+        );
+        if (schools.some((school) => school === undefined)) {
+          report('unsupported-spell-filter', filter);
+          return result;
+        }
+        predicates.push((spell) => schools.includes(translateSpellSchool(spell.school)));
+      }
     }
     result.spellIds = pool
       .filter((spell) => predicates.every((predicate) => predicate(spell)))
