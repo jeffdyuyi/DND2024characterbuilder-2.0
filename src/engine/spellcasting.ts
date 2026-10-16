@@ -16,6 +16,9 @@ import { WarlockInvocations2024 } from '@/mechanics-overlay/warlockInvocations';
 import { ClassData } from '@/types/class';
 import { Spell } from '@/types/spell';
 import { getNativeClassPreparedSpells } from './nativeClassPreparedSpells';
+import { getNativeSubclassSpellPlans, getNativeSubclassSpellGrants } from './nativeSubclassSpells';
+import { resolveSpellGrantCandidates } from './spellGrantCandidates';
+import type { ParsedSpellGrants, SpellGrantRule } from '@/types/spellGrant';
 
 export interface SpellcastingStats {
   casterLevel: number;
@@ -39,6 +42,7 @@ export interface SpellChoiceSlot {
   filter: string; // 筛选规则
   source: string; // 来源描述
   isOptional: boolean; // 是否依赖玩家的前置选择
+  nativeRule?: { origin: ParsedSpellGrants['origin']; rule: SpellGrantRule };
 }
 
 export interface SpellProgressionStep {
@@ -51,6 +55,7 @@ export interface SpellProgressionStep {
   specialFeatures: string[]; // 特殊提示 (如'魔法奥秘解锁!')
   extraChoices: SpellChoiceSlot[]; // 新增：特性提供的额外选择
   alwaysPreparedSpells?: string[]; // 新增：该等级自动获得的法术 (Q3)
+  nativeAlwaysPreparedSpells?: string[];
   filter?: string; // 新增：针对基础法术选择的额外筛选器
 }
 
@@ -595,6 +600,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
   });
 
   const legacyPreparedByClass = new Map<string, Set<string>>();
+  const legacyPreparedBySubclass = new Map<string, Set<string>>();
   state.classes?.forEach((cEntry) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
@@ -616,7 +622,20 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       const subclassDef = getSubclassDefinition({ ...state, classes: [cEntry] });
       if (subclassDef) {
         const activeSubTraits = subclassDef.traits.filter((t) => t.level <= cEntry.level);
+        const subStart = result.length;
         processTraitSpells(activeSubTraits, `子职业: ${subclassDef.name}`);
+        legacyPreparedBySubclass.set(
+          JSON.stringify([
+            classDef.catalogId || cEntry.classId,
+            subclassDef.catalogId || cEntry.subclassId,
+          ]),
+          new Set(
+            result
+              .slice(subStart)
+              .filter((entry) => entry.isPrepared)
+              .map((entry) => entry.spellId),
+          ),
+        );
       }
     }
 
@@ -655,6 +674,29 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       unlockLevel: grant.unlockLevel,
       isPrepared: true,
       nativeClassPrepared: true,
+    });
+  }
+
+  for (const grant of getNativeSubclassSpellGrants(state)) {
+    if (
+      grant.mode === 'prepared' &&
+      legacyPreparedBySubclass
+        .get(JSON.stringify([grant.classId, grant.sourceId]))
+        ?.has(grant.spellId)
+    )
+      continue;
+    result.push({
+      spellId: grant.spellId,
+      source: grant.source,
+      grantSourceId: JSON.stringify([
+        'native-subclass',
+        grant.classId,
+        grant.sourceId,
+        grant.ruleId,
+      ]),
+      unlockLevel: grant.level,
+      isPrepared: true,
+      nativeSubclassGrant: true,
     });
   }
 
@@ -708,6 +750,10 @@ export function computeSpellProgression(
 
   let baseAllowedClasses = [classDef.name, classDef.nameEn];
 
+  const nativePlans = getNativeSubclassSpellPlans(state).plans.filter(
+    (plan) => plan.storageClassId === classId,
+  );
+  let nativeSpellPool: Spell[] | undefined;
   for (let lvl = 1; lvl <= classEntry.level; lvl++) {
     const prog = classDef.progression.find((p) => p.level === lvl);
     if (!prog) continue;
@@ -866,6 +912,28 @@ export function computeSpellProgression(
       scanFeaturesForSpells(subclassDef.traits, '子职业');
     }
 
+    const nativeAlwaysPreparedSpells: string[] = [];
+    for (const plan of nativePlans)
+      for (const entry of plan.rules) {
+        if (entry.level !== lvl) continue;
+        if (entry.rule.selection.kind === 'choose')
+          extraChoices.push({
+            id: entry.id,
+            label: `${plan.origin.name}：额外戏法`,
+            numToChoose: entry.rule.selection.count,
+            filter: '',
+            source: `子职业: ${plan.origin.name}`,
+            isOptional: false,
+            nativeRule: { origin: plan.origin, rule: entry.rule },
+          });
+        else {
+          nativeSpellPool ??= getCatalogSpells();
+          nativeAlwaysPreparedSpells.push(
+            ...resolveSpellGrantCandidates(plan.origin, entry.rule, nativeSpellPool).spellIds,
+          );
+        }
+      }
+
     if (classDef.nameEn === 'Wizard') {
       const wizardBookCount = lvl === 1 ? 6 : 2;
       extraChoices.push({
@@ -884,7 +952,8 @@ export function computeSpellProgression(
       (canReplace && lvl > 1) ||
       specialFeatures.length > 0 ||
       extraChoices.length > 0 ||
-      alwaysPreparedSpells.length > 0
+      alwaysPreparedSpells.length > 0 ||
+      nativeAlwaysPreparedSpells.length > 0
     ) {
       steps.push({
         level: lvl,
@@ -896,6 +965,9 @@ export function computeSpellProgression(
         specialFeatures,
         extraChoices,
         alwaysPreparedSpells: alwaysPreparedSpells.length > 0 ? alwaysPreparedSpells : undefined,
+        ...(nativeAlwaysPreparedSpells.length
+          ? { nativeAlwaysPreparedSpells: [...new Set(nativeAlwaysPreparedSpells)] }
+          : {}),
         filter: stepFilter,
       });
     }
@@ -917,6 +989,7 @@ export interface InnateSpellSource {
   freeCastsPerLongRest?: number | string;
   /** 新原生职业固定准备由职业记录实时派生，不混入无来源的持久化ID。 */
   nativeClassPrepared?: true;
+  nativeSubclassGrant?: true;
 }
 
 /** 卡面单一法术行保留所有已知来源；不增加法术或推断尚未记录的施法机制。 */
@@ -952,24 +1025,37 @@ export function getActiveClassSpellSelections(
 ): Record<number, ClassSpellSelection> {
   const owner = state.classes.find((entry) => entry.classId === classId);
   if (!owner) return {};
+  let nativePool: Spell[] | undefined;
   return Object.fromEntries(
     Object.entries(state.spellsByLevel?.[classId] || {})
       .filter(([level]) => Number(level) <= owner.level)
       .map(([level, selection]) => {
-        const validExtraIds = new Set(
-          steps
-            .find((step) => step.level === Number(level))
-            ?.extraChoices.map((choice) => choice.id) || [],
-        );
+        const stepChoices = steps.find((step) => step.level === Number(level))?.extraChoices || [];
+        const validExtraIds = new Set(stepChoices.map((choice) => choice.id));
         return [
           level,
           {
             ...selection,
             extra: Object.fromEntries(
-              Object.entries(selection.extra || {}).filter(
-                ([choiceId]) =>
-                  choiceId.startsWith('wizard_spellbook') || validExtraIds.has(choiceId),
-              ),
+              Object.entries(selection.extra || {})
+                .filter(
+                  ([choiceId]) =>
+                    choiceId.startsWith('wizard_spellbook') || validExtraIds.has(choiceId),
+                )
+                .map(([choiceId, ids]) => {
+                  const choice = stepChoices.find((entry) => entry.id === choiceId);
+                  if (!choice?.nativeRule) return [choiceId, ids];
+                  if (ids.length > choice.numToChoose) return [choiceId, []];
+                  nativePool ??= getCatalogSpells();
+                  const valid = new Set(
+                    resolveSpellGrantCandidates(
+                      choice.nativeRule.origin,
+                      choice.nativeRule.rule,
+                      nativePool,
+                    ).spellIds,
+                  );
+                  return [choiceId, [...new Set(ids)].filter((id) => valid.has(id))];
+                }),
             ),
           },
         ];
@@ -980,7 +1066,7 @@ export function getActiveClassSpellSelections(
 /** 从逐级选择记录重建最终法表，保存重开或职业升级后可重复得到同一结果。 */
 export function deriveCharacterSpellSelection(
   state: CharacterState,
-  options: { includeNativeClassPrepared?: boolean } = {},
+  options: { includeNativeClassPrepared?: boolean; includeNativeSubclassGrants?: boolean } = {},
 ): DerivedSpellSelection {
   const cantrips = new Set<string>();
   const prepared = new Set<string>();
@@ -1009,6 +1095,13 @@ export function deriveCharacterSpellSelection(
           ids.forEach((id) => spellbook.add(id));
           return;
         }
+        // 新原生槽位由所属来源及候选验证后统一汇入；不把任意保存ID直接当授予。
+        if (
+          steps
+            .find((step) => step.level === Number(level))
+            ?.extraChoices.some((choice) => choice.id === choiceId && choice.nativeRule)
+        )
+          return;
         ids.forEach((id) => {
           if (replaced.has(id)) return;
           if (getSpellDefinition(id)?.level === 0) cantrips.add(id);
@@ -1018,7 +1111,12 @@ export function deriveCharacterSpellSelection(
     });
     steps
       .filter((step) => step.level <= classEntry.level)
-      .flatMap((step) => step.alwaysPreparedSpells || [])
+      .flatMap((step) => [
+        ...(step.alwaysPreparedSpells || []),
+        ...(options.includeNativeSubclassGrants === false
+          ? []
+          : step.nativeAlwaysPreparedSpells || []),
+      ])
       .forEach((reference) => {
         const spell = getSpellDefinition(reference);
         if (!spell) return;
@@ -1029,6 +1127,7 @@ export function deriveCharacterSpellSelection(
 
   getInnateSpells(state).forEach((grant) => {
     if (grant.nativeClassPrepared && options.includeNativeClassPrepared === false) return;
+    if (grant.nativeSubclassGrant && options.includeNativeSubclassGrants === false) return;
     const spell = getSpellDefinition(grant.spellId);
     if (!spell) return;
     if (spell.level === 0) cantrips.add(spell.id);

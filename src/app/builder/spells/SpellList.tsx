@@ -6,6 +6,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { getCatalogSpells } from '@/catalog';
 import { Spell } from '@/types/spell';
 import { CharacterState, ClassSpellSelection } from '@/types/characterState';
+import type { SpellChoiceSlot } from '@/engine/spellcasting';
 import { useCharacterStore } from '@/store/characterStore';
 import {
   getSpellDefinition,
@@ -14,6 +15,7 @@ import {
 } from '@/engine/characterData';
 import { resolveBackgroundSpellList } from '@/engine/backgroundSpellList';
 import { getNativeClassPreparedSpells } from '@/engine/nativeClassPreparedSpells';
+import { resolveSpellGrantCandidates } from '@/engine/spellGrantCandidates';
 import {
   getInnateSpells,
   computeSpellProgression,
@@ -177,7 +179,13 @@ export const SpellPoolSection: React.FC<SpellPoolSectionProps> = ({
               !isSelected;
             const isInnate = innateSpellIds.includes(spell.id);
             const needsSpellbook = isWizardBase && spell.level > 0 && !book.includes(spell.id);
-            const isDisabled = (isSelectedElsewhere || isInnate || needsSpellbook) && !isSelected;
+            const isNativeChoice =
+              !isBase &&
+              currentStep.extraChoices.some(
+                (choice: any) => choice.id === slotId && choice.nativeRule,
+              );
+            const isDisabled =
+              !isNativeChoice && (isSelectedElsewhere || isInnate || needsSpellbook) && !isSelected;
             const isPreviewing = activePreview?.id === spell.id;
 
             return (
@@ -597,6 +605,13 @@ export default function SpellList({ character }: SpellListProps) {
   const allSpells = useMemo(() => {
     return choices.getCatalogSpells({ allowHomebrew: Boolean(character?.allowHomebrew) });
   }, [catalogStatus, character?.allowHomebrew, choices]);
+  const storedNativeSpellPool = useMemo(
+    () =>
+      progressionSteps.some((step) => step.extraChoices.some((choice) => choice.nativeRule))
+        ? getCatalogSpells()
+        : [],
+    [progressionSteps, choices],
+  );
 
   const backgroundSpellList = useMemo(
     () => resolveBackgroundSpellList(getBackgroundDefinition(character), allSpells),
@@ -701,6 +716,19 @@ export default function SpellList({ character }: SpellListProps) {
     return book;
   }, [activeClassSelections, currentClassDef, choices]);
 
+  const getExtraChoiceCount = (choice: SpellChoiceSlot, selection: ClassSpellSelection) => {
+    const saved = selection.extra?.[choice.id] || [];
+    if (!choice.nativeRule) return saved.length;
+    if (saved.length > choice.numToChoose) return 0;
+    const valid = new Set(
+      resolveSpellGrantCandidates(
+        choice.nativeRule.origin,
+        choice.nativeRule.rule,
+        storedNativeSpellPool,
+      ).spellIds,
+    );
+    return new Set(saved.filter((id) => valid.has(id))).size;
+  };
   const isStepComplete = (index: number) => {
     const step = progressionSteps[index];
     if (!step) return false;
@@ -711,7 +739,7 @@ export default function SpellList({ character }: SpellListProps) {
 
     const baseOk = stepSel.cantrips.length === reqCantrips && stepSel.spells.length === reqSpells;
     const extraOk = step.extraChoices.every(
-      (ec) => (stepSel.extra?.[ec.id]?.length || 0) === ec.numToChoose,
+      (ec) => getExtraChoiceCount(ec, stepSel) === ec.numToChoose,
     );
     return baseOk && extraOk;
   };
@@ -756,6 +784,8 @@ export default function SpellList({ character }: SpellListProps) {
         nextList.shift();
       }
       nextList.push(spellId);
+      if (currentStep.extraChoices.some((choice) => choice.id === choiceId && choice.nativeRule))
+        nextList = nextList.slice(-limit);
     }
     updateSpellState({
       ...currentClassSelections,
@@ -768,7 +798,7 @@ export default function SpellList({ character }: SpellListProps) {
     const nextSpellsByLevel = { ...spellsByLevel, [currentClassEntry.classId]: nextSelections };
     const derived = deriveCharacterSpellSelection(
       { ...character, spellsByLevel: nextSpellsByLevel },
-      { includeNativeClassPrepared: false },
+      { includeNativeClassPrepared: false, includeNativeSubclassGrants: false },
     );
     updateActiveCharacter({ spellsByLevel: nextSpellsByLevel, ...derived });
   };
@@ -835,6 +865,12 @@ export default function SpellList({ character }: SpellListProps) {
       s.level > 0 && (currentClassDef?.nameEn !== 'Wizard' || getSpellbookForWizard.includes(s.id)),
   );
   const isWizard = currentClassDef?.nameEn === 'Wizard';
+  const currentAlwaysPreparedSpells = [
+    ...new Set([
+      ...(currentStep?.alwaysPreparedSpells || []),
+      ...(currentStep?.nativeAlwaysPreparedSpells || []),
+    ]),
+  ];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -996,7 +1032,7 @@ export default function SpellList({ character }: SpellListProps) {
           ))}
 
           {/* 始终准备法术 */}
-          {currentStep.alwaysPreparedSpells && currentStep.alwaysPreparedSpells.length > 0 && (
+          {currentAlwaysPreparedSpells.length > 0 && (
             <div
               style={{
                 marginBottom: 32,
@@ -1020,7 +1056,7 @@ export default function SpellList({ character }: SpellListProps) {
                 <Sparkles size={14} /> 特性赠予法术（始终准备）
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {currentStep.alwaysPreparedSpells.map((id) => {
+                {currentAlwaysPreparedSpells.map((id) => {
                   const def = getSpellDefinition(id);
                   return (
                     <span
@@ -1547,7 +1583,20 @@ export default function SpellList({ character }: SpellListProps) {
           {currentStep.extraChoices.map((choice) => {
             const ec = choice;
             let filteredPool = filteredSpells;
-            if (ec.filter) {
+            if (ec.nativeRule) {
+              const ids = new Set(
+                resolveSpellGrantCandidates(ec.nativeRule.origin, ec.nativeRule.rule, allSpells)
+                  .spellIds,
+              );
+              filteredPool = allSpells.filter((spell) => ids.has(spell.id));
+              if (
+                sourceFilter &&
+                filteredPool.some((spell) => translateSource(spell.source) === sourceFilter)
+              )
+                filteredPool = filteredPool.filter(
+                  (spell) => translateSource(spell.source) === sourceFilter,
+                );
+            } else if (ec.filter) {
               const parts = ec.filter.split(';').map((p) => p.trim());
               const targetClass = parts
                 .find((p) => p.startsWith('class:'))
@@ -1613,7 +1662,7 @@ export default function SpellList({ character }: SpellListProps) {
                 return match;
               });
             }
-            const current = sel.extra?.[ec.id]?.length || 0;
+            const current = getExtraChoiceCount(ec, sel);
             return (
               <SpellPoolSection
                 key={`${character.id}:${activeClassId}:${currentStep.level}:${ec.id}`}

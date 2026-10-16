@@ -17,6 +17,7 @@ export interface ClassSpellGrantSources {
     classId: string;
     classLevel: number;
     featureLevel?: number;
+    unlockLevel?: number;
     grants: ParsedSpellGrants;
   }[];
   diagnostics: { code: string; ownerId: string; reference: string }[];
@@ -68,7 +69,7 @@ export function collectClassSpellGrantSources(
       report('mismatched-class-source', parent.id, selected.source);
       continue;
     }
-    const add = (entry: CatalogEntry, featureLevel?: number) => {
+    const add = (entry: CatalogEntry, featureLevel?: number, unlockLevel?: number) => {
       const key = `${parent.id}:${entry.id}`;
       if (seen.has(key)) return;
       seen.add(key);
@@ -78,6 +79,7 @@ export function collectClassSpellGrantSources(
         classId: parent.id,
         classLevel: selected.level,
         featureLevel,
+        ...(unlockLevel !== undefined ? { unlockLevel } : {}),
         grants: parseCatalogSpellGrants(entry),
       });
     };
@@ -171,7 +173,7 @@ export function collectClassSpellGrantSources(
       continue;
     }
     if (selected.level < Math.min(...unlockLevels)) continue;
-    add(child);
+    add(child, undefined, Math.min(...unlockLevels));
     collectFeatures(child, true, childRefs);
   }
   return result;
