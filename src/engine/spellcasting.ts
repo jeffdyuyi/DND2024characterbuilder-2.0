@@ -1,4 +1,4 @@
-import { CharacterState } from '../types/characterState';
+import { CharacterState, ClassSpellSelection } from '../types/characterState';
 import {
   getActiveItemDefinitions,
   getClassDefinition,
@@ -911,6 +911,39 @@ export interface DerivedSpellSelection {
   spellbookIds: string[];
 }
 
+/** 页面与最终法表共用有效记录视图；只过滤派生结果，不清理历史存档。 */
+export function getActiveClassSpellSelections(
+  state: CharacterState,
+  classId: string,
+  steps: SpellProgressionStep[] = computeSpellProgression(state, classId),
+): Record<number, ClassSpellSelection> {
+  const owner = state.classes.find((entry) => entry.classId === classId);
+  if (!owner) return {};
+  return Object.fromEntries(
+    Object.entries(state.spellsByLevel?.[classId] || {})
+      .filter(([level]) => Number(level) <= owner.level)
+      .map(([level, selection]) => {
+        const validExtraIds = new Set(
+          steps
+            .find((step) => step.level === Number(level))
+            ?.extraChoices.map((choice) => choice.id) || [],
+        );
+        return [
+          level,
+          {
+            ...selection,
+            extra: Object.fromEntries(
+              Object.entries(selection.extra || {}).filter(
+                ([choiceId]) =>
+                  choiceId.startsWith('wizard_spellbook') || validExtraIds.has(choiceId),
+              ),
+            ),
+          },
+        ];
+      }),
+  );
+}
+
 /** 从逐级选择记录重建最终法表，保存重开或职业升级后可重复得到同一结果。 */
 export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpellSelection {
   const cantrips = new Set<string>();
@@ -918,7 +951,8 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
   const spellbook = new Set<string>();
 
   for (const classEntry of state.classes || []) {
-    const selections = state.spellsByLevel?.[classEntry.classId] || {};
+    const steps = computeSpellProgression(state, classEntry.classId);
+    const selections = getActiveClassSpellSelections(state, classEntry.classId, steps);
     const replaced = new Set<string>();
     Object.entries(selections).forEach(([level, selection]) => {
       if (Number(level) > classEntry.level) return;
@@ -926,7 +960,6 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
       if (selection.replacedSpell) replaced.add(selection.replacedSpell);
       if (selection.replaced) replaced.add(selection.replaced);
     });
-    const steps = computeSpellProgression(state, classEntry.classId);
     Object.entries(selections).forEach(([level, selection]) => {
       if (Number(level) > classEntry.level) return;
       selection.cantrips.forEach((id) => {
@@ -935,17 +968,11 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
       selection.spells.forEach((id) => {
         if (!replaced.has(id)) prepared.add(id);
       });
-      const validExtraIds = new Set(
-        steps
-          .find((step) => step.level === Number(level))
-          ?.extraChoices.map((choice) => choice.id) || [],
-      );
       Object.entries(selection.extra || {}).forEach(([choiceId, ids]) => {
         if (choiceId.startsWith('wizard_spellbook')) {
           ids.forEach((id) => spellbook.add(id));
           return;
         }
-        if (!validExtraIds.has(choiceId)) return;
         ids.forEach((id) => {
           if (replaced.has(id)) return;
           if (getSpellDefinition(id)?.level === 0) cantrips.add(id);

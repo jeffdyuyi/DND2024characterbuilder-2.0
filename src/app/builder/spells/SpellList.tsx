@@ -17,6 +17,7 @@ import {
   getInnateSpells,
   computeSpellProgression,
   deriveCharacterSpellSelection,
+  getActiveClassSpellSelections,
   isSpellAvailableToClass,
 } from '@/engine/spellcasting';
 import { useCatalog } from '@/platform/CatalogProvider';
@@ -365,21 +366,29 @@ export default function SpellList({ character }: SpellListProps) {
 
   const currentStep = progressionSteps[activeStepIndex];
 
+  const activeClassSelections = useMemo(
+    () =>
+      activeClassId
+        ? getActiveClassSpellSelections(character, activeClassId, progressionSteps)
+        : {},
+    [character, activeClassId, progressionSteps],
+  );
+
   // 收集在所有等级被替换的旧法术/戏法ID集合
   const replacedSpellIds = useMemo(() => {
     const set = new Set<string>();
-    Object.values(currentClassSelections).forEach((sel) => {
+    Object.values(activeClassSelections).forEach((sel) => {
       if (sel.replacedCantrip) set.add(sel.replacedCantrip);
       if (sel.replacedSpell) set.add(sel.replacedSpell);
       if (sel.replaced) set.add(sel.replaced);
     });
     return set;
-  }, [currentClassSelections, choices]);
+  }, [activeClassSelections, choices]);
 
   const allSelectionsFromProgression = useMemo(() => {
     const cantrips: string[] = [];
     const spells: string[] = [];
-    Object.entries(currentClassSelections).forEach(([lvlStr, sel]) => {
+    Object.entries(activeClassSelections).forEach(([lvlStr, sel]) => {
       sel.cantrips.forEach((id) => {
         if (!replacedSpellIds.has(id)) cantrips.push(id);
       });
@@ -400,7 +409,7 @@ export default function SpellList({ character }: SpellListProps) {
         });
     });
     return { cantrips, spells };
-  }, [currentClassSelections, replacedSpellIds, choices]);
+  }, [activeClassSelections, replacedSpellIds, choices]);
 
   // 收集在当前等级之前已选的旧戏法（排除了在其他等级已被替换的戏法）
   const previousPreparedCantrips = useMemo(() => {
@@ -409,7 +418,7 @@ export default function SpellList({ character }: SpellListProps) {
     const candidateIds: string[] = [];
     const replacedInOtherSteps = new Set<string>();
 
-    Object.entries(currentClassSelections).forEach(([lvlStr, sel]) => {
+    Object.entries(activeClassSelections).forEach(([lvlStr, sel]) => {
       const stepLvl = Number(lvlStr);
       if (stepLvl < currentStep.level) {
         candidateIds.push(...sel.cantrips);
@@ -432,7 +441,7 @@ export default function SpellList({ character }: SpellListProps) {
     return Array.from(new Set(availableIds))
       .map((id) => getSpellDefinition(id))
       .filter(Boolean) as Spell[];
-  }, [currentClassSelections, currentStep, choices]);
+  }, [activeClassSelections, currentStep, choices]);
 
   // 收集在当前等级之前已选的旧法术(1阶+)（排除了在其他等级已被替换的法术）
   const previousPreparedSpells = useMemo(() => {
@@ -441,7 +450,7 @@ export default function SpellList({ character }: SpellListProps) {
     const candidateIds: string[] = [];
     const replacedInOtherSteps = new Set<string>();
 
-    Object.entries(currentClassSelections).forEach(([lvlStr, sel]) => {
+    Object.entries(activeClassSelections).forEach(([lvlStr, sel]) => {
       const stepLvl = Number(lvlStr);
       if (stepLvl < currentStep.level) {
         candidateIds.push(...sel.spells);
@@ -465,7 +474,7 @@ export default function SpellList({ character }: SpellListProps) {
     return Array.from(new Set(availableIds))
       .map((id) => getSpellDefinition(id))
       .filter(Boolean) as Spell[];
-  }, [currentClassSelections, currentStep, choices]);
+  }, [activeClassSelections, currentStep, choices]);
 
   const sel = currentStep
     ? currentClassSelections[currentStep.level] || { cantrips: [], spells: [], extra: {} }
@@ -678,14 +687,14 @@ export default function SpellList({ character }: SpellListProps) {
   const getSpellbookForWizard = useMemo(() => {
     if (currentClassDef?.nameEn !== 'Wizard') return [];
     const book: string[] = [];
-    Object.values(currentClassSelections).forEach((sel) => {
+    Object.values(activeClassSelections).forEach((sel) => {
       if (sel.extra)
         Object.entries(sel.extra).forEach(([id, ids]) => {
           if (id.startsWith('wizard_spellbook')) book.push(...ids);
         });
     });
     return book;
-  }, [currentClassSelections, currentClassDef, choices]);
+  }, [activeClassSelections, currentClassDef, choices]);
 
   const isStepComplete = (index: number) => {
     const step = progressionSteps[index];
@@ -752,46 +761,6 @@ export default function SpellList({ character }: SpellListProps) {
   const updateSpellState = (nextSelections: Record<number, ClassSpellSelection>) => {
     if (!currentClassEntry) return;
     const nextSpellsByLevel = { ...spellsByLevel, [currentClassEntry.classId]: nextSelections };
-    const globalCantrips: string[] = [];
-    const globalSpells: string[] = [];
-
-    Object.keys(nextSpellsByLevel).forEach((clsId) => {
-      const classSels = nextSpellsByLevel[clsId];
-      const progSteps = computeSpellProgression(character, clsId);
-
-      const replacedIds = new Set<string>();
-      Object.values(classSels).forEach((sel) => {
-        if (sel.replacedCantrip) replacedIds.add(sel.replacedCantrip);
-        if (sel.replacedSpell) replacedIds.add(sel.replacedSpell);
-        if (sel.replaced) replacedIds.add(sel.replaced);
-      });
-
-      Object.entries(classSels).forEach(([lvlStr, sel]) => {
-        sel.cantrips.forEach((id) => {
-          if (!replacedIds.has(id)) globalCantrips.push(id);
-        });
-        sel.spells.forEach((id) => {
-          if (!replacedIds.has(id)) globalSpells.push(id);
-        });
-        if (sel.extra) {
-          const step = progSteps.find((s) => s.level === Number(lvlStr));
-          if (step) {
-            const validIds = step.extraChoices.map((ec) => ec.id);
-            Object.entries(sel.extra).forEach(([slotId, ids]) => {
-              if (validIds.includes(slotId))
-                ids.forEach((id) => {
-                  const def = getSpellDefinition(id);
-                  if (def?.level === 0) {
-                    if (!replacedIds.has(id)) globalCantrips.push(id);
-                  } else {
-                    if (!replacedIds.has(id)) globalSpells.push(id);
-                  }
-                });
-            });
-          }
-        }
-      });
-    });
     const derived = deriveCharacterSpellSelection({
       ...character,
       spellsByLevel: nextSpellsByLevel,

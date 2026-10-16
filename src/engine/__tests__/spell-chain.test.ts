@@ -8,6 +8,7 @@ import {
   computeSpellcasting,
   computeSpellProgression,
   deriveCharacterSpellSelection,
+  getActiveClassSpellSelections,
   isSpellAvailableToClass,
 } from '../spellcasting';
 
@@ -136,5 +137,62 @@ describe('公共法术全链路', () => {
     expect(first.cantripIds).toEqual([cantrip.id]);
     expect(first.preparedSpellIds).toEqual([newSpell.id]);
     expect(first.spellbookIds).toEqual([oldSpell.id, newSpell.id]);
+  });
+
+  it('页面与最终法表只使用当前职业等级记录，降级不删除历史选择或未来替换', () => {
+    const state = baseState([{ classId: 'record-owner', level: 1 }]);
+    state.spellsByLevel = {
+      'record-owner': {
+        1: { cantrips: ['cantrip'], spells: ['manual-unloaded'], extra: { obsolete: ['stale'] } },
+        4: {
+          cantrips: ['future-cantrip'],
+          spells: ['future'],
+          replacedSpell: 'manual-unloaded',
+          replacedCantrip: 'cantrip',
+        },
+      },
+      removed: { 1: { cantrips: [], spells: ['removed-owner'] } },
+    };
+    const before = JSON.stringify(state);
+    const active = getActiveClassSpellSelections(state, 'record-owner', []);
+    expect(Object.keys(active)).toEqual(['1']);
+    expect(active[1]).toMatchObject({
+      spells: ['manual-unloaded'],
+      cantrips: ['cantrip'],
+      extra: {},
+    });
+    expect(getActiveClassSpellSelections(state, 'removed', [])).toEqual({});
+    expect(deriveCharacterSpellSelection(state)).toEqual({
+      cantripIds: ['cantrip'],
+      preparedSpellIds: ['manual-unloaded'],
+      spellbookIds: [],
+    });
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it('额外选择按原等级槽位确认，法术书单独保留；恢复等级可读回原记录', () => {
+    const state = baseState([{ classId: 'extra-owner', level: 2 }]);
+    state.spellsByLevel = {
+      'extra-owner': {
+        1: {
+          cantrips: [],
+          spells: [],
+          extra: { 'level-two-slot': ['wrong-level'], wizard_spellbook_lvl1: ['book-one'] },
+        },
+        2: { cantrips: [], spells: [], extra: { 'level-two-slot': ['valid'], stale: ['stale'] } },
+        4: { cantrips: [], spells: ['future'], extra: { wizard_spellbook_lvl4: ['book-four'] } },
+      },
+    };
+    const steps = [{ level: 2, extraChoices: [{ id: 'level-two-slot' }] }] as any;
+    const before = JSON.stringify(state);
+    const active = getActiveClassSpellSelections(state, 'extra-owner', steps);
+    expect(active[1].extra).toEqual({ wizard_spellbook_lvl1: ['book-one'] });
+    expect(active[2].extra).toEqual({ 'level-two-slot': ['valid'] });
+    expect(active[4]).toBeUndefined();
+    expect(JSON.stringify(state)).toBe(before);
+    state.classes[0].level = 4;
+    expect(getActiveClassSpellSelections(state, 'extra-owner', steps)[4]).toEqual(
+      state.spellsByLevel['extra-owner'][4],
+    );
   });
 });

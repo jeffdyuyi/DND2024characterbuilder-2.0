@@ -156,6 +156,41 @@ it('移除背景立即退出候选，不删除已经保存的选择', () => {
   expect(renderBuilder()).not.toMatch(/<button[^>]*>命令术<\/button>/);
   expect(deriveCharacterSpellSelection(control.state).preparedSpellIds).toEqual([command.id]);
 });
+
+it('失效额外槽位与未来等级的已选法术不禁用实际页面候选', () => {
+  const baseline = renderBuilder();
+  control.state.spellsByLevel = {
+    [primary.id]: {
+      1: { cantrips: [], spells: [], extra: { removed_choice: [command.id, friends.id] } },
+      4: { cantrips: [friends.id], spells: [command.id] },
+    },
+  };
+  const before = JSON.stringify(control.state);
+  expect(renderBuilder()).toBe(baseline);
+  expect(deriveCharacterSpellSelection(control.state)).toEqual({
+    cantripIds: [],
+    preparedSpellIds: [],
+    spellbookIds: [],
+  });
+  expect(JSON.stringify(control.state)).toBe(before);
+});
+
+it('未来法术书记录不提前解除准备限制，降级后页面与法表一致', () => {
+  const wizard = caster('Wizard');
+  control.activeClassId = wizard.id;
+  control.state.classes = [{ classId: wizard.id, level: 1 }];
+  const baseline = renderBuilder();
+  control.state.spellsByLevel = {
+    [wizard.id]: {
+      4: { cantrips: [], spells: [], extra: { wizard_spellbook_lvl4: [command.id] } },
+    },
+  };
+  expect(renderBuilder()).toBe(baseline);
+  expect(deriveCharacterSpellSelection(control.state).spellbookIds).toEqual([]);
+  expect(control.state.spellsByLevel[wizard.id][4].extra.wizard_spellbook_lvl4).toEqual([
+    command.id,
+  ]);
+});
 it('多职业分别可选，同一法术汇总去重且额度不增加', () => {
   control.state.classes.push({ classId: secondary.id, level: 1 });
   for (const cls of control.state.classes) {
