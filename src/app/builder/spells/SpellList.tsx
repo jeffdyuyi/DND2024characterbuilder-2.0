@@ -7,7 +7,12 @@ import { getCatalogSpells } from '@/catalog';
 import { Spell } from '@/types/spell';
 import { CharacterState, ClassSpellSelection } from '@/types/characterState';
 import { useCharacterStore } from '@/store/characterStore';
-import { getSpellDefinition, getClassDefinition } from '@/engine/characterData';
+import {
+  getSpellDefinition,
+  getClassDefinition,
+  getBackgroundDefinition,
+} from '@/engine/characterData';
+import { resolveBackgroundSpellList } from '@/engine/backgroundSpellList';
 import {
   getInnateSpells,
   computeSpellProgression,
@@ -583,6 +588,11 @@ export default function SpellList({ character }: SpellListProps) {
     return choices.getCatalogSpells({ allowHomebrew: Boolean(character?.allowHomebrew) });
   }, [catalogStatus, character?.allowHomebrew, choices]);
 
+  const backgroundSpellList = useMemo(
+    () => resolveBackgroundSpellList(getBackgroundDefinition(character), allSpells),
+    [character, allSpells, choices],
+  );
+
   const availableSpellsForStep = useMemo(() => {
     if (!currentStep) return [];
     const spells = allSpells.filter((s) => {
@@ -604,7 +614,10 @@ export default function SpellList({ character }: SpellListProps) {
         additionalClasses.has(name.toLowerCase().replace(/[-_\s]+/g, '')),
       );
       const classMatch = currentClassDef
-        ? isSpellAvailableToClass(s, currentClassDef) || additionalMatch
+        ? isSpellAvailableToClass(s, currentClassDef) ||
+          additionalMatch ||
+          ((currentStep.maxSpellLevel > 0 || currentStep.newCantrips > 0) &&
+            backgroundSpellList.spellIds.has(s.id))
         : false;
 
       if (!levelMatch || !classMatch) return false;
@@ -625,7 +638,7 @@ export default function SpellList({ character }: SpellListProps) {
             if (sSchool === ts) return true;
             const sZh = translateSpellSchool(s.school).replace('系', '');
             const tZh = translateSpellSchool(ts).replace('系', '');
-            return sZh === tZh && sZh !== s.school;
+            return sZh === tZh;
           });
           if (!match) return false;
         }
@@ -638,7 +651,7 @@ export default function SpellList({ character }: SpellListProps) {
       if (!uniqueMap.has(s.id)) uniqueMap.set(s.id, s);
     });
     return Array.from(uniqueMap.values());
-  }, [currentStep, currentClassDef, allSpells, choices]);
+  }, [currentStep, currentClassDef, allSpells, choices, backgroundSpellList]);
 
   const availableSources = useMemo(() => {
     const s = new Set<string>();
@@ -807,6 +820,16 @@ export default function SpellList({ character }: SpellListProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {backgroundSpellList.diagnostics.length > 0 && (
+        <details role="status" style={{ marginBottom: 16 }}>
+          <summary>背景扩展法表有待核对项目（{backgroundSpellList.diagnostics.length}）</summary>
+          <ul>
+            {backgroundSpellList.diagnostics.map((message) => (
+              <li key={message}>{message}</li>
+            ))}
+          </ul>
+        </details>
+      )}
       {hasMultipleClasses && (
         <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
           {character.classes.map((c) => {
@@ -1525,17 +1548,23 @@ export default function SpellList({ character }: SpellListProps) {
               filteredPool = filteredPool.filter((s) => {
                 let match = true;
                 if (targetClass) {
+                  const expandedForOwnClass =
+                    backgroundSpellList.spellIds.has(s.id) &&
+                    [currentClassDef?.name, currentClassDef?.nameEn].some(
+                      (name) => name?.toLowerCase() === targetClass,
+                    );
                   match =
                     match &&
-                    s.classes.some((c) => {
-                      const lowC = c.toLowerCase();
-                      if (lowC === targetClass) return true;
-                      const classDef = getClassDefinition(c);
-                      return (
-                        classDef?.nameEn.toLowerCase() === targetClass ||
-                        c.toLowerCase() === targetClass
-                      );
-                    });
+                    (expandedForOwnClass ||
+                      s.classes.some((c) => {
+                        const lowC = c.toLowerCase();
+                        if (lowC === targetClass) return true;
+                        const classDef = getClassDefinition(c);
+                        return (
+                          classDef?.nameEn.toLowerCase() === targetClass ||
+                          c.toLowerCase() === targetClass
+                        );
+                      }));
                 }
                 if (targetLevel) {
                   const allowedLvls = targetLevel
@@ -1559,7 +1588,7 @@ export default function SpellList({ character }: SpellListProps) {
                       if (sSchool === ts) return true;
                       const sZh = translateSpellSchool(s.school).replace('系', '');
                       const tZh = translateSpellSchool(ts).replace('系', '');
-                      return sZh === tZh && sZh !== s.school;
+                      return sZh === tZh;
                     });
                 }
                 return match;

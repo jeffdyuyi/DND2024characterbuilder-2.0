@@ -14,6 +14,7 @@ import { defaultCatalog } from '../catalog';
 import { Background, BackgroundEquipmentRecord } from '@/types/background';
 import { collectBackgroundContent } from './backgroundContent';
 import { constrainBackgroundTools } from './backgroundTools';
+import { parseBackgroundSpellList } from './backgroundSpells';
 import { Selection } from '@/types/species';
 import { Currency } from '@/types/characterState';
 import { clean5eTags, flattenEntries } from '@/source/fiveetools-cn/utils';
@@ -1058,6 +1059,8 @@ export function catalogEntryToBackground(entry: CatalogEntry): Background {
   return {
     id: entry.id,
     source: entry.source,
+    sourcePackId: entry.sourcePackId,
+    ...parseBackgroundSpellList(raw.additionalSpells),
     name: entry.name,
     nameEn: entry.englishName || entry.name,
     description:

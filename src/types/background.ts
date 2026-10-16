@@ -44,6 +44,10 @@ export interface FlavorTable {
 export interface Background {
   id: string; // 唯一标识 (如 'acolyte')
   source: string; // 来源标识，如 "PHB2024"
+  sourcePackId?: string;
+  /** 仅扩展职业候选，不授予已知、准备或免费施法。 */
+  expandedSpells?: { name: string; source: string; level: number }[];
+  spellListDiagnostics?: string[];
   name: string; // 中文名称
   nameEn: string; // 英文名称
   description: string; // 完整的背景描述文段

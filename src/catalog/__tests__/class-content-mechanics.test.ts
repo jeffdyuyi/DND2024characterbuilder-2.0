@@ -122,7 +122,7 @@ function equip(state: CharacterState, armor: boolean, shield: boolean) {
             itemId: plateId,
             name: '回归板甲',
             quantity: 1,
-            category: 'armor',
+            category: 'armor' as const,
             equipped: true,
           },
         ]
@@ -134,7 +134,7 @@ function equip(state: CharacterState, armor: boolean, shield: boolean) {
             itemId: shieldId,
             name: '回归盾牌',
             quantity: 1,
-            category: 'shield',
+            category: 'shield' as const,
             equipped: true,
           },
         ]
@@ -248,7 +248,7 @@ it('同名职业的显式施法属性和类型不被本地模板覆盖，缺失�
     edition: 'one',
     classFeatures: [],
   });
-  expect(catalogEntryToClass(unknown).spellcastingType).toBeUndefined();
+  expect(catalogEntryToClass(unknown)).toHaveProperty('spellcastingType', undefined);
   expect(catalogEntryToClass(unknown).spellcastingAbility).toBeUndefined();
 });
 

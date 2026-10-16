@@ -736,7 +736,9 @@ export function computeSpellProgression(
 
     let maxSpellLevel = 0;
     if (sc?.spellSlots) {
-      const levels = Object.keys(sc.spellSlots).map((k) => parseInt(k.replace('level', '')));
+      const levels = Object.entries(sc.spellSlots)
+        .filter(([, slots]) => Number(slots) > 0)
+        .map(([key]) => parseInt(key.replace('level', '')));
       maxSpellLevel = Math.max(0, ...levels);
     }
 
