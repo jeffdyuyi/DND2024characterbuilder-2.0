@@ -177,7 +177,8 @@ export function formatDuration(durationArr: any[] | undefined): string {
       hour: '小时',
       day: '天',
     };
-    const unit = unitMap[dur.unit] || dur.unit;
+    const rawUnit = dur.type || dur.unit;
+    const unit = unitMap[rawUnit] || rawUnit;
     const conc = first.concentration ? '专注，至多 ' : '';
     return `${conc}${dur.amount} ${unit}`;
   }
