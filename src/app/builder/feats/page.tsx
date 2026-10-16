@@ -29,6 +29,7 @@ import {
   ALL_SKILLS,
   ALL_TOOLS,
 } from '@/engine/terminology';
+import { buildCharacterFeatSlots } from '@/engine/featSlots';
 import { FeatChoices, AbilityScores } from '@/types/characterState';
 
 import { allLanguages } from '@/rules/languages';
@@ -71,116 +72,17 @@ export default function FeatsPage() {
     [character, choices],
   );
 
-  // Identify all potential feat slots
   const featSlots = useMemo(() => {
     if (!character) return [];
-
-    // Define the slot structure strictly following 2024/2014 paradigms
-    const slots: {
-      id: string;
-      level?: number;
-      name: string;
-      allowedCategories: ('Origin' | 'General' | 'Fighting Style' | 'Epic Boon' | 'Legacy')[];
-      grantingSource: string;
-      currentFeatId?: string;
-    }[] = [];
-
-    // 1. Background Feat (Origin)
-    if (background) {
-      const slotId = 'background-feat';
-      slots.push({
-        id: slotId,
-        level: 1,
-        name: '背景专长 (Origin Feat)',
-        allowedCategories: ['Origin'],
-        grantingSource: `背景: ${background.name}`,
-        currentFeatId: character.featSelections?.[slotId]?.featId || character.originFeatId,
-      });
-    }
-
-    // 2. Species-granted slots
-    if (species) {
-      species.traits.forEach((trait) => {
-        const originFeatData = trait.features?.originFeats;
-        const isLegacyFeat =
-          trait.id === 'bonus-feat' ||
-          trait.id === 'feat' ||
-          trait.name === '额外专长' ||
-          trait.name === '专长';
-        const isVersatile =
-          trait.id === 'versatile' ||
-          trait.id === 'origin-feat' ||
-          trait.name === '多用' ||
-          trait.name === '多才多艺';
-
-        if (originFeatData || isLegacyFeat || isVersatile) {
-          const isOriginOnly = originFeatData
-            ? originFeatData.filter === 'type:origin'
-            : isVersatile;
-          const slotId = `species-${trait.id || 'feat'}`;
-
-          const traitKey = trait.id || trait.name || 'feat';
-          const savedSelections =
-            character.speciesSelections?.[slotId] ||
-            (trait.id ? character.speciesSelections?.[trait.id] : undefined) ||
-            (trait.name ? character.speciesSelections?.[trait.name] : undefined) ||
-            (character.speciesId
-              ? character.speciesSelections?.[`sp:${character.speciesId}:trait:${traitKey}`]
-              : undefined) ||
-            [];
-          const savedFeat = savedSelections[0];
-
-          slots.push({
-            id: slotId,
-            level: 1,
-            name: isOriginOnly ? '种族加成专长 (Origin Feat)' : '种族加成专长 (Bonus Feat)',
-            allowedCategories: isOriginOnly
-              ? ['Origin']
-              : ['Origin', 'General', 'Fighting Style', 'Legacy', 'Epic Boon'],
-            grantingSource: `种族: ${species.name} (${trait.name})`,
-            currentFeatId: character.featSelections?.[slotId]?.featId || savedFeat,
-          });
-        }
-      });
-    }
-
-    // 3. Class Progression & Feature-granted slots
-    character.classes.forEach((c) => {
-      const classDef =
-        getClassDefinition(c.classId) ||
-        getCatalogClasses().find((ad: any) => ad.id === c.classId || ad.nameEn === c.classId);
-      if (!classDef) return;
-
-      classDef.features
-        .filter((f: any) => f.level <= c.level)
-        .forEach((f: any) => {
-          if (f.mechanics?.choices) {
-            f.mechanics.choices
-              .filter((choice: any) => choice.type === 'feat')
-              .forEach((choice: any) => {
-                const slotId = `cls:${c.classId}:feat:${f.name}:${choice.id}`;
-                let allowed: ('Origin' | 'General' | 'Fighting Style' | 'Epic Boon' | 'Legacy')[] =
-                  ['General', 'Legacy'];
-                if (choice.options?.includes('Fighting Style')) allowed = ['Fighting Style'];
-                else if (choice.options?.includes('Epic Boon')) allowed = ['Epic Boon'];
-                else if (choice.options?.includes('Origin Feat')) allowed = ['Origin'];
-
-                slots.push({
-                  id: slotId,
-                  level: f.level,
-                  name: `${f.name} (${choice.name || '专长选择'})`,
-                  allowedCategories: allowed,
-                  grantingSource: `职业: ${classDef.name} (等级 ${f.level})`,
-                  currentFeatId:
-                    character.featSelections?.[slotId]?.featId ||
-                    character.classSelections?.[slotId]?.[0],
-                });
-              });
-          }
-        });
+    return buildCharacterFeatSlots(character, {
+      background,
+      species,
+      getClass: (classId) =>
+        getClassDefinition(classId) ||
+        getCatalogClasses().find(
+          (definition: any) => definition.id === classId || definition.nameEn === classId,
+        ),
     });
-
-    return slots;
   }, [character, background, species, choices]);
 
   const activeSlot =
