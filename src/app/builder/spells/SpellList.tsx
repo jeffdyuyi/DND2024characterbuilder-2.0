@@ -809,7 +809,7 @@ export default function SpellList({ character }: SpellListProps) {
     const nextSpellsByLevel = { ...spellsByLevel, [currentClassEntry.classId]: nextSelections };
     const derived = deriveCharacterSpellSelection(
       { ...character, spellsByLevel: nextSpellsByLevel },
-      { includeNativeClassPrepared: false, includeNativeSubclassGrants: false },
+      { includeInnateSpells: false, includeNativeSubclassGrants: false },
     );
     updateActiveCharacter({ spellsByLevel: nextSpellsByLevel, ...derived });
   };

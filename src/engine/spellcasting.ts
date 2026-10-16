@@ -1063,7 +1063,12 @@ export function getActiveClassSpellSelections(
 /** 从逐级选择记录重建最终法表，保存重开或职业升级后可重复得到同一结果。 */
 export function deriveCharacterSpellSelection(
   state: CharacterState,
-  options: { includeNativeClassPrepared?: boolean; includeNativeSubclassGrants?: boolean } = {},
+  options: {
+    includeNativeClassPrepared?: boolean;
+    includeNativeSubclassGrants?: boolean;
+    /** 持久化职业选择时不混入由其他来源实时派生的授予。 */
+    includeInnateSpells?: boolean;
+  } = {},
 ): DerivedSpellSelection {
   const cantrips = new Set<string>();
   const prepared = new Set<string>();
@@ -1122,7 +1127,7 @@ export function deriveCharacterSpellSelection(
       });
   }
 
-  getInnateSpells(state).forEach((grant) => {
+  (options.includeInnateSpells === false ? [] : getInnateSpells(state)).forEach((grant) => {
     if (grant.nativeClassPrepared && options.includeNativeClassPrepared === false) return;
     if (grant.nativeSubclassGrant && options.includeNativeSubclassGrants === false) return;
     const spell = getSpellDefinition(grant.spellId);
