@@ -1,0 +1,1053 @@
+{
+  "provenance": {
+    "archive": "5etools-cn-cn2.0.zip",
+    "archiveSha256": "ED259074383C288F8BF89CBF1B0250A0F4AE77C54D408893F9A970C3C4AC24B5",
+    "extractedOn": "2026-10-16",
+    "note": "Selected raw spell fields; archive evidence, not latest upstream verification."
+  },
+  "entries": [
+    {
+      "kind": "race",
+      "path": "data/races.json",
+      "raw": {
+        "name": "阿斯莫",
+        "ENG_name": "Aasimar",
+        "source": "DMG",
+        "additionalSpells": [
+          {
+            "innate": {
+              "3": {
+                "daily": {
+                  "1": [
+                    "次等复原术"
+                  ]
+                }
+              },
+              "5": {
+                "daily": {
+                  "1": [
+                    "昼明术"
+                  ]
+                }
+              }
+            },
+            "ability": "cha",
+            "known": {
+              "1": [
+                "光亮术#c"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "race",
+      "path": "data/races.json",
+      "raw": {
+        "name": "阿斯莫",
+        "ENG_name": "Aasimar",
+        "source": "MPMM",
+        "additionalSpells": [
+          {
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "1": [
+                "光亮术#c"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "race",
+      "path": "data/races.json",
+      "raw": {
+        "name": "阿斯莫",
+        "ENG_name": "Aasimar",
+        "source": "VGM",
+        "additionalSpells": [
+          {
+            "ability": "cha",
+            "known": {
+              "1": [
+                "光亮术#c"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "race",
+      "path": "data/races.json",
+      "raw": {
+        "name": "阿斯莫",
+        "ENG_name": "Aasimar",
+        "source": "XPHB",
+        "additionalSpells": [
+          {
+            "ability": "cha",
+            "known": {
+              "1": [
+                "光亮术|xphb#c"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "race",
+      "path": "data/races.json",
+      "raw": {
+        "name": "星界精灵",
+        "ENG_name": "Astral Elf",
+        "source": "AAG",
+        "additionalSpells": [
+          {
+            "known": {
+              "1": [
+                "舞光术#c"
+              ]
+            },
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            }
+          },
+          {
+            "known": {
+              "1": [
+                "光亮术#c"
+              ]
+            },
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            }
+          },
+          {
+            "known": {
+              "1": [
+                "圣火术#c"
+              ]
+            },
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "background",
+      "path": "data/backgrounds.json",
+      "raw": {
+        "name": "衡鉴学生",
+        "ENG_name": "Lorehold Student",
+        "source": "SCC",
+        "additionalSpells": [
+          {
+            "expanded": {
+              "s1": [
+                "通晓语言",
+                "鉴定术"
+              ],
+              "s2": [
+                "借鉴才学|scc",
+                "物件定位术"
+              ],
+              "s3": [
+                "死者交谈",
+                "灵体卫士"
+              ],
+              "s4": [
+                "秘法眼",
+                "塑石术"
+              ],
+              "s5": [
+                "焰击术",
+                "通晓传奇"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "feat",
+      "path": "data/feats.json",
+      "raw": {
+        "name": "魔法学徒",
+        "ENG_name": "Magic Initiate",
+        "source": "PHB",
+        "additionalSpells": [
+          {
+            "ENG_name": "Bard Spells",
+            "name": "吟游诗人法术",
+            "ability": "cha",
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=吟游诗人",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Cleric Spells",
+            "name": "牧师法术",
+            "ability": "wis",
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=牧师"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=牧师",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Druid Spells",
+            "name": "德鲁伊法术",
+            "ability": "wis",
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=德鲁伊",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Sorcerer Spells",
+            "name": "术士法术",
+            "ability": "cha",
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=术士"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=术士",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Warlock Spells",
+            "name": "魔契师法术",
+            "ability": "cha",
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=魔契师"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=魔契师",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Wizard Spells",
+            "name": "法师法术",
+            "ability": "int",
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=法师"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=法师",
+                  "count": 2
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "feat",
+      "path": "data/feats.json",
+      "raw": {
+        "name": "魔法学徒",
+        "ENG_name": "Magic Initiate",
+        "source": "XPHB",
+        "additionalSpells": [
+          {
+            "ENG_name": "Cleric Spells",
+            "name": "牧师法术",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=牧师"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=牧师",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Druid Spells",
+            "name": "德鲁伊法术",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=德鲁伊",
+                  "count": 2
+                }
+              ]
+            }
+          },
+          {
+            "ENG_name": "Wizard Spells",
+            "name": "法师法术",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=法师"
+                    }
+                  ]
+                }
+              }
+            },
+            "known": {
+              "_": [
+                {
+                  "choose": "level=0|class=法师",
+                  "count": 2
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "feat",
+      "path": "data/feats.json",
+      "raw": {
+        "name": "斯翠海文学徒",
+        "ENG_name": "Strixhaven Initiate",
+        "source": "SCC",
+        "additionalSpells": [
+          {
+            "ENG_name": "Lorehold 1",
+            "name": "衡鉴1",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "光亮术#c",
+                "圣火术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=牧师;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Lorehold 2",
+            "name": "衡鉴2",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "光亮术#c",
+                "奇术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=牧师;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Lorehold 3",
+            "name": "衡鉴3",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "圣火术#c",
+                "奇术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=牧师;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Prismari 1",
+            "name": "粹丽1",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "火焰箭#c",
+                "魔法伎俩#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人;术士"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Prismari 2",
+            "name": "粹丽2",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "火焰箭#c",
+                "冷冻射线#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人;术士"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Prismari 3",
+            "name": "粹丽3",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "魔法伎俩#c",
+                "冷冻射线#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人;术士"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Quandrix 1",
+            "name": "量析1",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "德鲁伊伎俩#c",
+                "神导术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Quandrix 2",
+            "name": "量析2",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "德鲁伊伎俩#c",
+                "法师之手#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Quandrix 3",
+            "name": "量析3",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "神导术#c",
+                "法师之手#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Silverquill 1",
+            "name": "银毫1",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "圣火术#c",
+                "奇术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人;牧师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Silverquill 2",
+            "name": "银毫2",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "圣火术#c",
+                "恶言相加#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人;牧师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Silverquill 3",
+            "name": "银毫3",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "奇术#c",
+                "恶言相加#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=吟游诗人;牧师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Witherbloom 1",
+            "name": "靡华1",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "颤栗之触#c",
+                "德鲁伊伎俩#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Witherbloom 2",
+            "name": "靡华2",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "颤栗之触#c",
+                "维生术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "ENG_name": "Witherbloom 3",
+            "name": "靡华3",
+            "ability": {
+              "choose": [
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "known": {
+              "_": [
+                "德鲁伊伎俩#c",
+                "维生术#c"
+              ]
+            },
+            "innate": {
+              "_": {
+                "daily": {
+                  "1": [
+                    {
+                      "choose": "level=1|class=德鲁伊;法师"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "subclass",
+      "path": "data/class/class-cleric.json",
+      "raw": {
+        "name": "知识领域",
+        "ENG_name": "Knowledge Domain",
+        "source": "PHB",
+        "className": "牧师",
+        "classSource": "PHB",
+        "additionalSpells": [
+          {
+            "prepared": {
+              "1": [
+                "命令术",
+                "鉴定术"
+              ],
+              "3": [
+                "卜筮术",
+                "暗示术"
+              ],
+              "5": [
+                "回避侦测",
+                "死者交谈"
+              ],
+              "7": [
+                "秘法眼",
+                "困惑术"
+              ],
+              "9": [
+                "通晓传奇",
+                "探知术"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "subclass",
+      "path": "data/class/class-cleric.json",
+      "raw": {
+        "name": "知识领域",
+        "ENG_name": "Knowledge Domain",
+        "source": "FRHoF",
+        "className": "牧师",
+        "classSource": "XPHB",
+        "additionalSpells": [
+          {
+            "prepared": {
+              "3": [
+                "命令术|xphb",
+                "通晓语言|xphb",
+                "侦测魔法|xphb",
+                "侦测思想|xphb",
+                "鉴定术|xphb",
+                "心灵尖刺|xphb"
+              ],
+              "5": [
+                "解除魔法|xphb",
+                "回避侦测|xphb",
+                "巧言术|xphb"
+              ],
+              "7": [
+                "秘法眼|xphb",
+                "放逐术|xphb",
+                "困惑术|xphb"
+              ],
+              "9": [
+                "通晓传奇|xphb",
+                "探知术|xphb",
+                "突触静止|xphb"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "class",
+      "path": "data/class/class-warlock.json",
+      "raw": {
+        "name": "魔契师",
+        "ENG_name": "Warlock",
+        "source": "XPHB",
+        "additionalSpells": [
+          {
+            "prepared": {
+              "9": [
+                "异界探知|xphb"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "subclass",
+      "path": "data/class/class-warlock.json",
+      "raw": {
+        "name": "至高妖精",
+        "ENG_name": "The Archfey",
+        "source": "PHB",
+        "className": "魔契师",
+        "classSource": "PHB",
+        "additionalSpells": [
+          {
+            "expanded": {
+              "s1": [
+                "妖火",
+                "睡眠术"
+              ],
+              "s2": [
+                "安定心神",
+                "魅影之力"
+              ],
+              "s3": [
+                "闪现术",
+                "植物滋长"
+              ],
+              "s4": [
+                "支配野兽",
+                "高等隐形术"
+              ],
+              "s5": [
+                "支配类人",
+                "伪装术"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "item",
+      "path": "data/items.json",
+      "raw": {
+        "name": "安南之锛",
+        "ENG_name": "Adze of Annam",
+        "source": "BGG",
+        "attachedSpells": {
+          "daily": {
+            "1": [
+              "鬼斧神工",
+              "地动术"
+            ]
+          }
+        },
+        "reqAttune": true
+      }
+    },
+    {
+      "kind": "item",
+      "path": "data/items.json",
+      "raw": {
+        "name": "炼金总纲",
+        "ENG_name": "Alchemical Compendium",
+        "source": "TCE",
+        "attachedSpells": [
+          "变巨/缩小术",
+          "羽落术",
+          "石化术",
+          "气化形体",
+          "魔化武器",
+          "变形术"
+        ],
+        "charges": 3,
+        "recharge": "拂晓",
+        "reqAttune": "由法师"
+      }
+    }
+  ]
+}
