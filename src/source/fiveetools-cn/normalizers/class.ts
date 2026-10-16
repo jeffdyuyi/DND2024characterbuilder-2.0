@@ -13,7 +13,7 @@ export function normalizeClass(raw: Record<string, any>, packId = '5etools-cn'):
   const name = raw.name || raw.ENG_name || '未命名职业';
   const englishName = raw.ENG_name || (raw.name !== name ? raw.name : undefined);
   const source = raw.source || 'PHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,
@@ -46,7 +46,7 @@ export function normalizeSubclass(raw: Record<string, any>, packId = '5etools-cn
   const name = raw.name || raw.ENG_name || '未命名子职业';
   const englishName = raw.ENG_name || (raw.name !== name ? raw.name : undefined);
   const source = raw.source || 'PHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,

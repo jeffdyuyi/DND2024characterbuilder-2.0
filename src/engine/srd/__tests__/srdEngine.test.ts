@@ -4,20 +4,11 @@ import { expandCopies, readableEntries } from '../expand';
 
 describe('SrdEngine and Expand Unit Tests', () => {
   it('correctly detects edition based on source and raw edition field', () => {
-    // 2024 versions
-    expect(detectEdition('XPHB')).toBe('2024');
-    expect(detectEdition('XDMG')).toBe('2024');
-    expect(detectEdition('XMM')).toBe('2024');
-    expect(detectEdition('SRD52')).toBe('2024');
     expect(detectEdition('PHB', { edition: 'one' })).toBe('2024');
-
-    // 2014 versions
-    expect(detectEdition('PHB')).toBe('2014');
-    expect(detectEdition('TCE')).toBe('2014');
-    expect(detectEdition('XGE')).toBe('2014');
-    expect(detectEdition('DMG')).toBe('2014');
-
-    // fallback both
+    expect(detectEdition('XPHB', { edition: 'classic' }, '2024')).toBe('2014');
+    expect(detectEdition('XGE', {}, '2014')).toBe('2014');
+    expect(detectEdition('XPHB', {}, '2024')).toBe('2024');
+    expect(detectEdition('UNKNOWN2024')).toBe('both');
     expect(detectEdition('HOMEBREW')).toBe('both');
   });
 

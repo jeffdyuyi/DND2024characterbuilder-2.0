@@ -1,3 +1,5 @@
+import { inferEditionFromSource } from '@/catalog/identity';
+import { PublicationEditionIndex } from '@/source/fiveetools-cn/publicationEditions';
 // 5etools 官方资源查阅库引擎 (对标 DND-card-web-main)
 // 支持 IndexedDB 本地缓存加速、全量 5etools 继承树解包、2024/2014 双轨过滤、职业多级特性关联与检索
 
@@ -62,47 +64,12 @@ export function makeSrdIdentity(kind: SrdKind, raw: Raw, packId = '5etools'): st
     .join(':');
 }
 
-export function detectEdition(source: string, raw: Raw = {}): '2024' | '2014' | 'both' {
-  const s = String(source || raw.source || '')
-    .toUpperCase()
-    .trim();
-  if (
-    raw.edition === 'one' ||
-    ['XPHB', 'XDMG', 'XMM', 'SRD52', '5R'].includes(s) ||
-    s.includes('2024')
-  ) {
-    return '2024';
-  }
-  if (
-    raw.edition === 'classic' ||
-    [
-      'PHB',
-      'DMG',
-      'MM',
-      'SCAG',
-      'VGM',
-      'XGE',
-      'MTF',
-      'ERLW',
-      'EGW',
-      'MOT',
-      'TCE',
-      'VRGR',
-      'WBTW',
-      'FTD',
-      'SCC',
-      'MPMM',
-      'AAG',
-      'BAM',
-      'SJA',
-      'DSOTC',
-      'BMT',
-      'PAIT',
-    ].includes(s)
-  ) {
-    return '2014';
-  }
-  return 'both';
+export function detectEdition(
+  source: string,
+  raw: Raw = {},
+  publicationEdition?: '2014' | '2024',
+): '2024' | '2014' | 'both' {
+  return inferEditionFromSource(source, raw, publicationEdition);
 }
 
 function extractDescription(entries: any[]): string {
@@ -173,6 +140,7 @@ class SrdEngineService {
   private loadedKinds = new Set<SrdKind>();
   private loadingPromises = new Map<SrdKind, Promise<SrdEntry[]>>();
   private client = createDefaultFiveEToolsSource();
+  private publicationEditions = new PublicationEditionIndex();
 
   /** 全局特性字典，用于根据文本引用快速反查对应具体特性 */
   private featureRegistry = new Map<string, SrdEntry>();
@@ -190,7 +158,9 @@ class SrdEngineService {
       return this.loadingPromises.get(kind)!;
     }
 
-    const loadTask = this.loadKindData(kind, options);
+    const loadTask = this.publicationEditions
+      .load(this.client, options)
+      .then(() => this.loadKindData(kind, options));
     this.loadingPromises.set(kind, loadTask);
 
     try {
@@ -276,7 +246,7 @@ class SrdEngineService {
           const featuresByClass = new Map<string, SrdEntry[]>();
           for (const cf of rawClassFeatures) {
             const src = String(cf.source || cf.classSource || 'PHB').toUpperCase();
-            const ed = detectEdition(src, cf);
+            const ed = this.publicationEditions.resolve(src, cf);
             const entries = readableEntries(cf, 'classFeature');
             const entry: SrdEntry = {
               id: makeSrdIdentity('feature', { ...cf, source: src, _category: 'classFeature' }),
@@ -307,7 +277,7 @@ class SrdEngineService {
           const featuresBySubclass = new Map<string, SrdEntry[]>();
           for (const scf of rawSubclassFeatures) {
             const src = String(scf.source || scf.subclassSource || 'PHB').toUpperCase();
-            const ed = detectEdition(src, scf);
+            const ed = this.publicationEditions.resolve(src, scf);
             const entries = readableEntries(scf, 'subclassFeature');
             const entry: SrdEntry = {
               id: makeSrdIdentity('feature', { ...scf, source: src, _category: 'subclassFeature' }),
@@ -337,7 +307,7 @@ class SrdEngineService {
           // 3. 构建职业，将对应的 classFeatures 按等级结构化组合进正文
           for (const cls of res.body.class || []) {
             const src = String(cls.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, cls);
+            const ed = this.publicationEditions.resolve(src, cls);
             const baseEntries = readableEntries(cls, 'class');
 
             // 提取该职业的所有等级特性
@@ -405,7 +375,7 @@ class SrdEngineService {
           // 4. 构建子职，将对应的 subclassFeatures 按等级结构化组合进正文
           for (const sub of res.body.subclass || []) {
             const src = String(sub.source || sub.classSource || 'PHB').toUpperCase();
-            const ed = detectEdition(src, sub);
+            const ed = this.publicationEditions.resolve(src, sub);
             const baseEntries = readableEntries(sub, 'subclass');
 
             const scKey = `${sub.className}|${sub.shortName || sub.name}|${src}`.toLowerCase();
@@ -495,7 +465,7 @@ class SrdEngineService {
           for (const raw of rawRaces) {
             for (const r of [raw, ...expandVersions(raw)]) {
               const src = String(r.source || 'PHB').toUpperCase();
-              const ed = detectEdition(src, r);
+              const ed = this.publicationEditions.resolve(src, r);
               const entries = readableEntries(r, 'race');
               results.push({
                 id: makeSrdIdentity('race', { ...r, source: src, _category: 'race' }),
@@ -518,7 +488,7 @@ class SrdEngineService {
           for (const sub of rawSubraces) {
             const inherited = inheritSubrace(sub, rawRaces);
             const src = String(inherited.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, inherited);
+            const ed = this.publicationEditions.resolve(src, inherited);
             const entries = readableEntries(inherited, 'subrace');
             results.push({
               id: makeSrdIdentity('race', { ...inherited, source: src, _category: 'subrace' }),
@@ -565,7 +535,7 @@ class SrdEngineService {
           const rawOpts = expandCopies(res.body.optionalfeature || []);
           for (const f of rawOpts) {
             const src = String(f.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, f);
+            const ed = this.publicationEditions.resolve(src, f);
             const entries = readableEntries(f, 'optionalfeature');
             const meta = parseFeatureType(f.featureType);
 
@@ -612,7 +582,7 @@ class SrdEngineService {
           const rawFeats = expandCopies(res.body.feat || []);
           for (const f of rawFeats) {
             const src = String(f.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, f);
+            const ed = this.publicationEditions.resolve(src, f);
             const entries = readableEntries(f, 'feat');
             results.push({
               id: makeSrdIdentity('feat', { ...f, source: src, _category: 'feat' }),
@@ -645,7 +615,7 @@ class SrdEngineService {
           const rawBgs = expandCopies(res.body.background || []);
           for (const b of rawBgs) {
             const src = String(b.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, b);
+            const ed = this.publicationEditions.resolve(src, b);
             const entries = readableEntries(b, 'background');
             results.push({
               id: makeSrdIdentity('background', { ...b, source: src, _category: 'background' }),
@@ -679,7 +649,7 @@ class SrdEngineService {
               const rawSpells = expandCopies(res.body.spell || []);
               for (const s of rawSpells) {
                 const src = String(s.source || 'PHB').toUpperCase();
-                const ed = detectEdition(src, s);
+                const ed = this.publicationEditions.resolve(src, s);
                 const entries = readableEntries(s, 'spell');
                 results.push({
                   id: makeSrdIdentity('spell', { ...s, source: src, _category: 'spell' }),
@@ -720,7 +690,7 @@ class SrdEngineService {
 
           for (const i of allRawItems) {
             const src = String(i.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, i);
+            const ed = this.publicationEditions.resolve(src, i);
             const entries = readableEntries(i, 'item');
             results.push({
               id: makeSrdIdentity('item', { ...i, source: src, _category: 'item' }),
@@ -756,7 +726,7 @@ class SrdEngineService {
           ];
           for (const c of expandCopies(list)) {
             const src = String(c.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, c);
+            const ed = this.publicationEditions.resolve(src, c);
             const entries = readableEntries(c, 'condition');
             results.push({
               id: makeSrdIdentity('condition', { ...c, source: src, _category: 'condition' }),
@@ -807,7 +777,7 @@ class SrdEngineService {
           for (const item of list) {
             const r = item.raw;
             const src = String(r.source || 'PHB').toUpperCase();
-            const ed = detectEdition(src, r);
+            const ed = this.publicationEditions.resolve(src, r);
             const entries = readableEntries(r, 'rule');
             results.push({
               id: makeSrdIdentity('rule', { ...r, source: src, _category: 'rule' }),

@@ -15,7 +15,7 @@ export function normalizeItem(
   const name = raw.name || raw.ENG_name || '未命名物品';
   const englishName = raw.ENG_name || (raw.name !== name ? raw.name : undefined);
   const source = raw.source || 'PHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,

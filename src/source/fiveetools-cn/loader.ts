@@ -1,3 +1,4 @@
+import { PublicationEditionIndex } from './publicationEditions';
 /**
  * 5etools-cn 数据加载器 (Loader)
  * 对应《DND5R_5etools_rules_engine_agent_spec.md》规范 §6、§12、§13、§18
@@ -132,6 +133,7 @@ export interface LoadSummary {
 
 export class FiveEToolsCnLoader {
   private client: FiveEToolsCnSource;
+  private publicationEditions = new PublicationEditionIndex();
   private catalog: CatalogService;
 
   constructor(client?: FiveEToolsCnSource, catalog?: CatalogService) {
@@ -154,6 +156,7 @@ export class FiveEToolsCnLoader {
   ) {
     this.catalog.register({
       ...entry,
+      edition: this.publicationEditions.resolve(entry.source, entry.raw),
       revision,
       isHomebrew: this.client.kind === 'homebrew' || entry.isHomebrew,
       raw: { ...entry.raw, _provenance: { packId: this.client.id, path, revision } },
@@ -168,6 +171,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -268,6 +272,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -337,7 +342,7 @@ export class FiveEToolsCnLoader {
                     name,
                     englishName: raw.ENG_name,
                     source,
-                    edition: inferEditionFromSource(source),
+                    edition: inferEditionFromSource(source, raw),
                     sourcePackId: this.client.id,
                     parent,
                     description: flattenEntries(raw.entries),
@@ -397,6 +402,7 @@ export class FiveEToolsCnLoader {
       }) => void;
     },
   ): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -545,7 +551,7 @@ export class FiveEToolsCnLoader {
                   name,
                   englishName: raw.ENG_name,
                   source,
-                  edition: inferEditionFromSource(source),
+                  edition: inferEditionFromSource(source, raw),
                   sourcePackId: this.client.id,
                   isHomebrew: this.client.kind === 'homebrew',
                   parent,
@@ -589,6 +595,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -627,6 +634,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -721,6 +729,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -795,6 +804,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -870,6 +880,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -916,6 +927,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;
@@ -967,6 +979,7 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary> {
+    await this.publicationEditions.load(this.client, options);
     const startTime = performance.now();
     const warnings: ResolverWarning[] = [];
     let count = 0;

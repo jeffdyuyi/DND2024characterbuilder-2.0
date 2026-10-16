@@ -17,7 +17,7 @@ export function normalizeItemProperty(
   const name = firstEntry.name || raw.name || abbreviation;
   const englishName = firstEntry.ENG_name || raw.ENG_name || abbreviation;
   const source = raw.source || 'XPHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,
@@ -50,7 +50,7 @@ export function normalizeItemMastery(
   const name = raw.name || raw.ENG_name || '未命名精通';
   const englishName = raw.ENG_name || raw.name;
   const source = raw.source || 'XPHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,

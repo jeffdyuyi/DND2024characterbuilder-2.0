@@ -70,6 +70,7 @@ describe('5etools Resolver & Normalizer Tests', () => {
       name: '火球术',
       ENG_name: 'Fireball',
       source: 'XPHB',
+      edition: 'one',
       level: 3,
       school: 'V',
       time: [{ number: 1, unit: 'action' }],

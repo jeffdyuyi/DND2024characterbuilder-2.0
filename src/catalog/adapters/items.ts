@@ -127,7 +127,11 @@ export function instantiateMagicVariants(
         name,
         englishName,
         source,
-        edition: inferEditionFromSource(source),
+        edition: inferEditionFromSource(
+          source,
+          inherits,
+          variant.edition === 'both' ? undefined : variant.edition,
+        ),
         sourcePackId: variant.sourcePackId,
         isHomebrew: variant.isHomebrew,
         description: [base.description, flattenEntries(inherits.entries)]

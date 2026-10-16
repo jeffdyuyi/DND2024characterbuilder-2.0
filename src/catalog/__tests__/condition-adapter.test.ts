@@ -9,6 +9,7 @@ describe('Condition Catalog Adapter & 5etools Normalizer', () => {
       name: '目盲',
       ENG_name: 'Blinded',
       source: 'XPHB',
+      edition: 'one',
       page: 361,
       entries: [
         '目盲状态期间，你将遭受以下效应。',

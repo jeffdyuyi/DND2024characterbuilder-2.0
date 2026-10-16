@@ -13,6 +13,15 @@ import type { SourceSelection, SourceBook } from '@/types/sourceSelection';
 import { useCatalog } from '@/platform/CatalogProvider';
 import { getCatalogStats, loadHomebrewAll } from '@/platform/catalogLoader';
 import styles from './SourceBookPicker.module.css';
+import {
+  exportSourceSettings,
+  importSourceSettings,
+  groupSourceBooks,
+  toggleSourceGroup,
+  type SourceBookSummary,
+} from '@/catalog/sourceSettings';
+import { getCacheInventory, type CacheInventory } from '@/platform/catalogCache';
+import ResourceCacheManager from '@/platform/ResourceCacheManager';
 
 export interface SourceBookSettings {
   sourceSelection?: SourceSelection;
@@ -31,6 +40,12 @@ export default function SourceBookPicker({
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [configCode, setConfigCode] = useState('');
+  const [configMessage, setConfigMessage] = useState('');
+  const [configError, setConfigError] = useState('');
+  const [cache, setCache] = useState<CacheInventory>();
+  const [cacheError, setCacheError] = useState('');
+  const [cacheBusy, setCacheBusy] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const brewStatus = stats.sources.homebrew;
   const brewBusy = loading || brewStatus.state === 'loading';
@@ -51,13 +66,13 @@ export default function SourceBookPicker({
     selection = { mode: 'selected', books: [] };
   }
   const loaded = useMemo(() => getLoadedSourceBooks(defaultCatalog), [stats]);
-  const books = [...loaded];
+  const books: SourceBookSummary[] = [...loaded];
   if (selection.mode === 'selected')
     for (const book of selection.books) {
       if (!books.some((b) => sourceBookKey(b) === sourceBookKey(book))) {
         books.push({
           ...book,
-          isHomebrew: book.sourcePackId.startsWith('homebrew'),
+          isHomebrew: book.sourcePackId.toLowerCase().startsWith('homebrew'),
           entryCount: 0,
         });
       }
@@ -68,6 +83,24 @@ export default function SourceBookPicker({
   const summary = selection.mode === 'all' ? '全部允许书籍' : `已选 ${selection.books.length} 本书`;
   const update = (sourceSelection: SourceSelection, allowHomebrew = Boolean(value.allowHomebrew)) =>
     onChange({ sourceSelection, allowHomebrew });
+  const inspectCache = async () => {
+    setCacheBusy(true);
+    setCacheError('');
+    try {
+      setCache(await getCacheInventory());
+    } catch {
+      setCache(undefined);
+      setCacheError('无法读取缓存清单，请在资源缓存管理中重试。');
+    } finally {
+      setCacheBusy(false);
+    }
+  };
+  const groups = groupSourceBooks(books);
+  const queryText = query.trim().toLowerCase();
+  const matchesQuery = (book: SourceBookSummary) =>
+    `${getSourceDisplayName(book.source)} ${book.source} ${book.sourcePackId}`
+      .toLowerCase()
+      .includes(queryText);
   const toggle = (book: SourceBook, checked: boolean) => {
     const current = selection.mode === 'selected' ? selection.books : books;
     update({
@@ -94,7 +127,10 @@ export default function SourceBookPicker({
     }
   };
   useEffect(() => {
-    if (open) dialog.current?.showModal();
+    if (open) {
+      dialog.current?.showModal();
+      void inspectCache();
+    }
   }, [open]);
   return (
     <>
@@ -115,7 +151,9 @@ export default function SourceBookPicker({
             ref={dialog}
             className={styles.dialog}
             aria-labelledby="source-books-title"
-            onClose={() => setOpen(false)}
+            onClose={(event) => {
+              if (event.target === event.currentTarget) setOpen(false);
+            }}
             onClick={(event) => event.stopPropagation()}
           >
             <div className={styles.header}>
@@ -132,6 +170,73 @@ export default function SourceBookPicker({
               控制建卡候选范围。关闭书籍不会删除已有选择，也不会清除缓存；2014 与 2024
               规则仍可分别选择。
             </p>
+            <details className={styles.config}>
+              <summary>来源配置码 · 导入 / 导出</summary>
+              <p>只共享书籍范围和第三方开关，不包含角色、规则正文或缓存。导入不会自动下载。</p>
+              <textarea
+                aria-label="来源配置码"
+                value={configCode}
+                onChange={(event) => {
+                  setConfigCode(event.target.value);
+                  setConfigError('');
+                  setConfigMessage('');
+                }}
+                placeholder="生成配置码，或粘贴其他玩家分享的配置"
+                rows={5}
+              />
+              <div className={styles.controls}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfigError('');
+                    try {
+                      setConfigCode(exportSourceSettings(value));
+                      setConfigMessage('配置码已生成。');
+                    } catch {
+                      setConfigError('当前来源配置无效，无法导出，请重新选择。');
+                    }
+                  }}
+                >
+                  生成配置码
+                </button>
+                <button
+                  type="button"
+                  disabled={!configCode.trim()}
+                  onClick={async () => {
+                    setConfigError('');
+                    try {
+                      await navigator.clipboard.writeText(configCode);
+                      setConfigMessage('配置码已复制。');
+                    } catch {
+                      setConfigError('无法自动复制，请手动选中配置码复制。');
+                    }
+                  }}
+                >
+                  复制
+                </button>
+                <button
+                  type="button"
+                  disabled={!configCode.trim()}
+                  onClick={() => {
+                    setConfigMessage('');
+                    setConfigError('');
+                    try {
+                      const settings = importSourceSettings(configCode);
+                      onChange(settings);
+                      setConfigMessage('配置已应用；未载入来源会保留，可另行加载资料。');
+                    } catch (cause) {
+                      setConfigError(
+                        cause instanceof Error ? cause.message : '配置无效，原选择已保留。',
+                      );
+                    }
+                  }}
+                >
+                  应用配置码
+                </button>
+              </div>
+              {configMessage && <p role="status">{configMessage}</p>}
+              {configError && <p role="alert">{configError}</p>}
+            </details>
             <div className={styles.controls}>
               <label>
                 <input
@@ -181,6 +286,31 @@ export default function SourceBookPicker({
               </button>
             </div>
             <p>书目来自当前已加载资源。勾选书籍只改变可用范围，不代表单独下载或删除该书。</p>
+            <section className={styles.brewStatus} aria-label="离线资源状态">
+              <strong>离线资源 · 文件缓存</strong>
+              {cache ? (
+                <p>
+                  {cache.storage === 'indexeddb' ? '已保存至浏览器' : '仅本次会话内存'} ·{' '}
+                  {cache.files.length} 个文件，其中{' '}
+                  {cache.files.filter((file) => !file.expired).length} 个有效，{' '}
+                  {cache.files.filter((file) => file.expired).length} 个过期或版本失效。{' '}
+                  {cache.writeFailures.length > 0 &&
+                    `${cache.writeFailures.length} 个文件未持久保存。`}
+                </p>
+              ) : (
+                <p role="status">{cacheBusy ? '正在读取缓存清单…' : '尚未读取缓存清单。'}</p>
+              )}
+              <p>
+                清单在打开时读取，可手动刷新。文件缓存与本角色使用权限分别保存；条目已载入不代表书籍依赖全部解析成功，也不保证断网重开网站。
+              </p>
+              <div className={styles.controls}>
+                <button type="button" disabled={cacheBusy} onClick={() => void inspectCache()}>
+                  {cacheBusy ? '读取中…' : '刷新缓存状态'}
+                </button>
+                <ResourceCacheManager />
+              </div>
+              {cacheError && <p role="alert">{cacheError}</p>}
+            </section>
             {!isComplete && (
               <p role="status">资源尚未全部就绪，书目会随加载更新；未载入的已选书籍会保留。</p>
             )}
@@ -223,57 +353,96 @@ export default function SourceBookPicker({
               </p>
             )}
             <div className={styles.books}>
-              {[false, true].map((brew) => (
-                <fieldset key={String(brew)} disabled={brew && !value.allowHomebrew}>
-                  <legend>
-                    {brew ? '第三方资料' : '官方资料'} ·{' '}
-                    {books.filter((book) => book.isHomebrew === brew).length} 本
-                  </legend>
-                  <div className={styles.grid}>
-                    {books
-                      .filter(
-                        (book) =>
-                          book.isHomebrew === brew &&
-                          `${getSourceDisplayName(book.source)} ${book.source} ${book.sourcePackId}`
-                            .toLowerCase()
-                            .includes(query.toLowerCase()),
-                      )
-                      .map((book) => (
-                        <label className={styles.book} key={sourceBookKey(book)}>
-                          <input
-                            type="checkbox"
-                            checked={selectedKeys.has(sourceBookKey(book))}
-                            onChange={(event) => toggle(book, event.target.checked)}
-                          />
-                          <span>
-                            {getSourceDisplayName(book.source)}{' '}
-                            <small>
-                              {book.source} · {book.sourcePackId} ·{' '}
-                              {book.entryCount ? `${book.entryCount} 条` : '尚未载入'}
-                            </small>
-                          </span>
-                        </label>
-                      ))}
-                  </div>
-                  {!books.some((book) => book.isHomebrew === brew) && (
-                    <p>
-                      {brew
-                        ? brewBusy
-                          ? '正在加载，下载与依赖解析完成后将在此生成书籍卡片。'
-                          : '尚无已加载的第三方书目，请查看上方状态并加载资料。'
-                        : '暂无已加载的官方书目。'}
-                    </p>
-                  )}
-                  {books.some((book) => book.isHomebrew === brew) &&
-                    !books.some(
-                      (book) =>
-                        book.isHomebrew === brew &&
-                        `${getSourceDisplayName(book.source)} ${book.source} ${book.sourcePackId}`
-                          .toLowerCase()
-                          .includes(query.toLowerCase()),
-                    ) && <p>没有匹配的书籍，请调整搜索词。</p>}
-                </fieldset>
-              ))}
+              {groups.map((group) => {
+                const visible = group.books.filter(matchesQuery);
+                const eligible = group.books.filter(
+                  (book) => !book.isHomebrew || value.allowHomebrew,
+                );
+                const selectedCount = group.books.filter((book) =>
+                  selectedKeys.has(sourceBookKey(book)),
+                ).length;
+                const enabledSelected = eligible.filter((book) =>
+                  selectedKeys.has(sourceBookKey(book)),
+                ).length;
+                if (queryText && !visible.length) return null;
+                return (
+                  <details
+                    key={`${group.id}:${queryText ? 'search' : 'browse'}`}
+                    className={styles.group}
+                    open={Boolean(queryText) || group.id === 'official'}
+                  >
+                    <summary>
+                      <span>
+                        {group.label} · 已选 {selectedCount}/{group.books.length}
+                      </span>
+                    </summary>
+                    <div className={styles.controls}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          aria-label={`选择${group.label}全部书籍`}
+                          disabled={!eligible.length}
+                          checked={eligible.length > 0 && enabledSelected === eligible.length}
+                          ref={(element) => {
+                            if (element)
+                              element.indeterminate =
+                                enabledSelected > 0 && enabledSelected < eligible.length;
+                          }}
+                          onChange={(event) =>
+                            update(
+                              toggleSourceGroup(selection, books, eligible, event.target.checked),
+                            )
+                          }
+                        />
+                        本组全选（{eligible.length} 本可选书籍）
+                      </label>
+                      {queryText && (
+                        <span>
+                          搜索显示 {visible.length}/{group.books.length} 本；全选仍作用于整个分组。
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.grid}>
+                      {visible.map((book) => {
+                        const selected = selectedKeys.has(sourceBookKey(book));
+                        const permitted =
+                          selected && (!book.isHomebrew || Boolean(value.allowHomebrew));
+                        return (
+                          <label className={styles.book} key={sourceBookKey(book)}>
+                            <input
+                              type="checkbox"
+                              disabled={book.isHomebrew && !value.allowHomebrew}
+                              checked={selected}
+                              onChange={(event) => toggle(book, event.target.checked)}
+                            />
+                            <span>
+                              {getSourceDisplayName(book.source)}
+                              <small>
+                                {book.source} · {book.sourcePackId}
+                              </small>
+                              <small>
+                                本角色：
+                                {permitted
+                                  ? '允许使用'
+                                  : book.isHomebrew && !value.allowHomebrew
+                                    ? '第三方权限关闭'
+                                    : '未选择'}
+                              </small>
+                              <small>
+                                目录状态：
+                                {book.entryCount
+                                  ? `已载入 ${book.entryCount} 条`
+                                  : '尚未载入，选择已保留'}
+                              </small>
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </details>
+                );
+              })}
+              {queryText && !books.some(matchesQuery) && <p>没有匹配的书籍，请调整搜索词。</p>}
               {books.length === 0 && <p>暂无已加载书籍，请等待数据加载。</p>}
             </div>
             <p className={styles.footer}>

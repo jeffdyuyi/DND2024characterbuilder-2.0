@@ -12,7 +12,7 @@ export function normalizeRace(raw: Record<string, any>, packId = '5etools-cn'): 
   const name = raw.name || raw.ENG_name || '未命名种族';
   const englishName = raw.ENG_name || (raw.name !== name ? raw.name : undefined);
   const source = raw.source || 'PHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,
@@ -76,7 +76,7 @@ export function normalizeSubrace(raw: Record<string, any>, packId = '5etools-cn'
     raw.ENG_name || fallbackAbstractEn || (raw.name !== name ? raw.name : undefined);
   const raceName = raw.raceName || '';
   const source = raw.source || 'PHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,

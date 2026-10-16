@@ -22,7 +22,7 @@ export function normalizeCharacterOption(
     name,
     englishName,
     source,
-    edition: inferEditionFromSource(source),
+    edition: inferEditionFromSource(source, raw),
     page: raw.page,
     sourcePackId: packId,
     description: flattenEntries(raw.entries),

@@ -31,11 +31,17 @@ const feature = (raw: Record<string, any>, pack = '5etools-cn'): CatalogEntry =>
 
 describe('5etools 职业引用与父来源完整性', () => {
   it('子职业检索按父规则版本筛选，保留旧出版物对新父职业的显式适配', () => {
-    const old = normalizeClass({ name: '检索测试', ENG_name: 'Lookup Test Class', source: 'PHB' });
+    const old = normalizeClass({
+      name: '检索测试',
+      ENG_name: 'Lookup Test Class',
+      source: 'PHB',
+      edition: 'classic',
+    });
     const modern = normalizeClass({
       name: '检索测试',
       ENG_name: 'Lookup Test Class',
       source: 'XPHB',
+      edition: 'one',
     });
     const oldChild = normalizeSubclass({
       name: 'Lookup Path',

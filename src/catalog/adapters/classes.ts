@@ -17,7 +17,6 @@ import { ClassData } from '@/types/class';
 import { mergeOverlay } from '@/mechanics-overlay';
 import { assembleCatalogClass } from './classAssembly';
 import { belongsToClass, classKeyPart, classNames } from './classReferences';
-import { inferEditionFromSource } from '../identity';
 
 const ABILITY_KEYS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
 
@@ -305,12 +304,13 @@ export function getCatalogSubclasses(
 ): CatalogEntry[] {
   const entries = defaultCatalog
     .list('subclass', { source: options?.source, sourcePolicy: options?.sourcePolicy })
-    .filter(
-      (entry) =>
-        !options?.edition ||
-        options.edition === 'both' ||
-        inferEditionFromSource(String(entry.raw.classSource || 'PHB')) === options.edition,
-    );
+    .filter((entry) => {
+      if (!options?.edition || options.edition === 'both') return true;
+      const parent = defaultCatalog
+        .list('class')
+        .find((candidate) => belongsToClass(entry, candidate));
+      return !parent || parent.edition === 'both' || parent.edition === options.edition;
+    });
   if (!parentClassName) return entries;
 
   const parent = defaultCatalog.get(parentClassName);

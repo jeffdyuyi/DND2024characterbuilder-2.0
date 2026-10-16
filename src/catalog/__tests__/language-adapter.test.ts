@@ -12,6 +12,7 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
       name: '深渊语',
       ENG_name: 'Abyssal',
       source: 'XPHB',
+      edition: 'one',
       page: 37,
       type: 'rare',
       origin: '深渊的恶魔',

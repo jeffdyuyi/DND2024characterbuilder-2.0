@@ -149,6 +149,33 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+.group,
+.config {
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+  padding: 14px;
+  margin: 12px 0;
+}
+.group summary,
+.config summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 6px 0;
+}
+.config textarea {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 6px;
+  background: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  font-family: monospace;
+}
+.book:has(input:disabled) {
+  opacity: 0.65;
+}
 @media (max-width: 540px) {
   .dialog {
     padding: 14px;

@@ -31,12 +31,15 @@ export function makeEntryId(input: MakeEntryIdInput): string {
 
 /**
  * 判断规则书版本归属 (2014 vs 2024)
- * 2024 年核心规则通常带有 'X' 前缀 (如 XPHB, XDMG, XMM) 或属于 2024 规则集
+ * 原生版本字段优先，其次使用解析出版物元数据得到的版本；未知来源保留双轨可见。
  */
-export function inferEditionFromSource(source: string): '2014' | '2024' | 'both' {
-  const s = (source || '').toUpperCase().trim();
-  if (s.startsWith('X') || s.includes('2024') || s === '5R' || s === 'SRD52') {
-    return '2024';
-  }
-  return '2014';
+export function inferEditionFromSource(
+  source: string,
+  raw: Record<string, unknown> = {},
+  publicationEdition?: '2014' | '2024',
+): '2014' | '2024' | 'both' {
+  if (raw.edition === 'classic' || raw.edition === '2014') return '2014';
+  if (raw.edition === 'one' || raw.edition === '2024') return '2024';
+  if (raw.edition === 'both') return 'both';
+  return publicationEdition ?? 'both';
 }

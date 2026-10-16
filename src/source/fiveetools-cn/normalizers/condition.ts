@@ -11,7 +11,7 @@ export function normalizeCondition(raw: Record<string, any>, packId = '5etools-c
   const name = raw.name || raw.ENG_name || '未命名状态';
   const englishName = raw.ENG_name || (raw.name !== name ? raw.name : undefined);
   const source = raw.source || 'PHB';
-  const edition = inferEditionFromSource(source);
+  const edition = inferEditionFromSource(source, raw);
 
   const id = makeEntryId({
     packId,
