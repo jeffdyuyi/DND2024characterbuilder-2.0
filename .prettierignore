@@ -6,6 +6,8 @@ scratch/
 local-only/
 基石文档/
 AGENTS.md
+VERSIONING.md
+CHANGELOG.md
 .agent/
 .agents/
 .vscode/

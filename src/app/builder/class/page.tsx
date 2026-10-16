@@ -1,4 +1,5 @@
 'use client';
+import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -1662,13 +1663,17 @@ export default function ClassPage() {
 
             {/* 法术/通用详情展示区 */}
             {(() => {
-              const selectedIdInChoice = chosen[0];
-              const currentPreviewId = previewMap[id];
-              const activePreviewId =
-                currentPreviewId && finalOptions.includes(currentPreviewId)
-                  ? currentPreviewId
-                  : null;
-              const activeId = selectedIdInChoice || activePreviewId;
+              const candidateIds = finalOptions.map((opt, index) =>
+                typeof opt === 'object' && opt !== null
+                  ? opt.nameEn || opt.name || index.toString()
+                  : opt,
+              );
+              const activeId = resolveChoicePreview(
+                candidateIds,
+                previewMap[id],
+                chosen,
+                (value) => [value],
+              );
 
               if (
                 !activeId ||

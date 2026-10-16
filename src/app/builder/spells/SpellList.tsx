@@ -1,4 +1,5 @@
 'use client';
+import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -44,7 +45,7 @@ interface SpellPoolSectionProps {
   toggleExtraSelection: (choiceId: string, spellId: string, limit: number) => void;
 }
 
-const SpellPoolSection: React.FC<SpellPoolSectionProps> = ({
+export const SpellPoolSection: React.FC<SpellPoolSectionProps> = ({
   slotId,
   title,
   spells,
@@ -67,13 +68,13 @@ const SpellPoolSection: React.FC<SpellPoolSectionProps> = ({
 
   // 默认预览：第一个已选法术，或当前正在查看的法术
   const currentSelections = isBase
-    ? sorted[0]?.level === 0
+    ? slotId === 'base-cantrips'
       ? sel.cantrips
       : sel.spells
     : sel.extra?.[slotId] || [];
-  const activePreview = getSpellDefinition(
-    previewId || (currentSelections.length > 0 ? currentSelections[0] : null) || '',
-  );
+  const activePreview = resolveChoicePreview(sorted, previewId, currentSelections, (spell) => [
+    spell.id,
+  ]);
   const isDone = limit > 0 && current >= limit;
 
   // 获取已选法术的名称列表，用于标题下方的摘要展示
@@ -1444,6 +1445,7 @@ export default function SpellList({ character }: SpellListProps) {
           {/* 基础戏法 */}
           {(currentStep.newCantrips > 0 || cantripLimit > 0) && (
             <SpellPoolSection
+              key={`${character.id}:${activeClassId}:${currentStep.level}:base-cantrips`}
               slotId="base-cantrips"
               title="基础戏法选择"
               spells={filteredSpells.filter((s) => s.level === 0)}
@@ -1481,6 +1483,7 @@ export default function SpellList({ character }: SpellListProps) {
                 </div>
               )}
               <SpellPoolSection
+                key={`${character.id}:${activeClassId}:${currentStep.level}:base-spells`}
                 slotId="base-spells"
                 title="基础法术选择"
                 spells={filteredSpells.filter((s) => s.level > 0)}
@@ -1565,7 +1568,7 @@ export default function SpellList({ character }: SpellListProps) {
             const current = sel.extra?.[ec.id]?.length || 0;
             return (
               <SpellPoolSection
-                key={ec.id}
+                key={`${character.id}:${activeClassId}:${currentStep.level}:${ec.id}`}
                 slotId={ec.id}
                 title={ec.label}
                 spells={filteredPool}

@@ -170,11 +170,11 @@ function BuilderShell({ children }: { children: React.ReactNode }) {
             上一步
           </PillButton>
 
-          <span className={styles.builder__footerInfo}>{STEPS[stepIndex]?.label}</span>
+          <span className={styles.builder__footerInfo}>{filteredSteps[stepIndex]?.label}</span>
 
           <PillButton size="sm" onClick={handleNext}>
-            {stepIndex === STEPS.length - 1 ? '完成' : '下一步'}
-            {stepIndex < STEPS.length - 1 && <ChevronRight size={14} />}
+            {stepIndex === filteredSteps.length - 1 ? '完成' : '下一步'}
+            {stepIndex < filteredSteps.length - 1 && <ChevronRight size={14} />}
           </PillButton>
         </div>
       </div>

@@ -1,4 +1,5 @@
 'use client';
+import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -804,9 +805,13 @@ export default function ClassDetailPage() {
         : items;
 
       const currentPreviewId = previewMap[id];
-      const currentSelectedItem = currentPreviewId
-        ? items.find((it) => it && (it.id === currentPreviewId || it.nameEn === currentPreviewId))
-        : items.find((it) => it && chosen.includes(it.id)) || items[0];
+      const currentSelectedItem = resolveChoicePreview(
+        items,
+        currentPreviewId,
+        chosen,
+        (item) => [item?.id, item?.nameEn, item?.name],
+        true,
+      );
 
       return (
         <div

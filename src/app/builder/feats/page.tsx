@@ -1,4 +1,5 @@
 'use client';
+import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
@@ -1599,10 +1600,13 @@ export default function FeatsPage() {
                                       return matchesSearch && matchesSource;
                                     });
 
-                                    const currentPreview =
-                                      spellPreview?.reqIndex === sIdx
-                                        ? allSpells.find((s) => s.id === spellPreview.id)
-                                        : undefined;
+                                    const currentPreview = resolveChoicePreview(
+                                      availableSpells,
+                                      spellPreview?.reqIndex === sIdx ? spellPreview.id : null,
+                                      chosenSpells,
+                                      (spell) => [spell.id],
+                                      Boolean(isFixedSpell),
+                                    );
                                     const levelTitle =
                                       spellReq.level === 0
                                         ? '戏法 Cantrips'

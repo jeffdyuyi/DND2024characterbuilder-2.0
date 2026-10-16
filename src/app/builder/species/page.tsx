@@ -3,31 +3,23 @@ import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import {
-  getCatalogSpecies,
-  getCatalogSpells,
-  getCatalogFeats,
-  SPECIES_RESISTANCE_TRANSLATION,
-} from '@/catalog';
+import { getCatalogSpecies, getCatalogFeats, SPECIES_RESISTANCE_TRANSLATION } from '@/catalog';
 import { useCatalog } from '@/platform/CatalogProvider';
 import { getSpeciesDefinition } from '@/engine/characterData';
 import { useCharacterStore } from '@/store/characterStore';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
 import styles from './page.module.css';
+import { TraitSpellList, SpeciesSpellChoiceDetails } from './SpeciesTraitSpellList';
 import { Species, InnateSpell, Trait, SubSpecies, Selection } from '@/types/species';
 import { getSourceDisplayName, getSourceSortWeight } from '@/config/sourceMapping';
 import { ALL_GAME_LANGUAGES } from '@/rules/languages';
-import { getSpellDefinition } from '@/engine/characterData';
 import {
   formatActionType,
   translateProficiency,
   ALL_SKILLS,
   ALL_TOOLS,
   translateClass,
-  formatSpellRange,
-  formatSpellDuration,
-  formatSpellComponent,
   translateSpellSchool,
 } from '@/engine/terminology';
 
@@ -983,76 +975,12 @@ const TraitItem = ({
                       })}
                     </div>
 
-                    {/* 法术预览面板 (Master-Detail Pattern) */}
-                    {previewSpellId &&
-                      (() => {
-                        const spell = getSpellDefinition(previewSpellId);
-                        if (!spell) return null;
-                        return (
-                          <div className={styles.previewBox}>
-                            <div className={styles.previewHeader}>
-                              <div>
-                                <span className={styles.previewTitle}>{spell.name}</span>
-                                <span className={styles.previewSubtitle}>{spell.nameEn}</span>
-                              </div>
-                              <span
-                                style={{
-                                  fontSize: '11px',
-                                  color: 'var(--color-gold-accent)',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {getSourceDisplayName(spell.source)}
-                              </span>
-                            </div>
-                            <div className={styles.previewMeta}>
-                              <div className={styles.metaItem}>
-                                <span className={styles.metaLabel}>等级:</span>{' '}
-                                {spell.level === 0 ? '戏法' : `${spell.level} 环`}
-                              </div>
-                              <div className={styles.metaItem}>
-                                <span className={styles.metaLabel}>学派:</span>{' '}
-                                {translateSpellSchool(spell.school)}
-                              </div>
-                              <div className={styles.metaItem}>
-                                <span className={styles.metaLabel}>施法时间:</span>{' '}
-                                {formatActionType(spell.castingTime)}
-                              </div>
-                              <div className={styles.metaItem}>
-                                <span className={styles.metaLabel}>施法距离:</span>{' '}
-                                {formatSpellRange(spell.range)}
-                              </div>
-                              <div className={styles.metaItem}>
-                                <span className={styles.metaLabel}>持续时间:</span>{' '}
-                                {formatSpellDuration(spell.duration)}
-                              </div>
-                              <div className={styles.metaItem}>
-                                <span className={styles.metaLabel}>成分:</span>{' '}
-                                {formatSpellComponent(spell.components)}
-                              </div>
-                            </div>
-                            <MarkdownText
-                              text={spell.description}
-                              className={styles.previewDescription}
-                              variant="clean"
-                            />
-                            {spell.higherLevel && (
-                              <div
-                                style={{
-                                  marginTop: '12px',
-                                  paddingTop: '12px',
-                                  borderTop: '1px dashed rgba(0,0,0,0.1)',
-                                  fontSize: '12px',
-                                  color: '#424245',
-                                }}
-                              >
-                                <b style={{ color: 'var(--color-text-primary)' }}>升环效应:</b>{' '}
-                                {spell.higherLevel}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
+                    <SpeciesSpellChoiceDetails
+                      choice={s}
+                      candidateSpells={filteredSpells}
+                      selectedSpellIds={effectiveSelections}
+                      previewSpellId={previewSpellId}
+                    />
                   </div>
                 );
               })}
@@ -1533,6 +1461,7 @@ const TraitItem = ({
         {trait.features?.spells && (
           <TraitSpellList
             spells={trait.features.spells}
+            remainingOnly
             selectedSpellIds={
               allSelections
                 ? Object.entries(allSelections)
@@ -1778,158 +1707,6 @@ const SubSpeciesSpellChoicePicker = ({
           );
         })}
       </div>
-    </div>
-  );
-};
-
-const TraitSpellList = ({
-  spells,
-  selectedSpellIds = [],
-}: {
-  spells: (InnateSpell | Selection<InnateSpell>)[];
-  selectedSpellIds?: string[];
-}) => {
-  // 展平法术列表：包括固定法术和选择项中当前选中的法术
-  const allSpells = (spells || []).reduce<InnateSpell[]>((acc, s) => {
-    if ('numToChoose' in s) {
-      if (s.options && s.options.length > 0 && selectedSpellIds.length > 0) {
-        const chosen = s.options.filter((opt) => {
-          const optId = typeof opt === 'string' ? opt : opt.spellId;
-          const optName = typeof opt === 'string' ? opt : opt.spellName;
-          return Boolean(
-            (optId && selectedSpellIds.includes(optId)) ||
-            (optName && selectedSpellIds.includes(optName)),
-          );
-        });
-        if (chosen.length > 0) {
-          const mapped: InnateSpell[] = chosen.map((c) =>
-            typeof c === 'string'
-              ? {
-                  spellId: c,
-                  spellName: c,
-                  spellNameEn: c,
-                  level: 0,
-                  isPrepared: true,
-                  freeCastsPerLongRest: 0,
-                  useSpellSlots: true,
-                }
-              : (c as InnateSpell),
-          );
-          return [...acc, ...mapped];
-        }
-      }
-      return acc;
-    }
-    return [...acc, s as InnateSpell];
-  }, []);
-
-  // 杜绝同一特质内法术因多重引用重复展示两次
-  const uniqueSpells: InnateSpell[] = [];
-  const seenSpellKeys = new Set<string>();
-  for (const item of allSpells) {
-    const key = (item.spellId || item.spellName || '').toLowerCase();
-    if (!seenSpellKeys.has(key)) {
-      seenSpellKeys.add(key);
-      uniqueSpells.push(item);
-    }
-  }
-
-  if (uniqueSpells.length === 0) return null;
-
-  return (
-    <div className={styles.traitSpellList}>
-      {uniqueSpells.map((innate, idx) => {
-        const catalogSpells = getCatalogSpells();
-        const spell =
-          getSpellDefinition(innate.spellId) ||
-          (innate.spellName ? getSpellDefinition(innate.spellName) : undefined) ||
-          (innate.spellNameEn ? getSpellDefinition(innate.spellNameEn) : undefined) ||
-          catalogSpells.find(
-            (s) =>
-              s.id === innate.spellId ||
-              s.name === innate.spellName ||
-              s.nameEn === innate.spellNameEn,
-          );
-
-        if (!spell) {
-          return (
-            <div key={idx} className={styles.spellItemMini}>
-              <span className={styles.spellPrimaryInfo}>
-                {innate.level === 0 ? '戏法' : `${innate.level}级`}: {innate.spellName} (
-                {innate.spellNameEn})
-              </span>
-              <span className={styles.spellUsageInfo}>
-                {innate.freeCastsPerLongRest === Infinity
-                  ? '随意'
-                  : innate.freeCastsPerLongRest === 'Proficiency Bonus'
-                    ? '熟练加值次/长休'
-                    : innate.freeCastsPerLongRest
-                      ? `${innate.freeCastsPerLongRest}次/长休`
-                      : '按法术规则施展'}
-              </span>
-            </div>
-          );
-        }
-
-        return (
-          <div key={idx} className={styles.spellCard}>
-            <div className={styles.spellCardHeader}>
-              <div>
-                <span className={styles.previewTitle}>{spell.name}</span>
-                <span className={styles.previewSubtitle}>{spell.nameEn}</span>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <span
-                  className={styles.usageBadge}
-                  style={{ background: 'var(--color-bg-dark)', color: '#86868b' }}
-                >
-                  {spell.level === 0 ? '戏法' : `${spell.level}环法术`}
-                </span>
-                {innate.level > 0 && innate.level !== spell.level && (
-                  <span
-                    className={styles.usageBadge}
-                    style={{ background: 'var(--color-bg-dark)', color: '#86868b' }}
-                  >
-                    {innate.level}级解锁
-                  </span>
-                )}
-                <span className={styles.usageBadge}>
-                  {spell.level === 0 || innate.freeCastsPerLongRest === Infinity
-                    ? '随意施展'
-                    : innate.freeCastsPerLongRest === 'Proficiency Bonus'
-                      ? '熟练加值次/长休'
-                      : innate.freeCastsPerLongRest
-                        ? `${innate.freeCastsPerLongRest}次/长休`
-                        : '消耗法术位'}
-                </span>
-              </div>
-            </div>
-
-            <div className={styles.previewMeta}>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>学派:</span> {translateSpellSchool(spell.school)}
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>施法时间:</span>{' '}
-                {formatActionType(spell.castingTime)}
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>施法距离:</span> {formatSpellRange(spell.range)}
-              </div>
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>持续时间:</span>{' '}
-                {formatSpellDuration(spell.duration)}
-              </div>
-            </div>
-
-            <MarkdownText
-              text={spell.description}
-              className={styles.previewDescription}
-              variant="clean"
-            />
-          </div>
-        );
-      })}
     </div>
   );
 };

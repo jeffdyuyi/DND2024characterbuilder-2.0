@@ -43,6 +43,8 @@ next-env.d.ts
 # Local planning, reports and agent/editor instructions
 /基石文档/
 /AGENTS.md
+/VERSIONING.md
+/CHANGELOG.md
 /.agent/
 /.agents/
 /.vscode/
