@@ -12,7 +12,7 @@ import { computeCombatStats } from '@/engine/combat';
 import { exportToFVTT } from '@/engine/fvttExport';
 import { exportToJSON, importFromJSON, exportToMarkdown } from '@/engine/importExport';
 import { computeProficiencies } from '@/engine/proficiency';
-import { computeSpellcasting, getInnateSpells } from '@/engine/spellcasting';
+import { computeSpellcasting, getInnateSpells, buildSpellSourceMap } from '@/engine/spellcasting';
 import { buildCharacterSheetView } from '@/engine/viewAdapter';
 import {
   getBackgroundDefinition,
@@ -141,20 +141,11 @@ function LoadedCharacterSheet({
   const spellbookDetails = (character?.spellbookIds || []).map(getSpellDefinition).filter(Boolean);
 
   const spellSourceMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    if (character) {
-      const innateSpells = getInnateSpells(character);
-      innateSpells.forEach((s) => {
-        map[s.spellId] = s.source;
-      });
-      (character.cantripIds || []).forEach((id) => {
-        if (!map[id]) map[id] = primaryClass?.name || '职业';
-      });
-      (character.preparedSpellIds || []).forEach((id) => {
-        if (!map[id]) map[id] = primaryClass?.name || '职业';
-      });
-    }
-    return map;
+    return buildSpellSourceMap(
+      innate,
+      [...(character.cantripIds || []), ...(character.preparedSpellIds || [])],
+      primaryClass?.name || '职业',
+    );
   }, [character, primaryClass, catalogStats]);
 
   if (!character) return <div style={{ padding: 40, textAlign: 'center' }}>角色加载中...</div>;

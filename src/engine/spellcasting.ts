@@ -342,13 +342,14 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
   const abilityKey = primaryAbility ? normalizeAbilityKey(primaryAbility) : undefined;
 
   const innateSpells = getInnateSpells(state);
-  const innateCantrips = innateSpells.filter((s) => {
-    const def = getSpellDefinition(s.spellId);
-    return def?.level === 0;
-  }).length;
-  const innatePrepared = innateSpells.filter(
-    (s) => s.isPrepared && (getSpellDefinition(s.spellId)?.level || 0) !== 0,
-  ).length;
+  const innateCantrips = new Set(
+    innateSpells.filter((s) => getSpellDefinition(s.spellId)?.level === 0).map((s) => s.spellId),
+  ).size;
+  const innatePrepared = new Set(
+    innateSpells
+      .filter((s) => s.isPrepared && (getSpellDefinition(s.spellId)?.level || 0) !== 0)
+      .map((s) => s.spellId),
+  ).size;
 
   // Calculate Feat Capacity
   let featCapacity = 0;
@@ -564,6 +565,12 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
         result.push({
           spellId: selId,
           source: '专长',
+          grantSourceId: JSON.stringify([
+            'selected-feat',
+            fEntry.classId,
+            fEntry.level,
+            fEntry.featId,
+          ]),
           unlockLevel: 0,
           isPrepared: true,
         });
@@ -579,6 +586,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       result.push({
         spellId: spellId,
         source: `专长: ${feat.name}`,
+        grantSourceId: JSON.stringify(['feat-slot', slotId, feat.id]),
         unlockLevel: 0,
         isPrepared: true,
       });
@@ -619,11 +627,17 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
     });
   });
 
-  // 杜绝因版本重叠或多重特性引用导致的同一法术重复展示
+  // 只合并同来源同机制的重复记录；法术条目在汇总/显示层另行去重。
   const seenSpellKeys = new Set<string>();
   const deduplicatedResult: InnateSpellSource[] = [];
   for (const item of result) {
-    const key = `${item.spellId}:${item.unlockLevel ?? 0}`;
+    const key = JSON.stringify([
+      item.spellId,
+      item.grantSourceId || item.source,
+      item.unlockLevel ?? 0,
+      item.isPrepared,
+      item.freeCastsPerLongRest,
+    ]);
     if (!seenSpellKeys.has(key)) {
       seenSpellKeys.add(key);
       deduplicatedResult.push(item);
@@ -865,9 +879,30 @@ export function computeSpellProgression(
 export interface InnateSpellSource {
   spellId: string;
   source: string;
+  /** 已有专长选择槽位的来源身份；不是新的原生法术配置存档。 */
+  grantSourceId?: string;
   unlockLevel: number;
   isPrepared: boolean;
   freeCastsPerLongRest?: number | string;
+}
+
+/** 卡面单一法术行保留所有已知来源；不增加法术或推断尚未记录的施法机制。 */
+export function buildSpellSourceMap(
+  grants: InnateSpellSource[],
+  classSpellIds: string[],
+  classLabel: string,
+): Record<string, string> {
+  const sources = new Map<string, Set<string>>();
+  grants.forEach((grant) => {
+    const labels = sources.get(grant.spellId) || new Set<string>();
+    labels.add(grant.source);
+    sources.set(grant.spellId, labels);
+  });
+  // 最终ID列表也包含先天授予，不能仅凭它们再伪造一个职业来源。
+  classSpellIds.forEach((id) => {
+    if (!sources.has(id)) sources.set(id, new Set([classLabel]));
+  });
+  return Object.fromEntries([...sources].map(([id, labels]) => [id, [...labels].join('；')]));
 }
 
 export interface DerivedSpellSelection {
