@@ -12,9 +12,19 @@ import {
   getInnateSpells,
 } from '../spellcasting';
 import { getSpellDefinition } from '../characterData';
+import * as characterData from '../characterData';
+import { getSpeciesSpellSelections } from '../speciesSpellSelections';
+import { getSpeciesSpellChoiceSlots } from '../speciesSpellChoiceSlots';
 import { exportToJSON, importFromJSON } from '../importExport';
 
 const update = vi.hoisted(() => vi.fn());
+const controls = vi.hoisted(() => ({ buttons: [] as any[] }));
+vi.mock('@/components/PillButton', () => ({
+  default: (props: any) => {
+    controls.buttons.push(props);
+    return <button data-selected={props.variant === 'primary'}>{props.children}</button>;
+  },
+}));
 vi.mock('@/platform/useBuilderChoices', () => ({
   useBuilderChoices: () => createBuilderChoices({}),
 }));
@@ -92,6 +102,7 @@ const render = (character: CharacterState) =>
   );
 beforeEach(() => {
   update.mockClear();
+  controls.buttons = [];
   defaultCatalog.registerMany([first, second, feat]);
 });
 
@@ -112,7 +123,8 @@ it('来源页改选或取消后，法术页和最终派生读取同一记录，J
   character.speciesSelections!['sp:test-species:trait:magic:spell-0'] = [second.id];
   const reopened = await importFromJSON(exportToJSON(character));
   expect(render(reopened)).toContain('来源选择乙');
-  expect(render(reopened)).not.toContain('来源选择甲');
+  const summary = render(reopened).match(/aria-label="来源页已获得的法术"[\s\S]*?<\/section>/)?.[0];
+  expect(summary).not.toContain('来源选择甲');
   expect(deriveCharacterSpellSelection(reopened).cantripIds).toEqual([second.id]);
   reopened.speciesSelections!['sp:test-species:trait:magic:spell-0'] = [];
   expect(render(reopened)).not.toContain('来源页已获得的法术');
@@ -125,7 +137,8 @@ it('背景专长槽位与种族同法术只显示一行，保留两个来源且�
   character.featSelections = { 'background-feat': { featId: feat.id, spells: [first.id] } };
   const snapshot = JSON.stringify(character);
   const html = render(character);
-  expect(html.match(/来源选择甲/g)).toHaveLength(1);
+  const summary = html.match(/aria-label="来源页已获得的法术"[\s\S]*?<\/section>/)?.[0];
+  expect(summary?.match(/来源选择甲/g)).toHaveLength(1);
   expect(html).toContain('专长: 样本专长');
   expect(html).toContain('种族');
   expect(getInnateSpells(character)).toHaveLength(2);
@@ -157,4 +170,67 @@ it('没有任何已生效授予时不展示空列表', () => {
   const html = render(character);
   expect(html).not.toContain('来源页已获得的法术');
   expect(html).toContain('尚未具备施法能力');
+});
+
+it('实际法术页改选及取消写回同一槽位，来源页读法、重开与最终派生一致', async () => {
+  let character = state();
+  character.speciesSelections!['unrelated'] = ['keep'];
+  render(character);
+  controls.buttons.find((button) => button.children === second.raw.name).onClick();
+  expect(update).toHaveBeenCalledTimes(1);
+  expect(update.mock.calls[0][0]).toEqual({
+    speciesSelections: {
+      unrelated: ['keep'],
+      'sp:test-species:trait:magic:spell-0': [second.id],
+    },
+  });
+  character = await importFromJSON(exportToJSON({ ...character, ...update.mock.calls[0][0] }));
+  expect(
+    getSpeciesSpellSelections(
+      character.speciesSelections,
+      character.speciesId,
+      undefined,
+      'sp:test-species:trait:magic',
+      0,
+      1,
+    ),
+  ).toEqual([second.id]);
+  expect(deriveCharacterSpellSelection(character).cantripIds).toEqual([second.id]);
+  controls.buttons = [];
+  render(character);
+  expect(controls.buttons.find((button) => button.children === second.raw.name).variant).toBe(
+    'primary',
+  );
+  controls.buttons.find((button) => button.children === second.raw.name).onClick();
+  character = { ...character, ...update.mock.calls[1][0] };
+  expect(getSpeciesSpellChoiceSlots(character)[0].selectedIds).toEqual([]);
+  expect(getInnateSpells(character)).toEqual([]);
+});
+
+it('未记录的首项不被新选择器假装已选，带亚种的来源不新增配置入口', () => {
+  const character = state();
+  character.speciesSelections = {};
+  render(character);
+  expect(controls.buttons).toHaveLength(2);
+  expect(controls.buttons.every((button) => button.variant === 'outline')).toBe(true);
+  expect(getInnateSpells(character)).toEqual([]);
+  character.subspeciesId = 'branch';
+  expect(getSpeciesSpellChoiceSlots(character)).toEqual([]);
+});
+
+it('不为条件分支、长休替换、默认法术、过滤选择或未解锁规则叠加新入口', () => {
+  const choice = { numToChoose: 1, options: [{ spellId: first.id, level: 1 }] };
+  for (const trait of [
+    { options: [{ name: '条件分支' }], features: { spells: [choice] } },
+    { features: { spells: [{ ...choice, isLongRestChoice: true }] } },
+    { features: { spells: [{ ...choice, defaultSpellId: first.id }] } },
+    { features: { spells: [{ ...choice, filter: 'class:wizard;level:0' }] } },
+    { level: 3, features: { spells: [choice] } },
+  ]) {
+    const spy = vi.spyOn(characterData, 'getSpeciesDefinition').mockReturnValueOnce({
+      traits: [{ id: 'magic', name: '来源能力', ...trait }],
+    } as any);
+    expect(getSpeciesSpellChoiceSlots(state())).toEqual([]);
+    spy.mockRestore();
+  }
 });

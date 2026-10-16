@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { getCatalogSpecies, getCatalogFeats, SPECIES_RESISTANCE_TRANSLATION } from '@/catalog';
 import { useCatalog } from '@/platform/CatalogProvider';
 import { getSpeciesDefinition } from '@/engine/characterData';
+import { getSpeciesSpellSelections } from '@/engine/speciesSpellSelections';
 import { useCharacterStore } from '@/store/characterStore';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
@@ -735,16 +736,16 @@ const TraitItem = ({
                 const fullKey = traitId.startsWith('sp:')
                   ? `${traitId}:${subKey}`
                   : `sp:${speciesId}:trait:${traitId}:${subKey}`;
-                const legacySubKey = character?.subspeciesId
-                  ? `sp:${speciesId}:sub:${character.subspeciesId}:${subKey}`
-                  : '';
-                const legacyInnateKey = `sp:${speciesId}:trait:innate-spells:${subKey}`;
-                const currentSelections =
-                  allSelections?.[fullKey] ||
-                  (legacySubKey && allSelections?.[legacySubKey]) ||
-                  allSelections?.[legacyInnateKey] ||
-                  allSelections?.[`${traitId}:${subKey}`] ||
-                  [];
+                const currentSelections = getSpeciesSpellSelections(
+                  allSelections,
+                  speciesId,
+                  character?.subspeciesId,
+                  traitId,
+                  idx,
+                  (trait.features?.spells || []).filter(
+                    (entry: any) => entry && 'numToChoose' in entry,
+                  ).length,
+                );
 
                 // 解析过滤器 e.g., "class:wizard;level:0"
                 let optionsList = (s.options || [])
@@ -803,10 +804,7 @@ const TraitItem = ({
                     .filter(Boolean);
                 }
 
-                const defaultSpellId =
-                  s.defaultSpellId ||
-                  s.options?.[0]?.spellId ||
-                  (typeof s.options?.[0] === 'string' ? s.options[0] : undefined);
+                const defaultSpellId = s.defaultSpellId;
                 const effectiveSelections =
                   currentSelections.length > 0
                     ? currentSelections
