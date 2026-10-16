@@ -107,6 +107,7 @@ it('槽位ID、背景/种族/职业顺序和保存优先级保持既有契约', 
     {
       id: 'cls:class:id:feat:升级专长:升级专长-choice',
       level: 4,
+      classId: 'class:id',
       name: '升级专长 (专长选择)',
       allowedCategories: ['General', 'Legacy'],
       grantingSource: '职业: 槽位职业 (等级 4)',

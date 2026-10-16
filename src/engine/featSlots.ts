@@ -7,6 +7,8 @@ import type { Feat } from '@/types/feat';
 export interface CharacterFeatSlot {
   id: string;
   level?: number;
+  /** 仅职业槽位提供，沿用角色保存的职业键；不是新增的存档字段。 */
+  classId?: string;
   name: string;
   allowedCategories: Feat['category'][];
   grantingSource: string;
@@ -107,6 +109,7 @@ export function buildCharacterFeatSlots(
               slots.push({
                 id: slotId,
                 level: f.level,
+                classId: c.classId,
                 name: `${f.name} (${choice.name || '专长选择'})`,
                 allowedCategories: allowed,
                 grantingSource: `职业: ${classDef.name} (等级 ${f.level})`,
