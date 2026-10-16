@@ -361,7 +361,10 @@ export default function SpellList({ character }: SpellListProps) {
 
   const spellsByLevel = character.spellsByLevel || {};
   const currentClassEntry = character.classes?.find((c) => c.classId === activeClassId);
-  const currentClassDef = activeClassId ? getClassDefinition(activeClassId) : null;
+  const currentClassDef = useMemo(
+    () => (activeClassId ? getClassDefinition(activeClassId) : null),
+    [activeClassId, choices],
+  );
   const currentClassSelections = activeClassId ? spellsByLevel[activeClassId] || {} : {};
   // const isWizard = currentClassDef?.nameEn === 'Wizard'; // Duplicate removed
 
@@ -622,21 +625,21 @@ export default function SpellList({ character }: SpellListProps) {
 
   const availableSpellsForStep = useMemo(() => {
     if (!currentStep) return [];
+    const ownNames = new Set(
+      [currentClassDef?.name, currentClassDef?.nameEn].filter(Boolean).map((name) =>
+        String(name)
+          .toLowerCase()
+          .replace(/[-_\s]+/g, ''),
+      ),
+    );
+    const additionalClasses = new Set(
+      currentStep.allowedClasses
+        .map((name: string) => name.toLowerCase().replace(/[-_\s]+/g, ''))
+        .filter((name: string) => !ownNames.has(name)),
+    );
     const spells = allSpells.filter((s) => {
       // 基础匹配：环阶与职业
       const levelMatch = s.level <= currentStep.maxSpellLevel;
-      const ownNames = new Set(
-        [currentClassDef?.name, currentClassDef?.nameEn].filter(Boolean).map((name) =>
-          String(name)
-            .toLowerCase()
-            .replace(/[-_\s]+/g, ''),
-        ),
-      );
-      const additionalClasses = new Set(
-        currentStep.allowedClasses
-          .map((name: string) => name.toLowerCase().replace(/[-_\s]+/g, ''))
-          .filter((name: string) => !ownNames.has(name)),
-      );
       const additionalMatch = s.classes.some((name) =>
         additionalClasses.has(name.toLowerCase().replace(/[-_\s]+/g, '')),
       );
