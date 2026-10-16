@@ -19,7 +19,7 @@ import { getNativeClassPreparedSpells } from './nativeClassPreparedSpells';
 import { getNativeSubclassSpellPlans, getNativeSubclassSpellGrants } from './nativeSubclassSpells';
 import { resolveSpellGrantCandidates } from './spellGrantCandidates';
 import type { ParsedSpellGrants, SpellGrantRule } from '@/types/spellGrant';
-import { getSpeciesSpellSelections } from './speciesSpellSelections';
+import { getSpeciesSpellAbility, getSpeciesSpellSelections } from './speciesSpellSelections';
 
 export interface SpellcastingStats {
   casterLevel: number;
@@ -462,19 +462,12 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       if (!spells) return;
 
       const traitId = trait.id || trait.name;
-      const selectedAbility =
-        state.speciesSelections?.[`sp:${state.speciesId}:trait:${traitId}:ability`]?.[0] ||
-        state.speciesSelections?.[`sp:${state.speciesId}:trait:innate-spellcasting-ability`]?.[0] ||
-        (state.subspeciesId &&
-          state.speciesSelections?.[
-            `sp:${state.speciesId}:sub:${state.subspeciesId}:ability`
-          ]?.[0]) ||
-        Object.entries(state.speciesSelections || {}).find(
-          ([k]) =>
-            k.includes(`:${traitId}:ability`) ||
-            k.includes(':innate-spellcasting-ability') ||
-            k.endsWith(':ability'),
-        )?.[1]?.[0];
+      const selectedAbility = getSpeciesSpellAbility(
+        state.speciesSelections,
+        state.speciesId,
+        state.subspeciesId,
+        traitId,
+      );
       const abilityKey = normalizeAbilityKey(
         trait.mechanics?.spellcastingAbility || selectedAbility || '',
       );

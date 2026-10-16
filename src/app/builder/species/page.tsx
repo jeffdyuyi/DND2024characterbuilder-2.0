@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { getCatalogSpecies, getCatalogFeats, SPECIES_RESISTANCE_TRANSLATION } from '@/catalog';
 import { useCatalog } from '@/platform/CatalogProvider';
 import { getSpeciesDefinition } from '@/engine/characterData';
-import { getSpeciesSpellSelections } from '@/engine/speciesSpellSelections';
+import { getSpeciesSpellAbility, getSpeciesSpellSelections } from '@/engine/speciesSpellSelections';
 import { useCharacterStore } from '@/store/characterStore';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
@@ -988,15 +988,12 @@ const TraitItem = ({
                   const fullKey = traitId.startsWith('sp:')
                     ? `${traitId}:ability`
                     : `sp:${speciesId}:trait:${traitId}:ability`;
-                  const legacySubKey = character?.subspeciesId
-                    ? `sp:${speciesId}:sub:${character.subspeciesId}:ability`
-                    : '';
-                  const legacyInnateKey = `sp:${speciesId}:trait:innate-spellcasting-ability`;
-                  const selected =
-                    allSelections?.[fullKey]?.[0] ||
-                    (legacySubKey && allSelections?.[legacySubKey]?.[0]) ||
-                    allSelections?.[legacyInnateKey]?.[0] ||
-                    '';
+                  const selected = getSpeciesSpellAbility(
+                    allSelections,
+                    speciesId,
+                    character?.subspeciesId,
+                    traitId,
+                  );
                   const abilityLabels: Record<string, string> = {
                     str: '力量',
                     dex: '敏捷',
@@ -1078,9 +1075,6 @@ const TraitItem = ({
                                 if (!onSelectionChange) return;
                                 const next = isChosen ? [] : [ability];
                                 onTraitSelectionChange(fullKey, next);
-                                if (legacyInnateKey) {
-                                  onTraitSelectionChange(legacyInnateKey, next);
-                                }
                               }}
                             >
                               {label} ({abLower.toUpperCase()})

@@ -8,6 +8,8 @@ import { normalizeRace } from '@/source/fiveetools-cn/normalizers/race';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
 import { getSpeciesSpellChoiceSlots } from '../speciesSpellChoiceSlots';
+import { getSpeciesSpellAbility } from '../speciesSpellSelections';
+import { getInnateSpells } from '../spellcasting';
 import { exportToJSON, importFromJSON } from '../importExport';
 import type { CharacterState } from '@/types/characterState';
 
@@ -173,4 +175,47 @@ it('旧聚合记录和正式卡手动准备保留，不猜测来源而删除用�
   expect(control.sheetProps.cantripDetails.map((entry: any) => entry.id)).toEqual([light.id]);
   expect(control.sheetProps.spellDetails.map((entry: any) => entry.id)).toEqual([manual.id]);
   expect(JSON.stringify(control.state)).toBe(snapshot);
+});
+
+it('真实种族属性在来源页读法、授予描述与实际卡面一致，清空不复活旧镜像', async () => {
+  const slot = getSpeciesSpellChoiceSlots(control.state)[0];
+  const traitKey = slot.key.replace(/:spell-\d+$/, '');
+  control.state.speciesSelections = {
+    [slot.key]: [light.id],
+    [`${traitKey}:ability`]: ['wis'],
+    [`sp:${race.id}:trait:innate-spellcasting-ability`]: ['cha'],
+    'sp:previous:trait:other:ability': ['int'],
+  };
+  expect(
+    getSpeciesSpellAbility(control.state.speciesSelections, race.id, undefined, traitKey),
+  ).toBe('wis');
+  expect(getInnateSpells(control.state)[0].source).toContain('感知');
+  renderSheet();
+  expect(control.sheetProps.spellSourceMap[light.id]).toContain('感知');
+  control.state.speciesSelections[`${traitKey}:ability`] = [];
+  control.state = await importFromJSON(exportToJSON(control.state));
+  expect(
+    getSpeciesSpellAbility(control.state.speciesSelections, race.id, undefined, traitKey),
+  ).toBe('');
+  expect(getInnateSpells(control.state)[0].source).toBe('种族');
+  renderSheet();
+  expect(control.sheetProps.spellSourceMap[light.id]).toBe('种族');
+});
+
+it('不把其他特质或旧种族的属性当作当前施法属性，保留当前种族旧键兼容', () => {
+  const selections = {
+    'sp:old:trait:magic:ability': ['int'],
+    'sp:current:trait:other:ability': ['cha'],
+  };
+  expect(getSpeciesSpellAbility(selections, 'current', undefined, 'magic')).toBe('');
+  const legacy = { ...selections, 'sp:current:trait:innate-spellcasting-ability': ['wis'] };
+  expect(getSpeciesSpellAbility(legacy, 'current', undefined, 'magic')).toBe('wis');
+  expect(
+    getSpeciesSpellAbility(
+      { ...legacy, 'sp:current:sub:lineage:ability': ['int'] },
+      'current',
+      'lineage',
+      'magic',
+    ),
+  ).toBe('int');
 });
