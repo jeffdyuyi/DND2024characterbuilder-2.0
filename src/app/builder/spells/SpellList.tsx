@@ -13,6 +13,7 @@ import {
   getBackgroundDefinition,
 } from '@/engine/characterData';
 import { resolveBackgroundSpellList } from '@/engine/backgroundSpellList';
+import { getNativeClassPreparedSpells } from '@/engine/nativeClassPreparedSpells';
 import {
   getInnateSpells,
   computeSpellProgression,
@@ -682,6 +683,10 @@ export default function SpellList({ character }: SpellListProps) {
   }, [availableSpellsForStep, sourceFilter, choices]);
 
   const innateSpells = useMemo(() => getInnateSpells(character), [character, choices]);
+  const nativeClassPrepared = useMemo(
+    () => getNativeClassPreparedSpells(character),
+    [character, choices],
+  );
   const innateSpellIds = useMemo(() => innateSpells.map((s) => s.spellId), [innateSpells, choices]);
 
   const getSpellbookForWizard = useMemo(() => {
@@ -761,19 +766,63 @@ export default function SpellList({ character }: SpellListProps) {
   const updateSpellState = (nextSelections: Record<number, ClassSpellSelection>) => {
     if (!currentClassEntry) return;
     const nextSpellsByLevel = { ...spellsByLevel, [currentClassEntry.classId]: nextSelections };
-    const derived = deriveCharacterSpellSelection({
-      ...character,
-      spellsByLevel: nextSpellsByLevel,
-    });
+    const derived = deriveCharacterSpellSelection(
+      { ...character, spellsByLevel: nextSpellsByLevel },
+      { includeNativeClassPrepared: false },
+    );
     updateActiveCharacter({ spellsByLevel: nextSpellsByLevel, ...derived });
   };
 
+  const nativePreparedSection =
+    nativeClassPrepared.grants.length > 0 || nativeClassPrepared.diagnostics.length > 0 ? (
+      <section style={{ marginBottom: 24 }} aria-label="职业固定准备法术">
+        {nativeClassPrepared.grants.length > 0 && (
+          <>
+            <h3>职业固定准备法术</h3>
+            <p>以下法术随所属职业等级获得，无需占用本级自选名额。</p>
+            <ul>
+              {[
+                ...new Map(
+                  nativeClassPrepared.grants.map((grant) => [
+                    JSON.stringify([grant.classId, grant.spellId]),
+                    grant,
+                  ]),
+                ).values(),
+              ].map((grant) => (
+                <li key={`${grant.classId}:${grant.ruleId}`}>
+                  {getSpellDefinition(grant.spellId)?.name || grant.spellId}（{grant.className} /{' '}
+                  {grant.sourceBook}）
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {nativeClassPrepared.diagnostics.length > 0 && (
+          <details role="status">
+            <summary>职业额外法术有待核对项目</summary>
+            <ul>
+              {nativeClassPrepared.diagnostics.map((diagnostic, index) => (
+                <li key={`${diagnostic.sourceId}:${index}`}>
+                  {diagnostic.reference}：{diagnostic.message}
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </section>
+    ) : null;
+
   if (!currentClassEntry || progressionSteps.length === 0) {
     return (
-      <div style={{ padding: 40, textAlign: 'center', color: '#86868b' }}>
-        <Info size={40} style={{ marginBottom: 12 }} />
-        <h3>尚未具备施法能力</h3>
-        <p>请先选择具有施法能力的职业。</p>
+      <div>
+        {nativePreparedSection}
+        <div style={{ padding: 40, textAlign: 'center', color: '#86868b' }}>
+          <Info size={40} style={{ marginBottom: 12 }} />
+          <h3>
+            {nativeClassPrepared.grants.length ? '没有需要配置的职业法术选项' : '尚未具备施法能力'}
+          </h3>
+          {!nativeClassPrepared.grants.length && <p>请先选择具有施法能力的职业。</p>}
+        </div>
       </div>
     );
   }
@@ -789,6 +838,7 @@ export default function SpellList({ character }: SpellListProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {nativePreparedSection}
       {backgroundSpellList.diagnostics.length > 0 && (
         <details role="status" style={{ marginBottom: 16 }}>
           <summary>背景扩展法表有待核对项目（{backgroundSpellList.diagnostics.length}）</summary>

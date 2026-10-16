@@ -15,6 +15,7 @@ import { computeAbilityScores } from './ability';
 import { WarlockInvocations2024 } from '@/mechanics-overlay/warlockInvocations';
 import { ClassData } from '@/types/class';
 import { Spell } from '@/types/spell';
+import { getNativeClassPreparedSpells } from './nativeClassPreparedSpells';
 
 export interface SpellcastingStats {
   casterLevel: number;
@@ -593,12 +594,23 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
     });
   });
 
+  const legacyPreparedByClass = new Map<string, Set<string>>();
   state.classes?.forEach((cEntry) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
 
     const activeFeatures = classDef.features.filter((f) => f.level <= cEntry.level);
+    const startIndex = result.length;
     processTraitSpells(activeFeatures, `职业: ${classDef.name}`);
+    legacyPreparedByClass.set(
+      classDef.catalogId || cEntry.classId,
+      new Set(
+        result
+          .slice(startIndex)
+          .filter((entry) => entry.isPrepared)
+          .map((entry) => entry.spellId),
+      ),
+    );
 
     if (cEntry.subclassId) {
       const subclassDef = getSubclassDefinition({ ...state, classes: [cEntry] });
@@ -626,6 +638,25 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       });
     });
   });
+
+  for (const grant of getNativeClassPreparedSpells(state).grants) {
+    const source = `职业: ${grant.className}`;
+    // 同职业的成熟特性适配器已提供同一道固定准备法术时，保留原记录及其使用信息。
+    if (legacyPreparedByClass.get(grant.classId)?.has(grant.spellId)) continue;
+    result.push({
+      spellId: grant.spellId,
+      source,
+      grantSourceId: JSON.stringify([
+        'native-class-prepared',
+        grant.classId,
+        grant.sourceId,
+        grant.ruleId,
+      ]),
+      unlockLevel: grant.unlockLevel,
+      isPrepared: true,
+      nativeClassPrepared: true,
+    });
+  }
 
   // 只合并同来源同机制的重复记录；法术条目在汇总/显示层另行去重。
   const seenSpellKeys = new Set<string>();
@@ -884,6 +915,8 @@ export interface InnateSpellSource {
   unlockLevel: number;
   isPrepared: boolean;
   freeCastsPerLongRest?: number | string;
+  /** 新原生职业固定准备由职业记录实时派生，不混入无来源的持久化ID。 */
+  nativeClassPrepared?: true;
 }
 
 /** 卡面单一法术行保留所有已知来源；不增加法术或推断尚未记录的施法机制。 */
@@ -945,7 +978,10 @@ export function getActiveClassSpellSelections(
 }
 
 /** 从逐级选择记录重建最终法表，保存重开或职业升级后可重复得到同一结果。 */
-export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpellSelection {
+export function deriveCharacterSpellSelection(
+  state: CharacterState,
+  options: { includeNativeClassPrepared?: boolean } = {},
+): DerivedSpellSelection {
   const cantrips = new Set<string>();
   const prepared = new Set<string>();
   const spellbook = new Set<string>();
@@ -992,6 +1028,7 @@ export function deriveCharacterSpellSelection(state: CharacterState): DerivedSpe
   }
 
   getInnateSpells(state).forEach((grant) => {
+    if (grant.nativeClassPrepared && options.includeNativeClassPrepared === false) return;
     const spell = getSpellDefinition(grant.spellId);
     if (!spell) return;
     if (spell.level === 0) cantrips.add(spell.id);
