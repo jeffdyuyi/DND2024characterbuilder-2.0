@@ -35,6 +35,54 @@ function sample(name: string, source: string) {
 const rules = (value: ReturnType<typeof parseCatalogSpellGrants>) =>
   value.blocks.flatMap((block) => block.rules);
 
+it.each([
+  { choose: 'level=0;1;2;3;4;5' },
+  { choose: { from: ['命令术|PHB', '鉴定术|PHB'], count: 1 } },
+])('重复选择节点保留独立额度和可序列化身份：%j', (choice) => {
+  const raw = { additionalSpells: [{ known: { 10: [choice, choice] } }] };
+  const original = JSON.stringify(raw);
+  const input = { ...sample('Warlock', 'XPHB'), raw };
+  const parsed = parseCatalogSpellGrants(input);
+  expect(parsed.diagnostics).toEqual([]);
+  expect(parsed.blocks[0].requiresReview).toBe(false);
+  const selections = rules(parsed);
+  expect(selections).toHaveLength(2);
+  expect(new Set(selections.map((rule) => rule.id)).size).toBe(2);
+  expect(selections[0].selection).toEqual(selections[1].selection);
+  expect(selections[0].resourceGroupId).toBe(selections[1].resourceGroupId);
+  const saved = JSON.parse(
+    JSON.stringify({
+      [selections[0].id]: ['spell-a'],
+      [selections[1].id]: ['spell-b'],
+    }),
+  );
+  const reparsed = rules(parseCatalogSpellGrants(JSON.parse(JSON.stringify(input))));
+  expect(reparsed.map((rule) => saved[rule.id])).toEqual([['spell-a'], ['spell-b']]);
+  expect(JSON.stringify(raw)).toBe(original);
+});
+
+it('不同等级的重复选择分别计数，固定法术重复仍诊断', () => {
+  const choice = { choose: 'level=1' };
+  const parsed = parseCatalogSpellGrants({
+    ...sample('Warlock', 'XPHB'),
+    raw: {
+      additionalSpells: [
+        {
+          known: {
+            1: [choice, choice, '命令术', '命令术'],
+            3: [choice, choice],
+          },
+        },
+      ],
+    },
+  });
+  expect(rules(parsed).filter((rule) => rule.selection.kind === 'choose')).toHaveLength(4);
+  expect(rules(parsed).filter((rule) => rule.selection.kind === 'fixed')).toHaveLength(1);
+  expect(new Set(rules(parsed).map((rule) => rule.id)).size).toBe(5);
+  expect(parsed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual(['duplicate-rule']);
+  expect(parsed.blocks[0].requiresReview).toBe(true);
+});
+
 it.each(fixture.entries)(
   '真实 $kind / $raw.ENG_name / $raw.source保全raw与来源，块不错误合并',
   (row) => {

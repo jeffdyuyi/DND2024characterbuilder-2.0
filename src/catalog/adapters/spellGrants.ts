@@ -89,6 +89,8 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
       }
       blockIds.add(blockId);
       const diagnosticsBeforeBlock = result.diagnostics.length;
+      // 相同候选条件可以授予多次独立选择；同签名选择分别计序，不合并选择额度。
+      const choiceOccurrences = new Map<string, number>();
       const parsed: ParsedSpellGrants['blocks'][number] = {
         id: blockId,
         name: typeof block.name === 'string' ? block.name : undefined,
@@ -147,7 +149,13 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
             groupId: string,
           ) => {
             const emit = (selection: SpellGrantRule['selection']) => {
-              const ruleId = `${blockId}:${mode}:${gateKey}:${signature({ usage, selection })}`;
+              const baseRuleId = `${blockId}:${mode}:${gateKey}:${signature({ usage, selection })}`;
+              let ruleId = baseRuleId;
+              if (selection.kind === 'choose') {
+                const occurrence = choiceOccurrences.get(baseRuleId) ?? 0;
+                choiceOccurrences.set(baseRuleId, occurrence + 1);
+                if (occurrence > 0) ruleId = `${baseRuleId}:choice:${occurrence + 1}`;
+              }
               if (parsed.rules.some((rule) => rule.id === ruleId)) {
                 diagnostic('duplicate-rule', nodePath, '相同授予重复，需核对是否独立选择。', node);
                 return;
