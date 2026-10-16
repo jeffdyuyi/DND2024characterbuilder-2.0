@@ -9,6 +9,7 @@ import { defaultCatalog } from '@/catalog/catalog';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 import { normalizeBackground } from '@/source/fiveetools-cn/normalizers/background';
 import { normalizeFeat } from '@/source/fiveetools-cn/normalizers/feat';
+import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
 import { createBuilderChoices } from '@/catalog/builderChoices';
 import { getBackgroundDefinition, getClassDefinition } from '../characterData';
 
@@ -62,6 +63,47 @@ const feature = (name: string, level: number, options: string[] = []): ClassFeat
   mechanics: { choices: [{ id: `${name}-choice`, type: 'feat', numToChoose: 1, options }] },
 });
 const noClass = () => undefined;
+
+it('实际专长页使用共享候选且保留已有环阶选择和其他专长配置', () => {
+  const background = normalizeBackground({ name: '共享选法背景', source: 'XPHB', entries: [] });
+  const feat = normalizeFeat({
+    name: '共享选法专长',
+    source: 'XPHB',
+    category: 'O',
+    entries: [],
+    mechanics: { spells: [{ count: 1, level: 0, listOptions: ['wizard'] }] },
+  });
+  const cantrip = normalizeSpell({
+    name: '共享法师候选',
+    source: 'XPHB',
+    level: 0,
+    classes: ['法师'],
+    entries: [],
+  });
+  const other = normalizeSpell({
+    name: '不应显示的牧师候选',
+    source: 'XPHB',
+    level: 0,
+    classes: ['牧师'],
+    entries: [],
+  });
+  defaultCatalog.registerMany([background, feat, cantrip, other]);
+  control.state = state({
+    backgroundId: background.id,
+    originFeatId: feat.id,
+    featSelections: {
+      'background-feat': { featId: feat.id, ability: 'wis', spells: [cantrip.id] },
+    },
+  });
+  control.update.mockClear();
+  const snapshot = JSON.stringify(control.state);
+  const html = renderToStaticMarkup(<FeatsPage />);
+  expect(html).toContain('共享法师候选');
+  expect(html).not.toContain('不应显示的牧师候选');
+  expect(JSON.stringify(control.state)).toBe(snapshot);
+  expect(control.update).not.toHaveBeenCalled();
+});
+
 const species: NonNullable<FeatSlotDefinitions['species']> = {
   name: '槽位种族',
   traits: [{ id: 'versatile', name: '多才多艺', nameEn: 'Versatile', description: '' }],

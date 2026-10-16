@@ -30,6 +30,7 @@ import {
   ALL_TOOLS,
 } from '@/engine/terminology';
 import { buildCharacterFeatSlots } from '@/engine/featSlots';
+import { getFeatSpellCandidates, toggleFeatSpellChoice } from '@/engine/featSpellChoices';
 import { FeatChoices, AbilityScores } from '@/types/characterState';
 
 import { allLanguages } from '@/rules/languages';
@@ -1409,66 +1410,11 @@ export default function FeatsPage() {
                                 {currentSpellList &&
                                   spellReqs.map((spellReq, sIdx) => {
                                     const chosenSpells = activeChoices?.spells || [];
-                                    const availableSpells = allSpells.filter((s) => {
-                                      if (s.level !== spellReq.level) return false;
-
-                                      // Check if this specific requirement is a fixed spell (e.g. Misty Step)
-                                      const isFixedEntry =
-                                        spellReq.listOptions &&
-                                        spellReq.listOptions.length === 1 &&
-                                        !spellReq.listOptions[0].includes(',') &&
-                                        ![
-                                          'cleric',
-                                          'druid',
-                                          'wizard',
-                                          'paladin',
-                                          'ranger',
-                                          'bard',
-                                          'sorcerer',
-                                          'warlock',
-                                        ].includes(spellReq.listOptions[0].toLowerCase()) &&
-                                        ![
-                                          'divination',
-                                          'enchantment',
-                                          'illusion',
-                                          'necromancy',
-                                          'evocation',
-                                          'abjuration',
-                                          'transmutation',
-                                          'conjuration',
-                                          'ritual',
-                                        ].includes(spellReq.listOptions[0].toLowerCase());
-
-                                      if (isFixedEntry) {
-                                        const target = spellReq.listOptions![0].toLowerCase();
-                                        return (
-                                          s.id.toLowerCase() === target ||
-                                          s.nameEn.toLowerCase() === target
-                                        );
-                                      }
-
-                                      // Standard filtering by chosen list (Class or School)
-                                      const targetLists = currentSpellList
-                                        .split(',')
-                                        .map((l) => l.trim().toLowerCase());
-                                      const baseMatch =
-                                        currentSpellList === 'Any' ||
-                                        targetLists.some((list) => {
-                                          const mappedClass = translateClass(list);
-                                          const isClassMatch = s.classes.includes(mappedClass);
-                                          const isSchoolMatch = s.school.toLowerCase() === list;
-                                          const isRitualMatch =
-                                            list === 'ritual' &&
-                                            (s.ritual || s.castingTime.includes('仪式'));
-                                          return isClassMatch || isSchoolMatch || isRitualMatch;
-                                        });
-                                      if (spellReq.ritualOnly) {
-                                        return (
-                                          baseMatch && (s.ritual || s.castingTime.includes('仪式'))
-                                        );
-                                      }
-                                      return baseMatch;
-                                    });
+                                    const availableSpells = getFeatSpellCandidates(
+                                      spellReq,
+                                      currentSpellList,
+                                      allSpells,
+                                    );
 
                                     const isFixedSpell =
                                       availableSpells.length === 1 &&
@@ -1688,36 +1634,12 @@ export default function FeatsPage() {
                                                   variant={isSelected ? 'primary' : 'outline'}
                                                   onClick={() => {
                                                     setSpellPreview({ id: s.id, reqIndex: sIdx });
-                                                    const isLevelFull =
-                                                      chosenSpells.filter(
-                                                        (id: string) =>
-                                                          allSpells.find((ds) => ds.id === id)
-                                                            ?.level === spellReq.level,
-                                                      ).length >= spellReq.count;
-                                                    let next;
-                                                    if (isSelected) {
-                                                      next = chosenSpells.filter(
-                                                        (id: string) => id !== s.id,
-                                                      );
-                                                    } else {
-                                                      if (isLevelFull) {
-                                                        const sameLevel = chosenSpells.filter(
-                                                          (id: string) =>
-                                                            allSpells.find((ds) => ds.id === id)
-                                                              ?.level === spellReq.level,
-                                                        );
-                                                        const others = chosenSpells.filter(
-                                                          (id: string) => !sameLevel.includes(id),
-                                                        );
-                                                        next = [
-                                                          ...others,
-                                                          ...sameLevel.slice(1),
-                                                          s.id,
-                                                        ];
-                                                      } else {
-                                                        next = [...chosenSpells, s.id];
-                                                      }
-                                                    }
+                                                    const next = toggleFeatSpellChoice(
+                                                      chosenSpells,
+                                                      s.id,
+                                                      spellReq,
+                                                      allSpells,
+                                                    );
                                                     handleUpdateFeatChoice(activeSlot.id, {
                                                       spells: next,
                                                     });
