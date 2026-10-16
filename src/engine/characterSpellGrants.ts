@@ -3,6 +3,8 @@ import { resolveCatalogReference } from '@/catalog/references';
 import { sourceBookKey } from '@/catalog/sourcePolicy';
 import { parseCatalogSpellGrants } from '@/catalog/adapters/spellGrants';
 import { collectClassSpellGrantSources } from './classSpellGrants';
+import { collectFeatSlotSpellGrantSources } from './featSlotSpellGrants';
+import type { FeatSlotDefinitions } from './featSlots';
 import type { CatalogEntry, CatalogService, EntryKind } from '@/catalog/types';
 import type { CharacterState } from '@/types/characterState';
 import type { ParsedSpellGrants } from '@/types/spellGrant';
@@ -28,6 +30,7 @@ const normalize = (value: unknown) =>
 export function collectCharacterSpellGrantSources(
   character: CharacterState,
   catalog: CatalogService = defaultCatalog,
+  featSlotDefinitions?: FeatSlotDefinitions,
 ): CharacterSpellGrantSources {
   const classSources = collectClassSpellGrantSources(character, catalog);
   const result: CharacterSpellGrantSources = {
@@ -116,6 +119,25 @@ export function collectCharacterSpellGrantSources(
     report('orphan-background-feat', character.id, backgroundChoice || character.originFeatId!);
   }
 
+  // 调用方提供与专长页相同的定义，才能确认现代槽位；不凭存档键猜测有效性。
+  const slotSources = featSlotDefinitions
+    ? collectFeatSlotSpellGrantSources(character, featSlotDefinitions, catalog)
+    : undefined;
+  if (slotSources) {
+    result.diagnostics.push(
+      ...slotSources.diagnostics.filter((entry) => entry.ownerId !== 'background-feat'),
+    );
+    for (const { slot, characterLevel, grants } of slotSources.sources) {
+      if (slot.id === 'background-feat') continue; // 上面的背景一致性校验保留为唯一入口。
+      result.sources.push({
+        selectionKey: slot.id,
+        level: characterLevel,
+        classId: slot.classId,
+        featureLevel: slot.level,
+        grants,
+      });
+    }
+  }
   const selectedFeatIds = new Set<string>();
   for (const selection of character.selectedFeats || []) {
     const owner = resolve(selection.classId, 'class');
@@ -138,12 +160,19 @@ export function collectCharacterSpellGrantSources(
     if (selection.level > activeClass.level) continue;
     const feat = resolve(selection.featId, 'feat');
     if (!feat) continue;
+    const representedBySlot = slotSources?.sources.some(({ slot, grants }) => {
+      if (!slot.classId || slot.level !== selection.level || grants.origin.id !== feat.id)
+        return false;
+      return resolveCatalogReference(catalog, slot.classId, ['class'])?.id === owner!.id;
+    });
+    if (representedBySlot) continue;
     const key = JSON.stringify(['selectedFeat', owner!.id, selection.level, feat.id]);
     if (selectedFeatIds.has(key)) continue;
     selectedFeatIds.add(key);
     add(feat, key, totalLevel, owner!.id);
   }
   for (const [slotId, selection] of Object.entries(character.featSelections || {})) {
+    if (slotSources) continue;
     if (slotId === 'background-feat' || !selection.featId) continue;
     // 其他槽位必须先由现有规则确认是否仍属于当前种族/职业，不把任意缓存槽位当成有效来源。
     report('unverified-feat-slot', slotId, selection.featId);

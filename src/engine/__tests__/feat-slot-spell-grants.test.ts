@@ -8,6 +8,7 @@ import type { ClassFeature } from '@/types/class';
 import type { FeatSlotDefinitions } from '../featSlots';
 import { buildCharacterFeatSlots } from '../featSlots';
 import { collectFeatSlotSpellGrantSources } from '../featSlotSpellGrants';
+import { collectCharacterSpellGrantSources } from '../characterSpellGrants';
 import { getClassDefinition } from '../characterData';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 
@@ -314,4 +315,44 @@ it('非法职业等级不给专长法术建立伪造的角色等级上下文', (
   );
   expect(result.sources).toEqual([]);
   expect(result.diagnostics[0].code).toBe('unresolved-character-level');
+});
+
+it('统一收集器连接有效槽位，排除旧记录镜像且保留逐级细选，来源移除不删存档', () => {
+  const { catalog, feat } = setup();
+  const parent = normalizeClass({ name: '测试职业', source: 'PHB', features: [] });
+  catalog.register(parent);
+  const definitions = { getClass: () => ({ name: '测试职业', features: [feature('升级', 4)] }) };
+  const slot = `cls:${parent.id}:feat:升级:升级-choice`;
+  const character = state({
+    classes: [{ classId: parent.id, source: 'PHB', level: 5, isMulticlass: false }],
+    selectedFeats: [{ classId: parent.id, level: 4, featId: feat.id }],
+    featSelections: {
+      [slot]: { featId: feat.id, spells: ['saved-choice'] },
+      stale: { featId: feat.id },
+    },
+    spellsByLevel: {
+      [parent.id]: { 4: { cantrips: [], spells: ['level-four'], replacedSpell: 'old' } },
+    },
+  });
+  const before = JSON.stringify(character);
+  const result = collectCharacterSpellGrantSources(character, catalog, definitions);
+  expect(result.sources).toHaveLength(1);
+  expect(result.sources[0]).toMatchObject({
+    selectionKey: slot,
+    classId: parent.id,
+    featureLevel: 4,
+    level: 5,
+  });
+  expect(result.diagnostics).toContainEqual({
+    code: 'unverified-feat-slot',
+    ownerId: 'stale',
+    reference: feat.id,
+  });
+  expect(JSON.stringify(character)).toBe(before);
+  character.selectedFeats = [];
+  expect(
+    collectCharacterSpellGrantSources(character, catalog, { getClass: noClass }).sources,
+  ).toEqual([]);
+  expect(character.featSelections![slot].spells).toEqual(['saved-choice']);
+  expect(character.spellsByLevel![parent.id][4].spells).toEqual(['level-four']);
 });
