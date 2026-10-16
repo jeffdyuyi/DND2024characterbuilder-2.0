@@ -19,6 +19,7 @@ import { getNativeClassPreparedSpells } from './nativeClassPreparedSpells';
 import { getNativeSubclassSpellPlans, getNativeSubclassSpellGrants } from './nativeSubclassSpells';
 import { resolveSpellGrantCandidates } from './spellGrantCandidates';
 import type { ParsedSpellGrants, SpellGrantRule } from '@/types/spellGrant';
+import { getSpeciesSpellSelections } from './speciesSpellSelections';
 
 export interface SpellcastingStats {
   casterLevel: number;
@@ -484,20 +485,16 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
           ? `${sourceLabel}（${translateAbilityKey(abilityKey)}；豁免 DC ${8 + pb + modifier}，攻击 ${pb + modifier >= 0 ? '+' : ''}${pb + modifier}）`
           : sourceLabel;
 
-      spells.forEach((s: any) => {
+      spells.forEach((s: any, spellIndex: number) => {
         if ('numToChoose' in s) {
-          const selections = Object.entries(state.speciesSelections || {})
-            .filter(
-              ([key]) =>
-                key === traitId ||
-                key.startsWith(`${traitId}:spell-`) ||
-                key.startsWith(`sp:${state.speciesId}:trait:${traitId}:spell-`) ||
-                (state.subspeciesId &&
-                  key.startsWith(`sp:${state.speciesId}:sub:${state.subspeciesId}:spell-`)) ||
-                key.includes(`:${traitId}:spell-`) ||
-                key.includes(':innate-spells:spell-'),
-            )
-            .flatMap(([_, values]) => values);
+          const selections = getSpeciesSpellSelections(
+            state.speciesSelections,
+            state.speciesId,
+            state.subspeciesId,
+            traitId,
+            spellIndex,
+            spells.filter((entry: any) => 'numToChoose' in entry).length,
+          );
           selections.forEach((selId) => {
             const opt =
               s.options.find((o: any) => o.spellId === selId) ||
