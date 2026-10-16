@@ -1048,6 +1048,154 @@
         "recharge": "拂晓",
         "reqAttune": "由法师"
       }
+    },
+    {
+      "kind": "subclass",
+      "path": "data/class/class-cleric.json",
+      "raw": {
+        "name": "自然领域",
+        "ENG_name": "Nature Domain",
+        "source": "PHB",
+        "additionalSpells": [
+          {
+            "known": {
+              "1": {
+                "_": [
+                  {
+                    "choose": "level=0|class=德鲁伊"
+                  }
+                ]
+              }
+            },
+            "prepared": {
+              "1": [
+                "化兽为友",
+                "动物交谈"
+              ],
+              "3": [
+                "树肤术",
+                "荆棘丛生"
+              ],
+              "5": [
+                "植物滋长",
+                "风墙术"
+              ],
+              "7": [
+                "支配野兽",
+                "擒抱藤"
+              ],
+              "9": [
+                "疫病虫群",
+                "树跃术"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "subclass",
+      "path": "data/class/class-cleric.json",
+      "raw": {
+        "name": "死亡领域",
+        "ENG_name": "Death Domain",
+        "source": "DMG",
+        "additionalSpells": [
+          {
+            "known": {
+              "1": {
+                "_": [
+                  {
+                    "choose": "level=0|school=N",
+                    "count": 1
+                  }
+                ]
+              }
+            },
+            "prepared": {
+              "1": [
+                "虚假生命",
+                "致病射线"
+              ],
+              "3": [
+                "目盲术/耳聋术",
+                "衰弱射线"
+              ],
+              "5": [
+                "活化死尸",
+                "吸血鬼之触"
+              ],
+              "7": [
+                "枯萎术",
+                "防死结界"
+              ],
+              "9": [
+                "防活物护罩",
+                "死云术"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "subclass",
+      "path": "data/class/class-cleric.json",
+      "raw": {
+        "name": "奥秘领域",
+        "ENG_name": "Arcana Domain",
+        "source": "SCAG",
+        "additionalSpells": [
+          {
+            "known": {
+              "1": {
+                "_": [
+                  {
+                    "choose": "level=0|class=法师",
+                    "count": 2
+                  }
+                ]
+              }
+            },
+            "prepared": {
+              "1": [
+                "侦测魔法",
+                "魔法飞弹"
+              ],
+              "3": [
+                "魔化武器",
+                "涅斯图魔法灵光"
+              ],
+              "5": [
+                "解除魔法",
+                "防护法阵"
+              ],
+              "7": [
+                "秘法眼",
+                "李欧蒙秘藏箱"
+              ],
+              "9": [
+                "异界誓缚",
+                "传送法阵"
+              ],
+              "17": [
+                {
+                  "choose": "level=6|class=法师"
+                },
+                {
+                  "choose": "level=7|class=法师"
+                },
+                {
+                  "choose": "level=8|class=法师"
+                },
+                {
+                  "choose": "level=9|class=法师"
+                }
+              ]
+            }
+          }
+        ]
+      }
     }
   ]
 }

@@ -329,3 +329,125 @@ it('未知附加解锁条件让整个块待核对，关联法术筛选不能误�
     'association-not-grant',
   ]);
 });
+
+it.each([
+  ['Nature Domain', 'PHB', 'level=0|class=德鲁伊', 1],
+  ['Death Domain', 'DMG', 'level=0|school=N', 1],
+  ['Arcana Domain', 'SCAG', 'level=0|class=法师', 2],
+])('真实%s嵌套无次数节点保留等级、候选和选择数量', (name, source, filter, count) => {
+  const parsed = parseCatalogSpellGrants(sample(String(name), String(source)));
+  expect(parsed.diagnostics).toEqual([]);
+  const known = rules(parsed).filter((rule) => rule.mode === 'known');
+  expect(known).toHaveLength(1);
+  expect(known[0]).toMatchObject({
+    gate: { kind: 'level', value: 1 },
+    usage: { kind: 'unspecified' },
+    selection: { kind: 'choose', filter, count },
+  });
+  expect(rules(parsed).filter((rule) => rule.mode === 'prepared').length).toBeGreaterThanOrEqual(
+    10,
+  );
+});
+
+it('新增后续等级和同级无关法术不改变已有规则及资源组身份，JSON选择仍可对应', () => {
+  const base = sample('Warlock', 'XPHB');
+  const original = {
+    ...base,
+    raw: {
+      additionalSpells: [
+        {
+          ability: 'int',
+          known: { 1: [{ choose: 'level=0', count: 2 }] },
+          innate: { 1: { daily: { 1: ['命令术'] } } },
+        },
+      ],
+    },
+  };
+  const parsed = parseCatalogSpellGrants(original);
+  const upgraded = parseCatalogSpellGrants({
+    ...base,
+    raw: {
+      additionalSpells: [
+        {
+          ability: 'int',
+          known: { 1: ['光亮术#c', { choose: 'level=0', count: 2 }], 5: ['鉴定术'] },
+          innate: { 1: { daily: { 1: ['命令术', '疗伤术'] } }, 9: ['飞行术'] },
+        },
+      ],
+    },
+  });
+  expect(parsed.blocks[0].identityStability).toBe('metadata');
+  expect(upgraded.blocks[0].id).toBe(parsed.blocks[0].id);
+  const choices = JSON.parse(
+    JSON.stringify(Object.fromEntries(rules(parsed).map((rule) => [rule.id, ['saved-spell']]))),
+  );
+  for (const rule of rules(parsed)) {
+    const updated = rules(upgraded).find((candidate) => candidate.id === rule.id);
+    expect(updated?.resourceGroupId).toBe(rule.resourceGroupId);
+    expect(choices[updated!.id]).toEqual(['saved-spell']);
+  }
+});
+
+it('有名称的多个块重排和后续等级扩展仍保留各自身份', () => {
+  const base = sample('Warlock', 'XPHB');
+  const first = { name: '第一组', known: { 1: [{ choose: 'level=0' }] } };
+  const second = { name: '第二组', known: { 1: [{ choose: 'level=0' }] } };
+  const before = parseCatalogSpellGrants({ ...base, raw: { additionalSpells: [first, second] } });
+  const after = parseCatalogSpellGrants({
+    ...base,
+    raw: { additionalSpells: [second, { ...first, known: { ...first.known, 5: ['命令术'] } }] },
+  });
+  for (const rule of rules(before))
+    expect(rules(after).some((candidate) => candidate.id === rule.id)).toBe(true);
+  expect(before.blocks.every((block) => block.identityStability === 'metadata')).toBe(true);
+});
+
+it('无法靠元数据区分的多个块保留内容身份，不能假称跨修订稳定', () => {
+  const parsed = parseCatalogSpellGrants(sample('Astral Elf', 'AAG'));
+  expect(parsed.blocks.every((block) => block.identityStability === 'content')).toBe(true);
+  expect(new Set(parsed.blocks.map((block) => block.id)).size).toBe(3);
+});
+
+it('资源名称原样保留，不擅自推断容量和恢复；无效资源名仍阻止自动激活', () => {
+  const base = sample('Warlock', 'XPHB');
+  const parsed = parseCatalogSpellGrants({
+    ...base,
+    raw: {
+      additionalSpells: [
+        {
+          resourceName: '功力',
+          innate: { 3: { resource: { 2: ['黑暗术'] } } },
+        },
+      ],
+    },
+  });
+  expect(parsed.diagnostics).toEqual([]);
+  expect(parsed.blocks[0].resourceName).toBe('功力');
+  expect(rules(parsed)[0].usage).toEqual({ kind: 'resource', key: '2' });
+  const invalid = parseCatalogSpellGrants({
+    ...base,
+    raw: { additionalSpells: [{ resourceName: 3, known: { 1: ['命令术'] } }] },
+  });
+  expect(invalid.blocks[0].requiresReview).toBe(true);
+  expect(invalid.diagnostics[0].code).toBe('invalid-resource-name');
+});
+
+it('未知嵌套结构仍诊断，不会将解锁等级或资源次数偷偷改成无限使用', () => {
+  const parsed = parseCatalogSpellGrants({
+    ...sample('Warlock', 'XPHB'),
+    raw: {
+      additionalSpells: [
+        {
+          known: { 1: { unknown: { _: ['命令术'] } } },
+          innate: { 3: { daily: { 1: { _: ['鉴定术'] } } } },
+        },
+      ],
+    },
+  });
+  expect(parsed.blocks[0].requiresReview).toBe(true);
+  expect(rules(parsed)).toEqual([]);
+  expect(parsed.diagnostics.map((diagnostic) => diagnostic.code)).toEqual([
+    'unsupported-usage',
+    'unsupported-usage',
+  ]);
+});

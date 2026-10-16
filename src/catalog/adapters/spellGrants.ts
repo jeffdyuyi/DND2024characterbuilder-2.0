@@ -75,6 +75,18 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
   }
   if (Array.isArray(additional)) {
     result.blockRelationship = additional.length > 1 ? 'unspecified' : 'single';
+    const metadataSignature = (block: RawObject) =>
+      signature(
+        Object.fromEntries(
+          Object.entries(block).filter(([key]) => !modes.includes(key as SpellGrantMode)),
+        ),
+      );
+    const metadataCounts = new Map<string, number>();
+    for (const block of additional) {
+      if (!object(block)) continue;
+      const key = metadataSignature(block);
+      metadataCounts.set(key, (metadataCounts.get(key) ?? 0) + 1);
+    }
     const blockIds = new Set<string>();
     for (const [index, block] of additional.entries()) {
       const path = `additionalSpells[${index}]`;
@@ -82,7 +94,10 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
         diagnostic('invalid-block', path, '法术授予块不是对象。', block);
         continue;
       }
-      const blockId = `${id}:spell-grant:${signature(block)}`;
+      const metadataKey = metadataSignature(block);
+      const identityStability = metadataCounts.get(metadataKey) === 1 ? 'metadata' : 'content';
+      // 独立元数据身份不受新增等级、法术或数组重排影响；无法消歧时不猜测块之间的对应关系。
+      const blockId = `${id}:spell-grant:${identityStability}:${identityStability === 'metadata' ? metadataKey : signature(block)}`;
       if (blockIds.has(blockId)) {
         diagnostic('duplicate-block', path, '完全相同的授予块重复，需核对组间关系。', block);
         continue;
@@ -93,12 +108,22 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
       const choiceOccurrences = new Map<string, number>();
       const parsed: ParsedSpellGrants['blocks'][number] = {
         id: blockId,
+        identityStability,
         name: typeof block.name === 'string' ? block.name : undefined,
         nameEn: typeof block.ENG_name === 'string' ? block.ENG_name : undefined,
         rules: [],
         requiresReview: false,
         raw: block,
       };
+      if (typeof block.resourceName === 'string' && block.resourceName.trim())
+        parsed.resourceName = block.resourceName;
+      else if (block.resourceName !== undefined)
+        diagnostic(
+          'invalid-resource-name',
+          `${path}.resourceName`,
+          '资源名称不是非空字符串。',
+          block.resourceName,
+        );
       const ability = block.ability;
       if (ability === 'inherit') parsed.ability = { kind: 'inherit' };
       else if (typeof ability === 'string' && abilities.has(ability))
@@ -113,7 +138,7 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
       } else if (ability !== undefined)
         diagnostic('unsupported-ability', `${path}.ability`, '施法属性结构需核对。', ability);
       for (const key of Object.keys(block)) {
-        if (![...modes, 'name', 'ENG_name', 'ability'].includes(key))
+        if (![...modes, 'name', 'ENG_name', 'ability', 'resourceName'].includes(key))
           diagnostic(
             'unsupported-block-field',
             `${path}.${key}`,
@@ -215,7 +240,9 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
                 return;
               }
               for (const [key, children] of Object.entries(node)) {
-                if (key === 'will' || key === 'ritual')
+                if (key === '_' && usage.kind === 'unspecified')
+                  walk(children, `${nodePath}._`, usage, groupId);
+                else if (key === 'will' || key === 'ritual')
                   walk(children, `${nodePath}.${key}`, { kind: key }, `${groupId}:${key}`);
                 else if (
                   ['daily', 'rest', 'weekly', 'yearly', 'resource'].includes(key) &&

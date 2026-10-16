@@ -34,8 +34,12 @@ export interface ParsedSpellGrants {
   blockRelationship: 'single' | 'unspecified';
   blocks: {
     id: string;
+    /** 元数据无法区分多个块时仍使用内容身份；这类块跨修订不能自动迁移选择。 */
+    identityStability: 'metadata' | 'content';
     name?: string;
     nameEn?: string;
+    /** 仅保留原生资源名称，不推断资源池容量、消耗或恢复方式。 */
+    resourceName?: string;
     ability?:
       { kind: 'fixed'; value: string } | { kind: 'choose'; from: string[] } | { kind: 'inherit' };
     rules: SpellGrantRule[];
