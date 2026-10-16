@@ -39,7 +39,7 @@ export function normalizeClass(raw: Record<string, any>, packId = '5etools-cn'):
     raw,
   };
 
-  return mergeOverlay(entry);
+  return entry;
 }
 
 export function normalizeSubclass(raw: Record<string, any>, packId = '5etools-cn'): CatalogEntry {

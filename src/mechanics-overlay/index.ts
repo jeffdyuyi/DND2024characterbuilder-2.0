@@ -78,50 +78,7 @@ export function mergeOverlay(entry: CatalogEntry): CatalogEntry {
   const raw = { ...(entry.raw || {}) };
   let modified = false;
 
-  // 1. 职业 (Class)
-  if (entry.kind === 'class') {
-    const overlay = getClassOverlay(entry.englishName) || getClassOverlay(entry.name);
-    if (overlay) {
-      modified = true;
-      if (overlay.spellcastingType) raw.spellcastingType = overlay.spellcastingType;
-      if (overlay.spellcastingAbility) raw.spellcastingAbility = overlay.spellcastingAbility;
-
-      if (overlay.features && overlay.features.length > 0) {
-        const existingFeatures: any[] = Array.isArray(raw.features)
-          ? [...raw.features]
-          : Array.isArray(raw.classFeature)
-            ? [...raw.classFeature]
-            : [];
-
-        for (const featOverlay of overlay.features) {
-          const matchIdx = existingFeatures.findIndex(
-            (f) =>
-              normalizeKey(f.name) === normalizeKey(featOverlay.name) ||
-              normalizeKey(f.nameEn) === normalizeKey(featOverlay.nameEn),
-          );
-          if (matchIdx >= 0) {
-            existingFeatures[matchIdx] = {
-              ...existingFeatures[matchIdx],
-              mechanics: {
-                ...(existingFeatures[matchIdx].mechanics || {}),
-                ...featOverlay.mechanics,
-              },
-            };
-          } else {
-            existingFeatures.push({
-              name: featOverlay.name,
-              nameEn: featOverlay.nameEn,
-              level: featOverlay.level || 1,
-              description: '',
-              mechanics: featOverlay.mechanics,
-            });
-          }
-        }
-        raw.features = existingFeatures;
-        raw.classFeature = existingFeatures;
-      }
-    }
-  }
+  // 职业内容保持原样；特性装配后才挂接必要计算机制。
 
   // 2. 子职业 (Subclass)
   if (entry.kind === 'subclass') {

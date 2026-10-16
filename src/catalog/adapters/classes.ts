@@ -16,6 +16,7 @@ import { defaultCatalog } from '../catalog';
 import { ClassData } from '@/types/class';
 import { mergeOverlay } from '@/mechanics-overlay';
 import { assembleCatalogClass } from './classAssembly';
+import { applyClassFeatureMechanics } from '@/mechanics-overlay/classFeatures';
 import { belongsToClass, classKeyPart, classNames } from './classReferences';
 
 const ABILITY_KEYS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
@@ -167,8 +168,8 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
     return entry.raw as unknown as ClassData;
   }
 
-  // 2. 5etools-cn 格式适配并应用机制覆盖层
-  const mergedEntry = mergeOverlay(entry);
+  // 职业原始数据不注入内容；完整装配之后仅补必要的计算机制。
+  const mergedEntry = entry;
   const raw = (mergedEntry.raw || {}) as any;
   const hdFaces = raw.hd?.faces || raw.hitPointDie || 8;
   const savingThrows = Array.isArray(raw.proficiency) ? raw.proficiency : [];
@@ -224,12 +225,17 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
     startingEquipment: normalizeStartingEquipment(raw.startingEquipment),
     becomingAClass: raw.becomingAClass,
     progression: raw.progression || assembled.progression,
-    features: raw.features || raw.classFeature || assembled.features,
+    features: applyClassFeatureMechanics(
+      entry,
+      Array.isArray(raw.classFeatures) && raw.classFeatures.length > 0
+        ? assembled.features
+        : raw.features || raw.classFeature || assembled.features,
+    ),
     subClassInfo: {
       unlockLevel: raw.subClassInfo?.unlockLevel || assembled.subclassUnlockLevel || 3,
       options: subOptions,
     },
-    spellcastingType: raw.spellcastingType,
+    spellcastingType: raw.spellcastingType ?? raw.casterProgression,
     spellcastingAbility: raw.spellcastingAbility,
     casterProgression: raw.casterProgression,
     preparedSpellsFormula: raw.preparedSpells,
