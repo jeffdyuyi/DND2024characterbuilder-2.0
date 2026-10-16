@@ -601,7 +601,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
     processTraitSpells(activeFeatures, `职业: ${classDef.name}`);
 
     if (cEntry.subclassId) {
-      const subclassDef = getSubclassDefinition(state);
+      const subclassDef = getSubclassDefinition({ ...state, classes: [cEntry] });
       if (subclassDef) {
         const activeSubTraits = subclassDef.traits.filter((t) => t.level <= cEntry.level);
         processTraitSpells(activeSubTraits, `子职业: ${subclassDef.name}`);
