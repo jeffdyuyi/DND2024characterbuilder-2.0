@@ -36,6 +36,7 @@ import {
 import { getSourceSortWeight } from '@/config/sourceMapping';
 import MarkdownText from '@/components/MarkdownText';
 import PillButton from '@/components/PillButton';
+import SourceGrantedSpells from './SourceGrantedSpells';
 import { Check, Lock, ChevronLeft, ChevronRight, Info, Sparkles, RotateCcw } from 'lucide-react';
 
 interface SpellPoolSectionProps {
@@ -703,6 +704,8 @@ export default function SpellList({ character }: SpellListProps) {
     [character, choices],
   );
   const innateSpellIds = useMemo(() => innateSpells.map((s) => s.spellId), [innateSpells, choices]);
+  const sourcePageGrants = innateSpells.filter((grant) => /^(种族|背景|专长)/.test(grant.source));
+  const sourceGrantedSection = <SourceGrantedSpells grants={sourcePageGrants} />;
 
   const getSpellbookForWizard = useMemo(() => {
     if (currentClassDef?.nameEn !== 'Wizard') return [];
@@ -845,13 +848,12 @@ export default function SpellList({ character }: SpellListProps) {
   if (!currentClassEntry || progressionSteps.length === 0) {
     return (
       <div>
+        {sourceGrantedSection}
         {nativePreparedSection}
         <div style={{ padding: 40, textAlign: 'center', color: '#86868b' }}>
           <Info size={40} style={{ marginBottom: 12 }} />
-          <h3>
-            {nativeClassPrepared.grants.length ? '没有需要配置的职业法术选项' : '尚未具备施法能力'}
-          </h3>
-          {!nativeClassPrepared.grants.length && <p>请先选择具有施法能力的职业。</p>}
+          <h3>{innateSpells.length ? '没有需要配置的职业法术选项' : '尚未具备施法能力'}</h3>
+          {!innateSpells.length && <p>请先选择具有施法能力的职业。</p>}
         </div>
       </div>
     );
@@ -874,6 +876,7 @@ export default function SpellList({ character }: SpellListProps) {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
+      {sourceGrantedSection}
       {nativePreparedSection}
       {backgroundSpellList.diagnostics.length > 0 && (
         <details role="status" style={{ marginBottom: 16 }}>
