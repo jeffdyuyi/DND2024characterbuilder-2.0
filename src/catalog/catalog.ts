@@ -5,6 +5,7 @@
 
 import { CatalogEntry, CatalogService, EntryKind, CatalogQueryOptions } from './types';
 import { createSourcePredicate } from './sourcePolicy';
+import { catalogTerms } from './terms';
 
 export class InMemoryCatalogService implements CatalogService {
   /** 稳定 ID -> 条目映射 */
@@ -110,7 +111,7 @@ export class InMemoryCatalogService implements CatalogService {
       const matchEnName = item.englishName?.toLowerCase().includes(q);
       const matchSource = item.source.toLowerCase().includes(q);
 
-      if (matchName || matchEnName || matchSource) {
+      if (matchName || matchEnName || matchSource || catalogTerms.matches(item, q)) {
         results.push(item);
         if (results.length >= limit) break;
       }

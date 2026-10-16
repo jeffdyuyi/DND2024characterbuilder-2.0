@@ -7,6 +7,8 @@ import {
   getCatalogItems,
 } from '@/catalog';
 import { useHomebrewStore } from '@/store/homebrewStore';
+import { defaultCatalog } from '@/catalog/catalog';
+import { catalogTerms } from '@/catalog/terms';
 
 export interface SearchResultItem {
   id: string;
@@ -309,12 +311,14 @@ export function searchAll(
 
   return filtered
     .filter((item) => {
+      const entry = defaultCatalog.get(item.raw?.catalogId || item.id);
       return (
         item.name.toLowerCase().includes(normalizedQuery) ||
         item.nameEn.toLowerCase().includes(normalizedQuery) ||
         item.id.toLowerCase().includes(normalizedQuery) ||
         item.description.toLowerCase().includes(normalizedQuery) ||
-        item.source.toLowerCase().includes(normalizedQuery)
+        item.source.toLowerCase().includes(normalizedQuery) ||
+        Boolean(entry && catalogTerms.matches(entry, normalizedQuery))
       );
     })
     .slice(0, 150);

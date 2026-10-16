@@ -5,6 +5,7 @@ import { Search, X, Sparkles, PlusCircle } from 'lucide-react';
 import { searchAll, SearchResultItem, CategoryFilter } from '@/platform/searchIndexer';
 import { useCharacterStore } from '@/store/characterStore';
 import styles from './SearchModal.module.css';
+import { loadCatalogTerms } from '@/platform/catalogTermsLoader';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -19,6 +20,18 @@ export default function SearchModal({ isOpen, onClose, editionFilter }: SearchMo
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [termsVersion, setTermsVersion] = useState(0);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let active = true;
+    void loadCatalogTerms().then((loaded) => {
+      if (active && loaded) setTermsVersion((version) => version + 1);
+    });
+    return () => {
+      active = false;
+    };
+  }, [isOpen]);
 
   const activeCharacterId = useCharacterStore((state) => state.activeCharacterId);
   const updateActiveCharacter = useCharacterStore((state) => state.updateActiveCharacter);
@@ -36,7 +49,7 @@ export default function SearchModal({ isOpen, onClose, editionFilter }: SearchMo
       setTimeout(() => inputRef.current?.focus(), 50);
       performSearch(query, activeCategory, edition);
     }
-  }, [isOpen, activeCategory, edition]);
+  }, [isOpen, activeCategory, edition, termsVersion]);
 
   const performSearch = (q: string, cat: CategoryFilter, ed: '5e' | '2024' | 'all' = edition) => {
     const res = searchAll(q, ed, cat);
