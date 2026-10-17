@@ -524,7 +524,7 @@ const SpellsTab: React.FC<SpellsTabProps> = ({
             >
               <span style={{ color: 'var(--color-text-tertiary)', fontWeight: 500 }}>已知戏法</span>
               <strong style={{ color: 'var(--color-text-primary)' }}>
-                {character.cantripIds.length} / {spellcasting.cantripsKnown}
+                {cantripDetails.length} / {spellcasting.cantripsKnown}
               </strong>
             </div>
           </div>

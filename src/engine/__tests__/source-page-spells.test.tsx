@@ -161,6 +161,7 @@ it('背景专长槽位与种族同法术只显示一行，保留两个来源且�
   expect(sheet.match(/来源选择甲/g)).toHaveLength(1);
   expect(sheet).toContain('专长: 样本专长');
   expect(sheet).toContain('种族');
+  expect(sheet.replace(/<!--.*?-->/g, '')).toMatch(/已知戏法<\/span><strong[^>]*>1 \/ 1<\/strong>/);
   expect(JSON.stringify(character)).toBe(snapshot);
 });
 
