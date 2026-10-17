@@ -102,7 +102,11 @@ export default function MulticlassPage() {
 
   const currentClasses = character.classes || [];
   const primaryClassEntry = currentClasses[0];
+  const primaryClassDef = getClassDefinition(primaryClassEntry?.classId);
   const additionalClasses = currentClasses.slice(1);
+  const currentClassIds = new Set(
+    currentClasses.map((entry) => getClassDefinition(entry.classId)?.catalogId || entry.classId),
+  );
   const totalLevel = currentClasses.reduce((acc, c) => acc + c.level, 0);
 
   const abilityScores = useMemo(() => computeAbilityScores(character), [character, choices]);
@@ -444,10 +448,10 @@ export default function MulticlassPage() {
                 }}
               >
                 <span className={styles.traitName}>
-                  {translateClass(primaryClassEntry.classId)}
+                  {primaryClassDef?.name || primaryClassEntry.classId}
                 </span>
                 <span className={styles.traitNameEn} style={{ marginLeft: 8 }}>
-                  {primaryClassEntry.classId}
+                  {primaryClassDef?.nameEn || ''}
                 </span>
                 <span
                   style={{ float: 'right', fontWeight: 600, color: 'var(--color-gold-bright)' }}
@@ -508,7 +512,7 @@ export default function MulticlassPage() {
                             {def ? translateClass(def.name) : mc.classId}
                           </span>
                           <span className={styles.traitNameEn} style={{ marginLeft: 8 }}>
-                            {mc.classId}
+                            {def?.nameEn || ''}
                           </span>
                         </div>
                         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -648,12 +652,7 @@ export default function MulticlassPage() {
                 >
                   {choices
                     .getCatalogClasses()
-                    .filter(
-                      (c: any) =>
-                        !currentClasses.some(
-                          (cc: any) => cc.classId === c.nameEn || cc.classId === c.id,
-                        ),
-                    )
+                    .filter((c: any) => !currentClassIds.has(c.catalogId || c.nameEn))
                     .map((cls: any) => {
                       const meets =
                         currentClasses.every((cc: any) => {
@@ -682,7 +681,7 @@ export default function MulticlassPage() {
 
                       return (
                         <div
-                          key={cls.nameEn}
+                          key={cls.catalogId || `${cls.source}:${cls.nameEn}`}
                           className={styles.mcOption}
                           style={{
                             padding: '12px',
@@ -692,13 +691,13 @@ export default function MulticlassPage() {
                             opacity: meets ? 1 : 0.5,
                             background: meets ? 'var(--color-bg-surface)' : 'var(--color-bg-dark)',
                           }}
-                          onClick={() => meets && handleAddMC(cls.nameEn)}
+                          onClick={() => meets && handleAddMC(cls.catalogId || cls.nameEn)}
                         >
                           <div style={{ fontWeight: 700, color: 'var(--color-text-primary)' }}>
                             {translateClass(cls.name)}
                           </div>
                           <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)' }}>
-                            {cls.nameEn}
+                            {cls.nameEn} · {cls.source}
                           </div>
                           {!meets && (
                             <div
