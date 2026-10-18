@@ -42,13 +42,29 @@ export function belongsToClass(subclass: CatalogEntry, parent: CatalogEntry): bo
   );
 }
 
+type FeatureLookup = (text: string, owner: CatalogEntry) => CatalogEntry | undefined;
+type LookupSnapshot = {
+  revision: number;
+  aliases: ReturnType<typeof createClassAliases>;
+  classFeature?: FeatureLookup;
+  subclassFeature?: FeatureLookup;
+};
+const lookupSnapshots = new WeakMap<CatalogService, LookupSnapshot>();
+
 /** Source-scoped aliases come exclusively from registered upstream records. */
-export function createClassFeatureLookup(catalog: CatalogService, subclass = false) {
-  const aliases = createClassAliases(
-    catalog.list('class').map((entry) => entry.raw),
-    catalog.list('subclass').map((entry) => entry.raw),
-    catalog.list('subclassFeature').map((entry) => entry.raw),
-  );
+export function createClassFeatureLookup(catalog: CatalogService, subclass = false): FeatureLookup {
+  const kind = subclass ? 'subclassFeature' : 'classFeature';
+  const revision = catalog.revision;
+  let snapshot = lookupSnapshots.get(catalog);
+  if (revision === undefined || snapshot?.revision !== revision) snapshot = undefined;
+  if (snapshot?.[kind]) return snapshot[kind];
+  const aliases =
+    snapshot?.aliases ||
+    createClassAliases(
+      catalog.list('class').map((entry) => entry.raw),
+      catalog.list('subclass').map((entry) => entry.raw),
+      catalog.list('subclassFeature').map((entry) => entry.raw),
+    );
   const index = new Map<string, Map<string, CatalogEntry>>();
   const makeKey = (
     name: unknown,
@@ -87,7 +103,7 @@ export function createClassFeatureLookup(catalog: CatalogService, subclass = fal
       index.set(key, candidates);
     }
   }
-  return (text: string, owner: CatalogEntry): CatalogEntry | undefined => {
+  const lookup: FeatureLookup = (text, owner) => {
     const ref = parseClassFeatureUid(text, subclass);
     if (!ref.valid) return undefined;
     const candidates = [
@@ -115,4 +131,11 @@ export function createClassFeatureLookup(catalog: CatalogService, subclass = fal
         ? candidates[0]
         : undefined;
   };
+  // 只复用原始目录的引用索引；职业树与角色计算仍独立装配。
+  if (revision !== undefined) {
+    snapshot ??= { revision, aliases };
+    snapshot[kind] = lookup;
+    lookupSnapshots.set(catalog, snapshot);
+  }
+  return lookup;
 }

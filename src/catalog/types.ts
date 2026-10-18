@@ -108,6 +108,9 @@ export interface SpellCatalogEntry extends CatalogEntry {
 
 /** 统一 Catalog 服务接口 */
 export interface CatalogService {
+  /** 每次注册更新后递增；未提供时，派生索引不跨调用复用。 */
+  readonly revision?: number;
+
   /** 获取指定稳定 ID 的条目 */
   get(id: string): CatalogEntry | undefined;
 

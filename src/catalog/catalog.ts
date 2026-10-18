@@ -8,6 +8,12 @@ import { createSourcePredicate } from './sourcePolicy';
 import { catalogTerms } from './terms';
 
 export class InMemoryCatalogService implements CatalogService {
+  private contentRevision = 0;
+
+  public get revision(): number {
+    return this.contentRevision;
+  }
+
   /** 稳定 ID -> 条目映射 */
   private entriesById: Map<string, CatalogEntry> = new Map();
 
@@ -30,6 +36,7 @@ export class InMemoryCatalogService implements CatalogService {
     } else {
       list.push(entry);
     }
+    this.contentRevision++;
   }
 
   public registerMany(entries: CatalogEntry[]): void {

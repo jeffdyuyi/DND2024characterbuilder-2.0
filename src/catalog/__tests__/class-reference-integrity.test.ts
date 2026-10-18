@@ -3,6 +3,7 @@ import { InMemoryCatalogService, defaultCatalog } from '../catalog';
 import { getCatalogSubclasses } from '../adapters/classes';
 import { CatalogEntry } from '../types';
 import { assembleCatalogClass } from '../adapters/classAssembly';
+import { createClassFeatureLookup } from '../adapters/classReferences';
 import { normalizeClass, normalizeSubclass } from '@/source/fiveetools-cn/normalizers/class';
 import { FiveEToolsCnLoader } from '@/source/fiveetools-cn/loader';
 import { makeEntryId } from '../identity';
@@ -30,6 +31,77 @@ const feature = (raw: Record<string, any>, pack = '5etools-cn'): CatalogEntry =>
 });
 
 describe('5etools 职业引用与父来源完整性', () => {
+  it('同一目录版本复用引用索引，新增与同ID替换均立即失效', () => {
+    const catalog = new InMemoryCatalogService();
+    const owner = normalizeClass({ name: '索引测试', ENG_name: 'Index Caster', source: 'XPHB' });
+    catalog.register(owner);
+    const uid = 'Spellcasting|Index Caster|XPHB|1';
+    const initial = createClassFeatureLookup(catalog);
+    expect(createClassFeatureLookup(catalog)).toBe(initial);
+    expect(initial(uid, owner)).toBeUndefined();
+    const entry = feature({
+      name: '施法',
+      ENG_name: 'Spellcasting',
+      source: 'XPHB',
+      className: 'Index Caster',
+      classSource: 'XPHB',
+      level: 1,
+    });
+    catalog.register(entry);
+    const populated = createClassFeatureLookup(catalog);
+    expect(populated).not.toBe(initial);
+    expect(populated(uid, owner)).toBe(entry);
+    const replacement = { ...entry, description: '上游更新后的原文' };
+    catalog.register(replacement);
+    const refreshed = createClassFeatureLookup(catalog);
+    expect(refreshed).not.toBe(populated);
+    expect(refreshed(uid, owner)).toBe(replacement);
+    expect(catalog.list('classFeature')).toHaveLength(1);
+  });
+
+  it('目录实例互不共享引用索引，未提供版本的服务不启用缓存', () => {
+    const catalog = new InMemoryCatalogService();
+    const other = new InMemoryCatalogService();
+    expect(createClassFeatureLookup(catalog)).not.toBe(createClassFeatureLookup(other));
+    const unversioned = {
+      get: catalog.get.bind(catalog),
+      list: catalog.list.bind(catalog),
+      search: catalog.search.bind(catalog),
+      register: catalog.register.bind(catalog),
+      registerMany: catalog.registerMany.bind(catalog),
+    };
+    expect(createClassFeatureLookup(unversioned)).not.toBe(createClassFeatureLookup(unversioned));
+  });
+
+  it('子职业索引也随目录更新失效，保留父来源与出版物区分', () => {
+    const catalog = new InMemoryCatalogService();
+    const owner = normalizeSubclass({
+      name: 'Path',
+      shortName: 'Path',
+      source: 'BOOK',
+      className: 'Index Caster',
+      classSource: 'XPHB',
+    });
+    catalog.register(owner);
+    const uid = 'Feature|Index Caster|XPHB|Path|BOOK|3';
+    const before = createClassFeatureLookup(catalog, true);
+    expect(before(uid, owner)).toBeUndefined();
+    const entry = feature({
+      name: 'Feature',
+      source: 'BOOK',
+      className: 'Index Caster',
+      classSource: 'XPHB',
+      subclassShortName: 'Path',
+      subclassSource: 'BOOK',
+      level: 3,
+    });
+    catalog.register(entry);
+    const after = createClassFeatureLookup(catalog, true);
+    expect(after).not.toBe(before);
+    expect(after(uid, owner)).toBe(entry);
+    expect(after('Feature|Index Caster|PHB|Path|BOOK|3', owner)).toBeUndefined();
+  });
+
   it('子职业检索按父规则版本筛选，保留旧出版物对新父职业的显式适配', () => {
     const old = normalizeClass({
       name: '检索测试',
