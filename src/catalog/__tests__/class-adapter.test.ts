@@ -8,8 +8,25 @@ import { InMemoryCatalogService } from '../catalog';
 import { makeEntryId } from '../identity';
 import mesmerSample from '@/source/__fixtures__/homebrew/mesmer-class.sample.json';
 import { translateProficiency } from '@/engine/terminology';
+import { clean5eTags } from '@/source/fiveetools-cn/utils';
 
 describe('Catalog Class & Subclass Adapter Tests', () => {
+  it('保留职业武器原生引用并从独立施法属性生成摘要', () => {
+    const raw = {
+      name: '德鲁伊',
+      source: 'PHB',
+      startingProficiencies: { weapons: ['{@item 短棒|phb|短棒}'] },
+      spellcastingAbility: 'wis',
+    };
+    const before = JSON.stringify(raw);
+    const definition = catalogEntryToClass(normalizeClass(raw));
+    expect(definition.proficiencies.weapons).toEqual(raw.startingProficiencies.weapons);
+    expect(translateProficiency(clean5eTags(definition.proficiencies.weapons[0]))).toBe('短棒');
+    expect(definition.primaryAbility).toEqual(['str']);
+    expect(definition.spellcastingAbility).toBe('wis');
+    expect(JSON.stringify(raw)).toBe(before);
+  });
+
   it('固定工具原生标签保留来源引用，显示不泄露标签且不改写raw', () => {
     for (const source of ['PHB', 'XPHB']) {
       const raw = {

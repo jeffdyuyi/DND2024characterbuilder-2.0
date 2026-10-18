@@ -3,6 +3,7 @@ import { normalizeEquipmentMode, reconcileStartingEquipment } from '@/engine/sta
 import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
+import { clean5eTags } from '@/source/fiveetools-cn/utils';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -1919,10 +1920,10 @@ export default function ClassPage() {
                   </div>
                 </div>
                 <div className={classStyles.coreTraitRow}>
-                  <div className={classStyles.coreTraitLabel}>武器精通 Weapons</div>
+                  <div className={classStyles.coreTraitLabel}>武器熟练 Weapons</div>
                   <div className={classStyles.coreTraitValue}>
                     {classDefinition.proficiencies.weapons
-                      .map((w: string) => translateProficiency(w))
+                      .map((w: string) => translateProficiency(clean5eTags(w)))
                       .filter(Boolean)
                       .join(', ')}
                   </div>
@@ -1967,9 +1968,9 @@ export default function ClassPage() {
                   <div className={classStyles.coreTraitRow}>
                     <div className={classStyles.coreTraitLabel}>施法属性 Spellcasting</div>
                     <div className={classStyles.coreTraitValue}>
-                      {classDefinition.primaryAbility
-                        .map((a: string) => translateAbilityKey(a))
-                        .join(' 或 ')}
+                      {classDefinition.spellcastingAbility
+                        ? translateAbilityKey(classDefinition.spellcastingAbility)
+                        : '未注明'}
                     </div>
                   </div>
                 ) : null}
