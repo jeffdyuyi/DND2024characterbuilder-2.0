@@ -6,6 +6,7 @@ import { defaultCatalog } from '@/catalog/catalog';
 import { migrateCharacterCatalogReferences } from '@/catalog/references';
 import type { SourceSelection } from '@/types/sourceSelection';
 import { validateSourceSelection } from '@/catalog/sourcePolicy';
+import { reconcileClassSpellSelection } from '@/engine/spellcasting';
 
 interface CharacterStore {
   characters: Record<string, CharacterState>;
@@ -160,10 +161,17 @@ export const useCharacterStore = create<CharacterStore>()(
           if (!state.activeCharacterId) return state;
           const current = state.characters[state.activeCharacterId];
           if (!current) return state;
+          const next = { ...current, ...updates };
+          if (updates.classes && (current.spellsByLevel || next.spellsByLevel)) {
+            const spells = reconcileClassSpellSelection(current, next);
+            for (const field of ['cantripIds', 'preparedSpellIds', 'spellbookIds'] as const) {
+              if (updates[field] === undefined) next[field] = spells[field];
+            }
+          }
           return {
             characters: {
               ...state.characters,
-              [state.activeCharacterId]: { ...current, ...updates },
+              [state.activeCharacterId]: next,
             },
           };
         });

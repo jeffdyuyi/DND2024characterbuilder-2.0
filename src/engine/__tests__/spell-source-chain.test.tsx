@@ -64,6 +64,32 @@ function character(): CharacterState {
   };
 }
 
+it('逐级记录确认兼职来源，共享法术保留双职业，来源授予不伪造首职归属', () => {
+  const primary = normalizeClass({ name: '链路职业甲', ENG_name: 'Source Alpha', source: 'TST' });
+  const secondary = normalizeClass({ name: '链路职业乙', ENG_name: 'Source Beta', source: 'TST' });
+  defaultCatalog.registerMany([primary, secondary]);
+  const state = character();
+  state.classes = [primary, secondary].map((entry) => ({
+    classId: entry.id,
+    source: 'TST',
+    level: 1,
+  }));
+  state.spellsByLevel = {
+    [primary.id]: { 1: { cantrips: [], spells: ['shared-provenance'] } },
+    [secondary.id]: { 1: { cantrips: [], spells: [command.id, 'shared-provenance'] } },
+  };
+  const map = buildSpellSourceMap(
+    [{ spellId: light.id, source: '种族', unlockLevel: 1, isPrepared: true }],
+    [command.id, light.id, 'shared-provenance', 'manual-reference'],
+    primary.name,
+    state,
+  );
+  expect(map[command.id]).toBe(secondary.name);
+  expect(map['shared-provenance']).toBe(`${primary.name}；${secondary.name}`);
+  expect(map[light.id]).toBe('种族');
+  expect(map['manual-reference']).toBe(primary.name);
+});
+
 it('已有选择JSON往返后保留两个专长来源，最终法术ID仍唯一', async () => {
   const original = character();
   const saved = await importFromJSON(exportToJSON(original));

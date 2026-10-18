@@ -145,8 +145,9 @@ function LoadedCharacterSheet({
       innate,
       [...(character.cantripIds || []), ...(character.preparedSpellIds || [])],
       primaryClass?.name || '职业',
+      character,
     );
-  }, [character, primaryClass, catalogStats]);
+  }, [character, primaryClass?.name, catalogStats]);
 
   if (!character) return <div style={{ padding: 40, textAlign: 'center' }}>角色加载中...</div>;
 

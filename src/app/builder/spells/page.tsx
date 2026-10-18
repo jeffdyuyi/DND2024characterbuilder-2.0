@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
 import { computeSpellcasting } from '@/engine/spellcasting';
+import { useCatalog } from '@/platform/CatalogProvider';
 import styles from '../species/page.module.css';
 
 // Lazy load the heavy spell list component which imports the entire spell data dictionary
@@ -20,6 +21,7 @@ const SpellList = dynamic(() => import('./SpellList'), {
 import SpellcastingSummary from './SpellcastingSummary';
 
 export default function SpellsPage() {
+  const { stats } = useCatalog();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const { characters, loadCharacter } = useCharacterStore();
@@ -40,7 +42,7 @@ export default function SpellsPage() {
         spellcastingAbility: undefined,
       };
     return computeSpellcasting(character);
-  }, [character]);
+  }, [character, stats]);
 
   if (!character) return <div className="page-container">加载中...</div>;
 

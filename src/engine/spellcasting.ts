@@ -987,6 +987,7 @@ export function buildSpellSourceMap(
   grants: InnateSpellSource[],
   classSpellIds: string[],
   classLabel: string,
+  character?: CharacterState,
 ): Record<string, string> {
   const sources = new Map<string, Set<string>>();
   grants.forEach((grant) => {
@@ -994,6 +995,23 @@ export function buildSpellSourceMap(
     labels.add(grant.source);
     sources.set(grant.spellId, labels);
   });
+  if (character?.spellsByLevel) {
+    const displayed = new Set(classSpellIds);
+    for (const entry of character.classes) {
+      const owned = deriveCharacterSpellSelection(character, {
+        classId: entry.classId,
+        includeInnateSpells: false,
+        includeNativeSubclassGrants: false,
+      });
+      const label = getClassDefinition(entry.classId)?.name || entry.classId;
+      for (const id of [...owned.cantripIds, ...owned.preparedSpellIds]) {
+        if (!displayed.has(id)) continue;
+        const labels = sources.get(id) || new Set<string>();
+        labels.add(label);
+        sources.set(id, labels);
+      }
+    }
+  }
   // 最终ID列表也包含先天授予，不能仅凭它们再伪造一个职业来源。
   classSpellIds.forEach((id) => {
     if (!sources.has(id)) sources.set(id, new Set([classLabel]));
@@ -1057,6 +1075,8 @@ export function getActiveClassSpellSelections(
 export function deriveCharacterSpellSelection(
   state: CharacterState,
   options: {
+    /** 仅收集此职业的记录，规则计算仍使用完整角色上下文。 */
+    classId?: string;
     includeNativeClassPrepared?: boolean;
     includeNativeSubclassGrants?: boolean;
     /** 持久化职业选择时不混入由其他来源实时派生的授予。 */
@@ -1068,6 +1088,7 @@ export function deriveCharacterSpellSelection(
   const spellbook = new Set<string>();
 
   for (const classEntry of state.classes || []) {
+    if (options.classId && classEntry.classId !== options.classId) continue;
     const steps = computeSpellProgression(state, classEntry.classId);
     const selections = getActiveClassSpellSelections(state, classEntry.classId, steps);
     const replaced = new Set<string>();
@@ -1133,5 +1154,30 @@ export function deriveCharacterSpellSelection(
     cantripIds: [...cantrips],
     preparedSpellIds: [...prepared],
     spellbookIds: [...spellbook],
+  };
+}
+
+/** 职业变化只同步生效记录的差量，保留手动取消准备及归属不明的旧记录。 */
+export function reconcileClassSpellSelection(
+  previous: CharacterState,
+  next: CharacterState,
+): DerivedSpellSelection {
+  const options = { includeInnateSpells: false, includeNativeSubclassGrants: false };
+  const before = deriveCharacterSpellSelection(previous, options);
+  const after = deriveCharacterSpellSelection(next, options);
+  const merge = (field: keyof DerivedSpellSelection) => {
+    const oldIds = new Set(before[field]);
+    const activeIds = new Set(after[field]);
+    return [
+      ...new Set([
+        ...(next[field] || []).filter((id) => !oldIds.has(id) || activeIds.has(id)),
+        ...after[field].filter((id) => !oldIds.has(id)),
+      ]),
+    ];
+  };
+  return {
+    cantripIds: merge('cantripIds'),
+    preparedSpellIds: merge('preparedSpellIds'),
+    spellbookIds: merge('spellbookIds'),
   };
 }
