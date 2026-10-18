@@ -18,6 +18,7 @@ assert.equal(
 );
 const rootFiles = new Set([
   '.env.example',
+  '.gitattributes',
   '.gitignore',
   '.prettierignore',
   '.prettierrc.json',
