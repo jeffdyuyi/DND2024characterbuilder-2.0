@@ -74,7 +74,12 @@ it('兼职候选区分来源，保存精确目录身份且不重复列出当前�
 });
 
 it('旧英文名存档仍解析名称，已存在的同来源兼职不重复列出', () => {
-  store.character.classes.push({ classId: 'Cleric', level: 1, isMulticlass: true });
+  store.character.classes.push({
+    classId: 'Cleric',
+    source: 'XPHB',
+    level: 1,
+    isMulticlass: true,
+  });
   const tree = MulticlassPage();
   const options = nodes(tree).filter((node) => node.props?.className?.includes('mcOption'));
   expect(options).toHaveLength(1);

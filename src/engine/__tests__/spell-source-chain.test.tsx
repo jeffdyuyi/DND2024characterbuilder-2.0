@@ -69,10 +69,11 @@ it('逐级记录确认兼职来源，共享法术保留双职业，来源授予�
   const secondary = normalizeClass({ name: '链路职业乙', ENG_name: 'Source Beta', source: 'TST' });
   defaultCatalog.registerMany([primary, secondary]);
   const state = character();
-  state.classes = [primary, secondary].map((entry) => ({
+  state.classes = [primary, secondary].map((entry, index) => ({
     classId: entry.id,
     source: 'TST',
     level: 1,
+    isMulticlass: index > 0,
   }));
   state.spellsByLevel = {
     [primary.id]: { 1: { cantrips: [], spells: ['shared-provenance'] } },
