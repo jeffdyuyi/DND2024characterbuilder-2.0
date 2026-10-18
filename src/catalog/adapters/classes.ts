@@ -13,7 +13,7 @@ import type { CatalogQueryOptions } from '../types';
 
 import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
-import { ClassData } from '@/types/class';
+import { ClassData, EquipmentRecord } from '@/types/class';
 import { mergeOverlay } from '@/mechanics-overlay';
 import { assembleCatalogClass } from './classAssembly';
 import { applyClassFeatureMechanics } from '@/mechanics-overlay/classFeatures';
@@ -80,7 +80,33 @@ function equipmentOption(value: unknown): string {
   return values.map(equipmentText).filter(Boolean).join('，');
 }
 
-function normalizeStartingEquipment(value: unknown): ClassData['startingEquipment'] {
+function equipmentRecords(value: unknown, sourcePackId: string): EquipmentRecord[] {
+  return (Array.isArray(value) ? value : [value]).flatMap((element): EquipmentRecord[] => {
+    if (!element) return [];
+    const record = typeof element === 'object' ? (element as Record<string, unknown>) : undefined;
+    const uid = typeof element === 'string' ? element : record?.item;
+    if (typeof uid === 'string') {
+      const [name, source] = uid.split('|');
+      return [
+        {
+          kind: 'item',
+          label: name.trim(),
+          quantity: typeof record?.quantity === 'number' ? record.quantity : 1,
+          itemReference: { name: name.trim(), source: source?.trim(), sourcePackId },
+        },
+      ];
+    }
+    if (typeof record?.value === 'number') {
+      return [{ kind: 'currency', label: equipmentText(record), currency: { cp: record.value } }];
+    }
+    return [{ kind: 'unresolved', label: equipmentText(element), quantity: 1 }];
+  });
+}
+
+function normalizeStartingEquipment(
+  value: unknown,
+  sourcePackId: string,
+): ClassData['startingEquipment'] {
   const raw = value && typeof value === 'object' ? (value as Record<string, any>) : {};
   if (Array.isArray(raw.choiceA) && typeof raw.choiceB === 'string')
     return raw as ClassData['startingEquipment'];
@@ -95,6 +121,9 @@ function normalizeStartingEquipment(value: unknown): ClassData['startingEquipmen
       choiceA: (Array.isArray(first.A) ? first.A : [first.A]).map(equipmentText).filter(Boolean),
       choiceB: equipmentOption(first.B) || equipmentText(raw.goldAlternative),
       ...(first.C !== undefined ? { choiceC: equipmentOption(first.C) } : {}),
+      choiceARecords: equipmentRecords(first.A, sourcePackId),
+      ...(first.B !== undefined ? { choiceBRecord: equipmentRecords(first.B, sourcePackId) } : {}),
+      ...(first.C !== undefined ? { choiceCRecord: equipmentRecords(first.C, sourcePackId) } : {}),
     };
   }
 
@@ -224,7 +253,7 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
         ? normalizeProficiencyList(startProf.tools, true)
         : startProf.tools || [],
     },
-    startingEquipment: normalizeStartingEquipment(raw.startingEquipment),
+    startingEquipment: normalizeStartingEquipment(raw.startingEquipment, entry.sourcePackId),
     becomingAClass: raw.becomingAClass,
     progression: raw.progression || assembled.progression,
     features: applyClassFeatureMechanics(

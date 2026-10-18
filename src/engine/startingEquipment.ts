@@ -10,6 +10,7 @@ import type { CharacterState, InventoryEntry } from '@/types/characterState';
 import type { Background, BackgroundEquipmentRecord } from '@/types/background';
 import type { ClassData, EquipmentRecord } from '@/types/class';
 import { totalInCP, fromCPToCurrency } from '@/utils/currencyUtils';
+import { defaultCatalog } from '@/catalog/catalog';
 type Currency = CharacterState['currency'];
 
 export function normalizeEquipmentMode(
@@ -309,7 +310,27 @@ function resolveEquipmentRecord(
     };
   }
 
+  const reference = 'itemReference' in record ? record.itemReference : undefined;
   let resolvedItemId = record.itemId;
+  if (reference) {
+    const normalize = (value: string) =>
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/[-_\s]+/g, '');
+    const candidates = ['item', 'baseitem'] as const;
+    const matches = candidates
+      .flatMap((kind) => defaultCatalog.list(kind))
+      .filter(
+        (entry) =>
+          entry.sourcePackId === reference.sourcePackId &&
+          (!reference.source || entry.source.toLowerCase() === reference.source.toLowerCase()) &&
+          [entry.name, entry.englishName || ''].some(
+            (name) => normalize(name) === normalize(reference.name),
+          ),
+      );
+    resolvedItemId = matches.length === 1 ? matches[0].id : undefined;
+  }
   let resolvedLabel = record.label;
   let extraCurrency = record.currency
     ? mergeCurrency(emptyCurrency(), record.currency)
@@ -319,7 +340,7 @@ function resolveEquipmentRecord(
   const compoundMatch = resolvedLabel.match(
     /(?:[，,\s]+|\s+)(\d+)\s*(GP|SP|CP|PP|EP|金币|银币|铜币|枚金币|枚)$/i,
   );
-  if (compoundMatch) {
+  if (compoundMatch && !reference) {
     const amt = parseInt(compoundMatch[1], 10);
     const unit = compoundMatch[2].toLowerCase();
     const curKey: keyof Currency =
@@ -339,7 +360,7 @@ function resolveEquipmentRecord(
   }
 
   // 处理自选项 (Selection)
-  if (!resolvedItemId && record.selectionId) {
+  if (!reference && !resolvedItemId && record.selectionId) {
     const selectedValue =
       character.backgroundSelections?.[record.selectionId]?.[0] ||
       character.classSelections?.[record.selectionId]?.[0];
@@ -357,7 +378,7 @@ function resolveEquipmentRecord(
       {
         id: itemId
           ? `${sourceName}:${itemId}:${resolvedLabel}`
-          : `${sourceName}-unresolved:${resolvedLabel}`,
+          : `${sourceName}-unresolved:${reference ? `${reference.sourcePackId}:${reference.source || ''}:${reference.name}:` : ''}${resolvedLabel}`,
         name: resolvedItem?.name || resolvedLabel,
         quantity: record.quantity,
         source: sourceName,
@@ -366,7 +387,11 @@ function resolveEquipmentRecord(
           : getItemCategory(resolvedItem),
         itemId,
         weight: resolvedItem?.weight,
-        notes: itemId ? undefined : '未映射到具体物品数据，保留原文记录',
+        notes: itemId
+          ? undefined
+          : reference
+            ? `未找到唯一的同来源物品，保留原始引用：${reference.name}|${reference.source || ''} [${reference.sourcePackId}]`
+            : '未映射到具体物品数据，保留原文记录',
       },
     ],
     currency: extraCurrency,

@@ -1,3 +1,4 @@
+import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 import { beforeEach, expect, it } from 'vitest';
 import { defaultCatalog } from '@/catalog/catalog';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
@@ -157,4 +158,81 @@ it('真实存储动作保存账本，职业替换后移除原方案，手动物�
   } finally {
     store.deleteCharacter(id);
   }
+});
+
+it('原生结构化装备保留书籍及资料包身份和数量，不用同名新版或第三方替换', () => {
+  const name = '来源测试道具';
+  const phb = normalizeItem({ name, source: 'PHB' });
+  const xphb = normalizeItem({ name, source: 'XPHB' });
+  const thirdParty = normalizeItem({ name, source: 'PHB' }, 'homebrew-test');
+  defaultCatalog.registerMany([xphb, thirdParty, phb]);
+  const cls = normalizeClass({
+    name: '来源测试职业',
+    source: 'XPHB',
+    startingEquipment: {
+      defaultData: [
+        {
+          A: [{ item: name + '|PHB', quantity: 8 }, { value: 900 }],
+          B: [{ item: name + '|XPHB', quantity: 2 }, { value: 1100 }],
+        },
+      ],
+    },
+  });
+  defaultCatalog.register(cls);
+  const original = state();
+  original.classes[0].classId = cls.id;
+  const a = buildEquipmentState(original, 'package');
+  expect(a.inventoryEntries).toHaveLength(1);
+  expect(a.inventoryEntries[0]).toMatchObject({ itemId: phb.id, name, quantity: 8 });
+  expect(totalInCP(a.currency)).toBe(900);
+  const b = buildEquipmentState(original, 'gold');
+  expect(b.inventoryEntries[0]).toMatchObject({ itemId: xphb.id, name, quantity: 2 });
+  expect(totalInCP(b.currency)).toBe(1100);
+});
+it('原引用来源尚未加载时保留可追溯记录，后加载才绑定，不改写raw或钱包', () => {
+  const name = '后加载测试道具';
+  defaultCatalog.register(normalizeItem({ name, source: 'XPHB' }));
+  const raw = {
+    name: '后加载测试职业',
+    source: 'XPHB',
+    startingEquipment: {
+      defaultData: [
+        { A: [{ item: name + '|PHB', quantity: 3 }, { value: 900 }], B: [{ value: 5000 }] },
+      ],
+    },
+  };
+  const before = JSON.stringify(raw);
+  const cls = normalizeClass(raw);
+  defaultCatalog.register(cls);
+  const original = state();
+  original.classes[0].classId = cls.id;
+  let current = apply(original);
+  expect(current.inventoryEntries[0].itemId).toBeUndefined();
+  expect(current.inventoryEntries[0].notes).toContain(name + '|PHB');
+  expect(current.inventoryEntries[0].quantity).toBe(3);
+  const item = normalizeItem({ name, source: 'PHB' });
+  defaultCatalog.register(item);
+  current.currency = { cp: 0, sp: 0, ep: 0, gp: 4, pp: 0 };
+  current = apply(current);
+  expect(current.inventoryEntries[0].itemId).toBe(item.id);
+  expect(totalInCP(current.currency)).toBe(400);
+  expect(JSON.stringify(raw)).toBe(before);
+});
+it('同包同书存在多个同名候选时不擅自任选一件', () => {
+  const name = '冲突测试道具';
+  defaultCatalog.registerMany([
+    normalizeItem({ name, source: 'PHB' }),
+    normalizeItem({ name, source: 'PHB' }, '5etools-cn', 'baseitem'),
+  ]);
+  const cls = normalizeClass({
+    name: '冲突测试职业',
+    source: 'XPHB',
+    startingEquipment: { defaultData: [{ A: [{ item: name + '|PHB' }], B: [{ value: 5000 }] }] },
+  });
+  defaultCatalog.register(cls);
+  const original = state();
+  original.classes[0].classId = cls.id;
+  const result = buildEquipmentState(original, 'package');
+  expect(result.inventoryEntries[0].itemId).toBeUndefined();
+  expect(result.inventoryEntries[0].notes).toContain('未找到唯一的同来源物品');
 });

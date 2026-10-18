@@ -103,7 +103,7 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
     };
     const before = JSON.stringify(raw);
     const definition = catalogEntryToClass(normalizeClass(raw));
-    expect(definition.startingEquipment).toEqual({
+    expect(definition.startingEquipment).toMatchObject({
       choiceA: ['草药工具', '9 GP'],
       choiceB: '50 GP',
     });

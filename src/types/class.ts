@@ -162,6 +162,7 @@ export interface EquipmentRecord {
   kind: 'item' | 'currency' | 'unresolved';
   label: string;
   itemId?: string;
+  itemReference?: { name: string; source?: string; sourcePackId: string };
   quantity?: number;
   category?: 'weapon' | 'armor' | 'shield' | 'gear' | 'tool';
   currency?: {
