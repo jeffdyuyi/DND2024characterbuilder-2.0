@@ -38,6 +38,7 @@ import MarkdownText from '@/components/MarkdownText';
 import PillButton from '@/components/PillButton';
 import SourceGrantedSpells from './SourceGrantedSpells';
 import SpeciesSpellChoices from './SpeciesSpellChoices';
+import { createSpellClassMatcher } from './spellClassMatcher';
 import { Check, Lock, ChevronLeft, ChevronRight, Info, Sparkles, RotateCcw } from 'lucide-react';
 
 interface SpellPoolSectionProps {
@@ -348,6 +349,7 @@ interface SpellListProps {
 
 export default function SpellList({ character }: SpellListProps) {
   const choices = useBuilderChoices();
+  const matchesSpellClass = useMemo(() => createSpellClassMatcher(), [choices]);
   const { status: catalogStatus } = useCatalog();
   const { updateActiveCharacter } = useCharacterStore();
   const [activeStepIndex, setActiveStepIndex] = useState(0);
@@ -1640,15 +1642,7 @@ export default function SpellList({ character }: SpellListProps) {
                   match =
                     match &&
                     (expandedForOwnClass ||
-                      s.classes.some((c) => {
-                        const lowC = c.toLowerCase();
-                        if (lowC === targetClass) return true;
-                        const classDef = getClassDefinition(c);
-                        return (
-                          classDef?.nameEn.toLowerCase() === targetClass ||
-                          c.toLowerCase() === targetClass
-                        );
-                      }));
+                      s.classes.some((c) => matchesSpellClass(c, targetClass)));
                 }
                 if (targetLevel) {
                   const allowedLvls = targetLevel
