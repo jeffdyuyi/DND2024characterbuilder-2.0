@@ -104,6 +104,43 @@ const CollapsibleSection: React.FC<{ title: string; children: React.ReactNode }>
   );
 };
 
+function ChoiceFilterRow({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { id: string; label: string }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6, marginBottom: 12 }}
+    >
+      <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>{label}：</span>
+      {options.map((option) => (
+        <PillButton
+          key={option.id}
+          type="button"
+          size="xs"
+          variant={value === option.id ? 'primary' : 'outline'}
+          aria-pressed={value === option.id}
+          onClick={(event) => {
+            event.stopPropagation();
+            onChange(option.id);
+          }}
+        >
+          {option.label}
+        </PillButton>
+      ))}
+    </div>
+  );
+}
+
 export default function BackgroundPage() {
   const choices = useBuilderChoices();
   const searchParams = useSearchParams();
@@ -402,6 +439,17 @@ export default function BackgroundPage() {
             ),
           ).sort((a, b) => getSourceSortWeight(a) - getSourceSortWeight(b))
         : [];
+    const languageSources =
+      category === 'language' && isAny
+        ? Array.from(
+            new Set(
+              choices
+                .getCatalogLanguages()
+                .filter((language) => langCategory === 'All' || language.type === langCategory)
+                .map((language) => language.source || 'Unknown'),
+            ),
+          )
+        : [];
     const effectiveSource = toolSources.includes(toolSource) ? toolSource : 'All';
     const displayOptions =
       category === 'tool' && effectiveSource !== 'All'
@@ -484,154 +532,57 @@ export default function BackgroundPage() {
         </div>
 
         {category === 'language' && isAny && (
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
-              {['Standard', 'Rare', 'Exotic', 'All'].map((cat) => (
-                <button
-                  key={cat}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLangCategory(cat);
-                  }}
-                  style={{
-                    padding: '4px 10px',
-                    fontSize: '11px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background: langCategory === cat ? 'var(--color-gold-accent)' : 'transparent',
-                    color: langCategory === cat ? 'white' : '#86868b',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {cat === 'All'
-                    ? '所有稀有度'
-                    : cat === 'Standard'
-                      ? '标准'
-                      : cat === 'Rare'
-                        ? '稀有'
-                        : '特种'}
-                </button>
-              ))}
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '6px',
-                paddingBottom: '8px',
-                borderBottom: '1px solid #eee',
-              }}
-            >
-              {[
-                'All',
-                ...Array.from(
-                  new Set(
-                    choices
-                      .getCatalogLanguages()
-                      .filter((l) => langCategory === 'All' || l.type === langCategory)
-                      .map((l) => l.source || 'Unknown'),
-                  ),
-                ),
-              ].map((src) => (
-                <button
-                  key={src}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLangSource(src);
-                  }}
-                  style={{
-                    padding: '4px 10px',
-                    fontSize: '11px',
-                    borderRadius: '6px',
-                    border: 'none',
-                    background:
-                      langSource === src ||
-                      (src === 'All' &&
-                        !choices
-                          .getCatalogLanguages()
-                          .some(
-                            (x) =>
-                              (langCategory === 'All' || x.type === langCategory) &&
-                              x.source === langSource,
-                          ))
-                        ? '#34c759'
-                        : 'transparent',
-                    color:
-                      langSource === src ||
-                      (src === 'All' &&
-                        !choices
-                          .getCatalogLanguages()
-                          .some(
-                            (x) =>
-                              (langCategory === 'All' || x.type === langCategory) &&
-                              x.source === langSource,
-                          ))
-                        ? 'white'
-                        : '#86868b',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
-                >
-                  {src === 'All' ? '所有来源' : getSourceDisplayName(src)}
-                </button>
-              ))}
-            </div>
-          </div>
+          <>
+            <ChoiceFilterRow
+              label="语言分类"
+              value={langCategory}
+              onChange={setLangCategory}
+              options={[
+                { id: 'Standard', label: '标准' },
+                { id: 'Rare', label: '稀有' },
+                { id: 'Exotic', label: '特种' },
+                { id: 'All', label: '全部' },
+              ]}
+            />
+            <ChoiceFilterRow
+              label="语言来源"
+              value={languageSources.includes(langSource) ? langSource : 'All'}
+              onChange={setLangSource}
+              options={[
+                { id: 'All', label: '所有来源' },
+                ...languageSources.map((source) => ({
+                  id: source,
+                  label: getSourceDisplayName(source),
+                })),
+              ]}
+            />
+          </>
         )}
-
         {isMultiCategoryTool && (
-          <div style={{ marginBottom: '14px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {[
+          <ChoiceFilterRow
+            label="工具分类"
+            value={toolCategory}
+            onChange={setToolCategory}
+            options={[
               { id: 'All', label: '全部' },
               { id: 'Artisan', label: '工匠工具' },
               { id: 'Gaming', label: '赌具' },
               { id: 'Musical', label: '乐器' },
               { id: 'Other', label: '其他工具' },
               { id: 'Vehicle', label: '载具' },
-            ].map((cat) => (
-              <button
-                key={cat.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setToolCategory(cat.id);
-                }}
-                style={{
-                  padding: '4px 10px',
-                  fontSize: '11px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  background:
-                    toolCategory === cat.id ? 'var(--color-apple-blue)' : 'rgba(0,0,0,0.06)',
-                  color: toolCategory === cat.id ? '#fff' : 'var(--color-text-secondary)',
-                  cursor: 'pointer',
-                  fontWeight: toolCategory === cat.id ? 700 : 500,
-                  transition: 'all 0.2s',
-                }}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
+            ]}
+          />
         )}
-
         {toolSources.length > 0 && (
-          <label style={{ display: 'block', marginBottom: 12 }}>
-            工具出处：
-            <select
-              aria-label="工具出处"
-              value={effectiveSource}
-              onClick={(e) => e.stopPropagation()}
-              onChange={(e) => setToolSource(e.target.value)}
-            >
-              <option value="All">全部允许出处</option>
-              {toolSources.map((source) => (
-                <option key={source} value={source}>
-                  {getSourceDisplayName(source)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <ChoiceFilterRow
+            label="工具来源"
+            value={effectiveSource}
+            onChange={setToolSource}
+            options={[
+              { id: 'All', label: '所有来源' },
+              ...toolSources.map((source) => ({ id: source, label: getSourceDisplayName(source) })),
+            ]}
+          />
         )}
         {category === 'tool' &&
           chosen.some(
