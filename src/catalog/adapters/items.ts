@@ -24,6 +24,18 @@ function numericBonus(value: unknown): number {
   return 0;
 }
 
+function normalizePropertyCodes(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return [
+    ...new Set(
+      value
+        .filter((code): code is string => typeof code === 'string')
+        .map((code) => code.split('|')[0].trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
 function matchesVariantCondition(
   raw: Record<string, any>,
   condition: Record<string, any>,
@@ -237,7 +249,7 @@ export function catalogEntryToItem(entry: CatalogEntry): AnyItem {
     damage: raw.damage || raw.dmg1,
     damageType: raw.damageType || raw.dmgType,
     ac: raw.ac,
-    properties: raw.properties || raw.property,
+    properties: normalizePropertyCodes(raw.properties || raw.property),
   } as unknown as AnyItem;
 }
 

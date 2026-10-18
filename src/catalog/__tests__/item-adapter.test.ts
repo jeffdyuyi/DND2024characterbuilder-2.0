@@ -11,6 +11,24 @@ import { findItemById, findItemByName } from '@/engine/characterData';
 import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 
 describe('Catalog Item Adapter Tests', () => {
+  it('原生武器词条来源引用只留在raw，计算属性使用词条代码', () => {
+    const raw = {
+      name: '测试双手武器',
+      source: 'XPHB',
+      type: 'M',
+      weaponCategory: 'martial',
+      property: ['H|XPHB', '2H|XPHB', 'L|XPHB', 'V (1d10)|PHB'],
+    };
+    const before = JSON.stringify(raw);
+    const entry = normalizeItem(raw);
+    const item = catalogEntryToItem(entry) as any;
+    expect(item.properties).toEqual(['H', '2H', 'L', 'V (1d10)']);
+    expect(item.properties.includes('2H')).toBe(true);
+    expect(item.properties.includes('L')).toBe(true);
+    expect(entry.raw).toBe(raw);
+    expect(JSON.stringify(raw)).toBe(before);
+  });
+
   it('should prioritize 5etools item when registered into catalog', () => {
     const raw5eItem = {
       name: '测试魔法剑',
