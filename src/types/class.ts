@@ -218,6 +218,7 @@ export interface ClassData {
   startingEquipment: {
     choiceA: (string | { options: string[] })[];
     choiceB: string;
+    goldAlternativeFormula?: string;
     choiceC?: string;
     choiceARecords?: EquipmentRecord[];
     choiceBRecord?: EquipmentRecord | EquipmentRecord[];

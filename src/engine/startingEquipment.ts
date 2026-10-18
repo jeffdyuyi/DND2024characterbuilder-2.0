@@ -32,6 +32,17 @@ function parseCurrency(label: string): Partial<Currency> | null {
   return { [match[2].toLowerCase() as keyof Currency]: parseInt(match[1], 10) };
 }
 
+export function parseStartingGoldFormula(formula: string) {
+  const match = formula.replace(/\s+/g, '').match(/^(\d+)d(\d+)(?:[×x*](\d+))?$/i);
+  if (!match) return undefined;
+  const count = Number(match[1]);
+  const faces = Number(match[2]);
+  const multiplier = Number(match[3] || 1);
+  return count > 0 && count <= 100 && faces > 0 && faces <= 1000 && multiplier > 0
+    ? { count, faces, multiplier }
+    : undefined;
+}
+
 function mergeCurrency(base: Currency, patch: Partial<Currency>): Currency {
   return {
     cp: base.cp + (patch.cp ?? 0),
@@ -499,6 +510,21 @@ function buildClassEquipmentState(
 
   // --- 方案 B 处理 (通常标记为 gold) ---
   if (mode === 'gold') {
+    if (startingEquipment.goldAlternativeFormula) {
+      const roll = character.startingGoldRoll;
+      return {
+        inventoryEntries: [] as InventoryEntry[],
+        currency: {
+          ...emptyCurrency(),
+          gp:
+            roll?.classId === (primaryClass.catalogId || character.classes[0]?.classId) &&
+            Number.isInteger(roll.amount) &&
+            roll.amount >= 0
+              ? roll.amount
+              : 0,
+        },
+      };
+    }
     // 优先尝试结构化记录 (如战士的方案B包含单品)
     const choiceBRecord = (startingEquipment as any).choiceBRecord;
     if (choiceBRecord) {
@@ -662,7 +688,18 @@ export function reconcileStartingEquipment(
   next: CharacterState,
 ): Partial<CharacterState> {
   const definition = getPrimaryClassDefinition(next);
-  const mode = resolveClassEquipmentMode(next);
+  let mode = resolveClassEquipmentMode(next);
+  if (mode === 'gold' && definition?.startingEquipment.goldAlternativeFormula) {
+    const roll = next.startingGoldRoll;
+    const valid =
+      roll?.classId === (definition.catalogId || next.classes[0]?.classId) &&
+      Number.isInteger(roll.amount) &&
+      roll.amount >= 0;
+    if (!valid) {
+      if (current.classes[0]?.classId !== next.classes[0]?.classId) mode = 'package';
+      else throw new Error('请先掷骰或填写起始金币金额；本次未更改方案和库存。');
+    }
+  }
   if (
     definition?.startingEquipment.choiceRows &&
     resolveClassEquipmentRows(definition, next).some(

@@ -8,6 +8,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import {
   buildEquipmentState,
   getStartingEquipmentKey,
+  parseStartingGoldFormula,
   normalizeEquipmentMode,
   reconcileStartingEquipment,
 } from '../startingEquipment';
@@ -54,6 +55,38 @@ it('所有旧方案别名对应同一解析，B装备不再丢失且无效旧套
   expect(buildEquipmentState(original, 'choiceA', '已过时的其他套组')).toEqual(
     buildEquipmentState(original, 'package'),
   );
+});
+it('2014随机起始金币须确定结果，改额只结算差额且不产生伪物品', () => {
+  const legacy = normalizeClass({
+    name: '随机金币测试职业',
+    source: 'PHB',
+    startingEquipment: {
+      defaultData: [{ _: ['盾牌|PHB'] }],
+      goldAlternative: '{@dice 2d4 × 10|2d4 × 10|起始金币}',
+    },
+  });
+  defaultCatalog.register(legacy);
+  const original = {
+    ...state(),
+    classes: [{ classId: legacy.id, source: 'PHB', level: 1, isMulticlass: false }],
+  };
+  const first = apply(original);
+  expect(parseStartingGoldFormula('2d4 × 10')).toEqual({ count: 2, faces: 4, multiplier: 10 });
+  expect(() => apply(first, { equipmentChoiceMode: 'gold' })).toThrow('请先掷骰或填写');
+  const selected = apply(first, {
+    equipmentChoiceMode: 'gold',
+    startingGoldRoll: { classId: legacy.id, amount: 50 },
+  });
+  expect(totalInCP(selected.currency)).toBe(5000);
+  expect(selected.inventoryEntries).toEqual([]);
+  selected.inventoryEntries.push({ id: 'manual', name: '购买物品' });
+  const edited = apply(selected, { startingGoldRoll: { classId: legacy.id, amount: 60 } });
+  expect(totalInCP(edited.currency)).toBe(6000);
+  expect(edited.inventoryEntries.map((entry) => entry.name)).toContain('购买物品');
+  expect(apply(edited).currency).toEqual(edited.currency);
+  const back = apply(edited, { equipmentChoiceMode: 'package' });
+  expect(totalInCP(back.currency)).toBe(0);
+  expect(back.inventoryEntries.map((entry) => entry.name)).toEqual(['盾牌', '购买物品']);
 });
 it('新角色发放一次，重复进入和JSON往返后不补发已花金币或已移除物品', () => {
   const first = apply(state());

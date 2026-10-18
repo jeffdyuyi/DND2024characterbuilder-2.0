@@ -1,6 +1,7 @@
 'use client';
 import { normalizeEquipmentMode, reconcileStartingEquipment } from '@/engine/startingEquipment';
 import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
+import ClassStartingGoldChoice from '@/components/ClassStartingGoldChoice';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 import { clean5eTags } from '@/source/fiveetools-cn/utils';
@@ -2142,7 +2143,9 @@ export default function ClassPage() {
                               {classDefinition.startingEquipment.choiceB}
                             </div>
                             <div style={{ fontSize: '11px', color: '#86868b', marginTop: '4px' }}>
-                              起始物资
+                              {classDefinition.startingEquipment.goldAlternativeFormula
+                                ? '掷骰或填写金额'
+                                : '起始物资'}
                             </div>
                           </div>
                         )}
@@ -2198,6 +2201,12 @@ export default function ClassPage() {
                       </div>
                     )}
                   </div>
+
+                  <ClassStartingGoldChoice
+                    character={character}
+                    definition={classDefinition}
+                    onChange={applyEquipmentChange}
+                  />
 
                   {/* Nested choices for Packages */}
                   {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&

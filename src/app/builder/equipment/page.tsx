@@ -12,6 +12,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
 import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
+import ClassStartingGoldChoice from '@/components/ClassStartingGoldChoice';
 import PillButton from '@/components/PillButton';
 import OptionCard from '@/components/OptionCard';
 import styles from '../species/page.module.css';
@@ -1260,8 +1261,9 @@ export default function EquipmentPage() {
               />
               <EquipmentOptionCard
                 title={
-                  primaryClass?.startingEquipment.choiceB?.includes('GP') &&
-                  !primaryClass?.startingEquipment.choiceB?.includes('，')
+                  primaryClass?.startingEquipment.goldAlternativeFormula ||
+                  (primaryClass?.startingEquipment.choiceB?.includes('GP') &&
+                    !primaryClass?.startingEquipment.choiceB?.includes('，'))
                     ? '方案 B：起始金币'
                     : '方案 B：职业套组'
                 }
@@ -1282,6 +1284,14 @@ export default function EquipmentPage() {
                 />
               )}
             </div>
+
+            {primaryClass && (
+              <ClassStartingGoldChoice
+                character={character}
+                definition={primaryClass}
+                onChange={commitEquipmentUpdates}
+              />
+            )}
 
             {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
               primaryClass?.startingEquipment.choiceRows && (

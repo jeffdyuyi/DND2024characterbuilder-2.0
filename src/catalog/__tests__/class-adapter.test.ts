@@ -147,6 +147,7 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
       '地城套组',
     ]);
     expect(definition.startingEquipment.choiceB).toBe('起始金币');
+    expect(definition.startingEquipment.goldAlternativeFormula).toBe('5d4 × 10');
   });
 
   it('组装扩展职业引用、跨书源子职业，并按等级生成进度', () => {

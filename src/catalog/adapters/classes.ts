@@ -50,6 +50,12 @@ function renderFiveEToolsTag(tag: string, body: string): string {
   return parts[2] || parts[0];
 }
 
+function goldAlternativeFormula(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const formula = value.match(/\{@dice\s+([^|}]+)/i)?.[1]?.trim();
+  return formula || undefined;
+}
+
 function equipmentText(value: unknown): string {
   if (typeof value === 'string') {
     const tagged = value
@@ -216,9 +222,11 @@ function normalizeStartingEquipment(
     choiceA.push(...raw.default.map(equipmentText).filter(Boolean));
   }
 
+  const goldFormula = goldAlternativeFormula(raw.goldAlternative);
   return {
     choiceA,
     choiceB: equipmentText(raw.goldAlternative),
+    ...(goldFormula ? { goldAlternativeFormula: goldFormula } : {}),
     ...(choiceRows.length ? { choiceRows } : {}),
   };
 }

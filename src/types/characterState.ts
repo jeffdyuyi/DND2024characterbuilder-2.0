@@ -162,6 +162,7 @@ export interface CharacterState {
 
   // Step 6: Equipment
   equipmentChoiceMode?: 'choiceA' | 'choiceB' | 'choiceC' | 'package' | 'gold';
+  startingGoldRoll?: { classId: string; amount: number };
   equipmentIds: string[];
   inventoryEntries: InventoryEntry[];
   equippedArmorId?: string;
