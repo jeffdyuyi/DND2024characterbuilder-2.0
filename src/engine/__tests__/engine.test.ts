@@ -8,6 +8,7 @@ import { defaultCatalog } from '@/catalog';
 import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 import { getAttunementStatus } from '../characterData';
 import { makeEntryId } from '@/catalog/identity';
+import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 
 const baseCharacterState = (): Omit<
   CharacterState,
@@ -31,6 +32,43 @@ const baseCharacterState = (): Omit<
   spellbookIds: [],
   spellSlotUsage: {},
   selectedLanguages: [],
+});
+
+describe('Engine: Class fixed tool proficiencies', () => {
+  it('首职固定工具进入汇总，兼职不误获首职工具，更换职业不残留且保留手动工具', () => {
+    const toolClass = normalizeClass({
+      name: '工具测试职业',
+      source: 'TST',
+      startingProficiencies: { tools: ['{@item 测试工具|TST}'] },
+    });
+    const otherClass = normalizeClass({ name: '无工具测试职业', source: 'TST' });
+    defaultCatalog.registerMany([toolClass, otherClass]);
+    const state: CharacterState = {
+      ...baseCharacterState(),
+      id: 'fixed-tool-test',
+      name: '测试',
+      playerName: '',
+      baseAbilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      backgroundAbilityBonuses: {},
+      classes: [{ classId: toolClass.id, source: 'TST', level: 1, isMulticlass: false }],
+      classSelections: { 'manual:tool': ['herbalism kit'] },
+    };
+    const before = JSON.stringify(state);
+    const first = computeProficiencies(state);
+    expect(first.tools).toContainEqual({
+      id: '测试工具|TST',
+      sources: ['职业: 工具测试职业'],
+    });
+    expect(first.tools.some((tool) => tool.id === 'herbalism kit')).toBe(true);
+    expect(JSON.stringify(state)).toBe(before);
+    state.classes = [
+      { classId: otherClass.id, source: 'TST', level: 1, isMulticlass: false },
+      { classId: toolClass.id, source: 'TST', level: 1, isMulticlass: true },
+    ];
+    const changed = computeProficiencies(state);
+    expect(changed.tools.some((tool) => tool.id === '测试工具|TST')).toBe(false);
+    expect(changed.tools.some((tool) => tool.id === 'herbalism kit')).toBe(true);
+  });
 });
 
 describe('Engine: Ability Scores', () => {

@@ -122,14 +122,17 @@ function normalizeStartingEquipment(value: unknown): ClassData['startingEquipmen
   };
 }
 
-function normalizeProficiencyList(items: unknown): string[] {
+function normalizeProficiencyList(items: unknown, itemReferences = false): string[] {
   if (!Array.isArray(items)) return [];
   const result: string[] = [];
   for (const item of items) {
     if (!item) continue;
     if (typeof item === 'string') {
       const trimmed = item.trim();
-      if (trimmed) result.push(trimmed);
+      // 原生物品标签转为带来源的引用；保留 raw，不将来源压成纯显示名称。
+      const reference = itemReferences && trimmed.match(/^\{@item\s+([^}]+)\}$/i);
+      if (reference) result.push(reference[1].split('|').slice(0, 2).join('|'));
+      else if (trimmed) result.push(trimmed);
     } else if (typeof item === 'object') {
       const obj = item as Record<string, any>;
       const prof =
@@ -219,7 +222,7 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
       weapons: normalizeProficiencyList(startProf.weapons),
       armor: normalizeProficiencyList(startProf.armor),
       tools: Array.isArray(startProf.tools)
-        ? normalizeProficiencyList(startProf.tools)
+        ? normalizeProficiencyList(startProf.tools, true)
         : startProf.tools || [],
     },
     startingEquipment: normalizeStartingEquipment(raw.startingEquipment),

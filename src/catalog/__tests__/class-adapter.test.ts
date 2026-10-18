@@ -7,8 +7,26 @@ import { assembleCatalogClass, collectClassAssemblyDiagnostics } from '../adapte
 import { InMemoryCatalogService } from '../catalog';
 import { makeEntryId } from '../identity';
 import mesmerSample from '@/source/__fixtures__/homebrew/mesmer-class.sample.json';
+import { translateProficiency } from '@/engine/terminology';
 
 describe('Catalog Class & Subclass Adapter Tests', () => {
+  it('固定工具原生标签保留来源引用，显示不泄露标签且不改写raw', () => {
+    for (const source of ['PHB', 'XPHB']) {
+      const raw = {
+        name: '工具解析测试职业',
+        source,
+        startingProficiencies: { tools: [`{@item 草药工具|${source}}`] },
+      };
+      const before = JSON.stringify(raw);
+      const definition = catalogEntryToClass(normalizeClass(raw));
+      expect(definition.proficiencies.tools).toEqual([`草药工具|${source}`]);
+      const display = translateProficiency((definition.proficiencies.tools as string[])[0]);
+      expect(display).toContain('草药工具');
+      expect(display).not.toMatch(/\{@|\|/);
+      expect(JSON.stringify(raw)).toBe(before);
+    }
+  });
+
   it('should prioritize 5etools class when registered into catalog', () => {
     const raw5eClass = {
       name: '测试战士',

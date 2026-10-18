@@ -393,6 +393,9 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
       if (Array.isArray(classDef.proficiencies?.weapons)) {
         classDef.proficiencies.weapons.forEach((w) => addProficiency('weapons', w, sourceName));
       }
+      if (Array.isArray(classDef.proficiencies?.tools)) {
+        classDef.proficiencies.tools.forEach((tool) => addProficiency('tools', tool, sourceName));
+      }
     }
 
     // 3.3 处理职业特性选择 (cls:[ID]:feat:[FeatureName]:[ChoiceID])
