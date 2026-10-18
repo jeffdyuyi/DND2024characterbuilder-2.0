@@ -9,6 +9,7 @@ import { WarlockInvocations2024 } from '@/mechanics-overlay/warlockInvocations';
 import { getClassDefinition, getClassProgression, getFeatDefinition } from '@/engine/characterData';
 import { computeAbilityScores } from '@/engine/ability';
 import { normalizeAbilityKey, translateClass, translateAbilityKey } from '@/engine/terminology';
+import { meetsMulticlassRequirements } from '@/catalog/multiclassRequirements';
 import { allLanguages } from '@/rules/languages';
 import styles from '../class/class.module.css'; // Reuse class styles
 import classStyles from './multiclass.module.css';
@@ -136,7 +137,7 @@ export default function MulticlassPage() {
       getClassDefinition(classId) ||
       getCatalogClasses().find((c) => c.nameEn === classId || (c as any).id === classId);
     if (targetDef && abilityScores) {
-      // All current classes and target class must have 13+ in primary ability
+      // Current classes and the target must each satisfy their own native requirement.
       const allValid =
         currentClasses.every((cc) => {
           const def =
@@ -144,23 +145,8 @@ export default function MulticlassPage() {
             getCatalogClasses().find(
               (c) => c.nameEn === cc.classId || (c as any).id === cc.classId,
             );
-          const scores = abilityScores?.scores;
-          return def?.primaryAbility.some((attr: string) => {
-            if (!scores) return false;
-            const key = normalizeAbilityKey(attr);
-            if (!key) return false;
-            const val = (scores as any)[key.toLowerCase()];
-            return (val || 0) >= 13;
-          });
-        }) &&
-        targetDef.primaryAbility.some((attr: string) => {
-          const scores = abilityScores?.scores;
-          if (!scores) return false;
-          const key = normalizeAbilityKey(attr);
-          if (!key) return false;
-          const val = (scores as any)[key.toLowerCase()];
-          return (val || 0) >= 13;
-        });
+          return meetsMulticlassRequirements(def, abilityScores.scores);
+        }) && meetsMulticlassRequirements(targetDef, abilityScores.scores);
 
       if (!allValid) return;
     }
@@ -661,23 +647,8 @@ export default function MulticlassPage() {
                             getCatalogClasses().find(
                               (x) => x.nameEn === cc.classId || (x as any).id === cc.classId,
                             );
-                          const scores = abilityScores?.scores;
-                          return d?.primaryAbility.some((a: string) => {
-                            if (!scores) return false;
-                            const key = normalizeAbilityKey(a);
-                            if (!key) return false;
-                            const val = (scores as any)[key.toLowerCase()];
-                            return (val || 0) >= 13;
-                          });
-                        }) &&
-                        cls.primaryAbility.some((a: string) => {
-                          const scores = abilityScores?.scores;
-                          if (!scores) return false;
-                          const key = normalizeAbilityKey(a);
-                          if (!key) return false;
-                          const val = (scores as any)[key.toLowerCase()];
-                          return (val || 0) >= 13;
-                        });
+                          return meetsMulticlassRequirements(d, abilityScores?.scores);
+                        }) && meetsMulticlassRequirements(cls, abilityScores?.scores);
 
                       return (
                         <div

@@ -19,6 +19,7 @@ import { mergeOverlay } from '@/mechanics-overlay';
 import { assembleCatalogClass } from './classAssembly';
 import { applyClassFeatureMechanics } from '@/mechanics-overlay/classFeatures';
 import { belongsToClass, classKeyPart, classNames } from './classReferences';
+import { parseMulticlassRequirements } from '../multiclassRequirements';
 
 const ABILITY_KEYS = new Set(['str', 'dex', 'con', 'int', 'wis', 'cha']);
 
@@ -287,6 +288,10 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
   const savingThrows = Array.isArray(raw.proficiency) ? raw.proficiency : [];
   const startProf = raw.startingProficiencies || {};
   const primaryAbility = normalizePrimaryAbilities(raw.primaryAbility);
+  const multiclassAbilityRequirements = parseMulticlassRequirements(
+    raw.multiclassing?.requirements,
+    raw.primaryAbility,
+  );
   const multiclassProf = raw.multiclassing?.proficienciesGained || {};
   const assembled = assembleCatalogClass(mergedEntry, defaultCatalog);
 
@@ -323,7 +328,13 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
     name: mergedEntry.name,
     nameEn: mergedEntry.englishName || mergedEntry.name,
     description: mergedEntry.description || '',
-    primaryAbility: primaryAbility.length > 0 ? primaryAbility : ['str'],
+    primaryAbility:
+      primaryAbility.length > 0
+        ? primaryAbility
+        : multiclassAbilityRequirements
+            ?.flatMap((group) => Object.keys(group))
+            .filter((key, index, keys) => keys.indexOf(key) === index) || ['str'],
+    ...(multiclassAbilityRequirements ? { multiclassAbilityRequirements } : {}),
     hitPointDie: hdFaces,
     proficiencies: {
       savingThrows,

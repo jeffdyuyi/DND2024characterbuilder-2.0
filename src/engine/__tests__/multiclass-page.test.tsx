@@ -86,3 +86,33 @@ it('旧英文名存档仍解析名称，已存在的同来源兼职不重复列�
   expect(text(options[0])).toContain('Cleric · PHB');
   expect(text(tree)).toContain('牧师Cleric');
 });
+
+it('兼职候选与点击添加共用2014双属性门槛', () => {
+  const monk = normalizeClass({
+    name: '武僧',
+    ENG_name: 'Monk',
+    source: 'PHB',
+    multiclassing: { requirements: { dex: 13, wis: 13 } },
+  });
+  defaultCatalog.register(monk);
+  store.character.baseAbilityScores.wis = 12;
+  let option = nodes(MulticlassPage()).find(
+    (node) => node.props?.className?.includes('mcOption') && text(node).includes('Monk · PHB'),
+  );
+  expect(option?.props.style.opacity).toBe(0.5);
+  option?.props.onClick();
+  expect(store.update).not.toHaveBeenCalled();
+
+  store.character.baseAbilityScores.wis = 13;
+  option = nodes(MulticlassPage()).find(
+    (node) => node.props?.className?.includes('mcOption') && text(node).includes('Monk · PHB'),
+  );
+  expect(option?.props.style.opacity).toBe(1);
+  option?.props.onClick();
+  expect(store.update).toHaveBeenCalledWith({
+    classes: [
+      store.character.classes[0],
+      { classId: monk.id, level: 1, isMulticlass: true, source: 'PHB' },
+    ],
+  });
+});

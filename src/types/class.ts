@@ -195,6 +195,7 @@ export interface ClassData {
     asMulticlass: string;
   };
   primaryAbility: string[];
+  multiclassAbilityRequirements?: Record<string, number>[];
   hitPointDie: number;
   proficiencies: {
     savingThrows: string[];
