@@ -1,3 +1,4 @@
+import { equipmentTypeLabel } from '../equipmentChoices';
 import { filterNestedSourceChoices } from '../sourcePolicy';
 import type { CatalogQueryOptions } from '../types';
 /**
@@ -13,7 +14,7 @@ import type { CatalogQueryOptions } from '../types';
 
 import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
-import { ClassData, EquipmentRecord } from '@/types/class';
+import { ClassData, EquipmentRecord, EquipmentChoiceRow } from '@/types/class';
 import { mergeOverlay } from '@/mechanics-overlay';
 import { assembleCatalogClass } from './classAssembly';
 import { applyClassFeatureMechanics } from '@/mechanics-overlay/classFeatures';
@@ -70,7 +71,7 @@ function equipmentText(value: unknown): string {
     const copper = record.value;
     return copper % 100 === 0 ? `${copper / 100} GP` : `${copper} CP`;
   }
-  if (typeof record.equipmentType === 'string') return `自选${record.equipmentType}`;
+  if (typeof record.equipmentType === 'string') return equipmentTypeLabel(record.equipmentType);
   if (typeof record.special === 'string') return equipmentText(record.special);
   return '';
 }
@@ -80,8 +81,14 @@ function equipmentOption(value: unknown): string {
   return values.map(equipmentText).filter(Boolean).join('，');
 }
 
-function equipmentRecords(value: unknown, sourcePackId: string): EquipmentRecord[] {
-  return (Array.isArray(value) ? value : [value]).flatMap((element): EquipmentRecord[] => {
+function equipmentRecords(
+  value: unknown,
+  sourcePackId: string,
+  selectionPrefix?: string,
+  equipmentSource?: string,
+  equipmentFilterUnresolved = false,
+): EquipmentRecord[] {
+  return (Array.isArray(value) ? value : [value]).flatMap((element, index): EquipmentRecord[] => {
     if (!element) return [];
     const record = typeof element === 'object' ? (element as Record<string, unknown>) : undefined;
     const uid = typeof element === 'string' ? element : record?.item;
@@ -99,6 +106,23 @@ function equipmentRecords(value: unknown, sourcePackId: string): EquipmentRecord
     if (typeof record?.value === 'number') {
       return [{ kind: 'currency', label: equipmentText(record), currency: { cp: record.value } }];
     }
+    if (typeof record?.equipmentType === 'string' && selectionPrefix) {
+      const count = typeof record.quantity === 'number' ? record.quantity : 1;
+      return Array.from(
+        { length: Number.isInteger(count) && count > 0 ? count : 1 },
+        (_, slot) => ({
+          kind: 'unresolved' as const,
+          label:
+            equipmentTypeLabel(record.equipmentType as string) +
+            (count > 1 ? `（${slot + 1}/${count}）` : ''),
+          quantity: 1,
+          equipmentType: record.equipmentType as string,
+          equipmentSource,
+          ...(equipmentFilterUnresolved ? { equipmentFilterUnresolved: true } : {}),
+          selectionId: selectionPrefix + ':' + index + ':' + slot,
+        }),
+      );
+    }
     return [{ kind: 'unresolved', label: equipmentText(element), quantity: 1 }];
   });
 }
@@ -106,6 +130,7 @@ function equipmentRecords(value: unknown, sourcePackId: string): EquipmentRecord
 function normalizeStartingEquipment(
   value: unknown,
   sourcePackId: string,
+  classId: string,
 ): ClassData['startingEquipment'] {
   const raw = value && typeof value === 'object' ? (value as Record<string, any>) : {};
   if (Array.isArray(raw.choiceA) && typeof raw.choiceB === 'string')
@@ -127,6 +152,53 @@ function normalizeStartingEquipment(
     };
   }
 
+  const rowOccurrences = new Map<string, number>();
+  const choiceRows: EquipmentChoiceRow[] = rows.flatMap((row: unknown, index: number) => {
+    if (!row || typeof row !== 'object') return [];
+    const data = row as Record<string, unknown>;
+    const signature = JSON.stringify(
+      Object.fromEntries(Object.entries(data).sort(([a], [b]) => a.localeCompare(b))),
+    );
+    const hash =
+      Array.from(signature).reduce(
+        (value, char) => Math.imul(value ^ char.charCodeAt(0), 16777619),
+        2166136261,
+      ) >>> 0;
+    const occurrence = rowOccurrences.get(signature) || 0;
+    rowOccurrences.set(signature, occurrence + 1);
+    const id = `${classId}:equipment:row:${hash.toString(36)}:${occurrence}`;
+    const text = Array.isArray(raw.default) ? String(raw.default[index] || '') : '';
+    const sources = [...text.matchAll(/\{@filter\s+[^}]+\}/g)].flatMap((match) =>
+      [...match[0].matchAll(/\|source=([^|}]+)/g)].map((value) => value[1]),
+    );
+    const equipmentSource = new Set(sources).size === 1 ? sources[0] : undefined;
+    return [
+      {
+        id,
+        fixedLabel: equipmentOption(data._),
+        fixedRecords: equipmentRecords(
+          data._,
+          sourcePackId,
+          id + ':_',
+          equipmentSource,
+          new Set(sources).size > 1,
+        ),
+        options: Object.entries(data)
+          .filter(([key]) => key !== '_')
+          .map(([key, value]) => ({
+            id: key,
+            label: equipmentOption(value),
+            records: equipmentRecords(
+              value,
+              sourcePackId,
+              id + ':' + key,
+              equipmentSource,
+              new Set(sources).size > 1,
+            ),
+          })),
+      },
+    ];
+  });
   const choiceA: ClassData['startingEquipment']['choiceA'] = [];
   rows.forEach((row: unknown) => {
     if (!row || typeof row !== 'object') return;
@@ -147,6 +219,7 @@ function normalizeStartingEquipment(
   return {
     choiceA,
     choiceB: equipmentText(raw.goldAlternative),
+    ...(choiceRows.length ? { choiceRows } : {}),
   };
 }
 
@@ -253,7 +326,11 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
         ? normalizeProficiencyList(startProf.tools, true)
         : startProf.tools || [],
     },
-    startingEquipment: normalizeStartingEquipment(raw.startingEquipment, entry.sourcePackId),
+    startingEquipment: normalizeStartingEquipment(
+      raw.startingEquipment,
+      entry.sourcePackId,
+      entry.id,
+    ),
     becomingAClass: raw.becomingAClass,
     progression: raw.progression || assembled.progression,
     features: applyClassFeatureMechanics(

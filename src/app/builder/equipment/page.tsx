@@ -11,6 +11,7 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
+import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
 import PillButton from '@/components/PillButton';
 import OptionCard from '@/components/OptionCard';
 import styles from '../species/page.module.css';
@@ -920,6 +921,24 @@ export default function EquipmentPage() {
     });
   }, [shopCategory, weaponTypeFilter, weaponRangeFilter, choices]);
 
+  const commitEquipmentUpdates = React.useCallback(
+    (updates: Partial<CharacterState>) => {
+      if (!character) return;
+      try {
+        updateActiveCharacter({
+          ...updates,
+          ...reconcileStartingEquipment(character, { ...character, ...updates }),
+        });
+        setEquipmentError('');
+      } catch (error) {
+        setEquipmentError(
+          error instanceof Error ? error.message : '装备方案未能同步，请核对配置。',
+        );
+      }
+    },
+    [character, updateActiveCharacter],
+  );
+
   const applyEquipmentState = React.useCallback(
     (params: {
       classMode?: 'package' | 'gold' | 'choiceC';
@@ -952,19 +971,9 @@ export default function EquipmentPage() {
         selectedClassPackage: newClassPackage,
         backgroundSelections: nextBackgroundSelections,
       };
-      try {
-        updateActiveCharacter({
-          ...updates,
-          ...reconcileStartingEquipment(character, { ...character, ...updates }),
-        });
-        setEquipmentError('');
-      } catch (error) {
-        setEquipmentError(
-          error instanceof Error ? error.message : '装备方案未能同步，请核对配置。',
-        );
-      }
+      commitEquipmentUpdates(updates);
     },
-    [character, background, selectedPackage, classPackageOptions, updateActiveCharacter, choices],
+    [character, background, selectedPackage, classPackageOptions, commitEquipmentUpdates, choices],
   );
 
   // 自动同步/初始化起始装备
@@ -1274,8 +1283,17 @@ export default function EquipmentPage() {
               )}
             </div>
 
+            {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
+              primaryClass?.startingEquipment.choiceRows && (
+                <ClassEquipmentChoices
+                  character={character}
+                  definition={primaryClass}
+                  onChange={commitEquipmentUpdates}
+                />
+              )}
             {/* 如果选择了职业套组，展示具体子方案 */}
             {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
+              !primaryClass?.startingEquipment.choiceRows &&
               classPackageOptions.length > 1 && (
                 <div
                   style={{

@@ -1,5 +1,6 @@
 'use client';
 import { normalizeEquipmentMode, reconcileStartingEquipment } from '@/engine/startingEquipment';
+import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
@@ -2198,6 +2199,14 @@ export default function ClassPage() {
                   </div>
 
                   {/* Nested choices for Packages */}
+                  {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
+                    classDefinition.startingEquipment.choiceRows && (
+                      <ClassEquipmentChoices
+                        character={character}
+                        definition={classDefinition}
+                        onChange={applyEquipmentChange}
+                      />
+                    )}
                   {(character.equipmentChoiceMode === 'choiceA' ||
                     character.equipmentChoiceMode === 'package') &&
                     classDefinition.startingEquipment.choiceARecords?.some(

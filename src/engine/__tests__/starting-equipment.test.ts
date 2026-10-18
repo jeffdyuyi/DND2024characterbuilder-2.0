@@ -1,3 +1,5 @@
+import { getEquipmentChoiceCandidates } from '@/catalog/equipmentChoices';
+import { catalogEntryToClass } from '@/catalog/adapters/classes';
 import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 import { beforeEach, expect, it } from 'vitest';
 import { defaultCatalog } from '@/catalog/catalog';
@@ -235,4 +237,230 @@ it('同包同书存在多个同名候选时不擅自任选一件', () => {
   const result = buildEquipmentState(original, 'package');
   expect(result.inventoryEntries[0].itemId).toBeUndefined();
   expect(result.inventoryEntries[0].notes).toContain('未找到唯一的同来源物品');
+});
+
+it('2014逐行分支与抽象装备按原生字段生成候选，保存精确物品身份', () => {
+  const simple = normalizeItem({
+    name: '旧简易近战',
+    source: 'PHB',
+    type: 'M',
+    weaponCategory: 'simple',
+  });
+  const ranged = normalizeItem({
+    name: '旧简易远程',
+    source: 'PHB',
+    type: 'R',
+    weaponCategory: 'simple',
+  });
+  const martial = normalizeItem({
+    name: '旧军用近战',
+    source: 'PHB',
+    type: 'M',
+    weaponCategory: 'martial',
+  });
+  const modern = normalizeItem({
+    name: '新简易近战',
+    source: 'XPHB',
+    type: 'M|XPHB',
+    weaponCategory: 'simple',
+  });
+  const focus = normalizeItem({
+    name: '测试木质法杖',
+    source: 'PHB',
+    type: 'SCF',
+    scfType: 'druid',
+  });
+  const wrongFocus = normalizeItem({
+    name: '测试奥术法杖',
+    source: 'PHB',
+    type: 'SCF',
+    scfType: 'arcane',
+  });
+  const magic = normalizeItem({
+    name: '测试魔法简易近战',
+    source: 'PHB',
+    type: 'M',
+    weaponCategory: 'simple',
+    rarity: 'rare',
+  });
+  const brew = normalizeItem(
+    { name: '第三方简易近战', source: 'PHB', type: 'M', weaponCategory: 'simple' },
+    'homebrew-test',
+  );
+  defaultCatalog.registerMany([simple, ranged, martial, modern, focus, wrongFocus, magic, brew]);
+  const raw = {
+    name: '2014逐行测试职业',
+    source: 'PHB',
+    startingEquipment: {
+      default: [
+        '(a) {@item 旧固定装备|PHB} 或(b) {@filter 简易近战武器|items|source=phb|type=简易武器;近战武器=sand}',
+        '固定物资与法器',
+      ],
+      defaultData: [
+        { a: ['旧固定装备|PHB'], b: [{ equipmentType: 'weaponSimpleMelee' }] },
+        {
+          _: [
+            { item: '旧固定装备|PHB', quantity: 2 },
+            { equipmentType: 'focusSpellcastingDruidic' },
+          ],
+        },
+      ],
+    },
+  };
+  const before = JSON.stringify(raw);
+  const cls = normalizeClass(raw);
+  defaultCatalog.register(cls);
+  const def = catalogEntryToClass(cls);
+  const rows = def.startingEquipment.choiceRows!;
+  const weapon = rows[0].options[1].records[0],
+    focusSlot = rows[1].fixedRecords[1];
+  const original = state();
+  original.classes[0] = { classId: cls.id, source: 'PHB', level: 1, isMulticlass: false };
+  const ids = getEquipmentChoiceCandidates(weapon, original).map((item) => item.id);
+  expect(ids).toContain(simple.id);
+  for (const invalid of [ranged, martial, modern, magic, brew])
+    expect(ids).not.toContain(invalid.id);
+  expect(getEquipmentChoiceCandidates(focusSlot, original).map((item) => item.id)).toContain(
+    focus.id,
+  );
+  expect(getEquipmentChoiceCandidates(focusSlot, original).map((item) => item.id)).not.toContain(
+    wrongFocus.id,
+  );
+  original.classSelections = {
+    [rows[0].id]: ['b'],
+    [weapon.selectionId!]: [simple.id],
+    [focusSlot.selectionId!]: [focus.id],
+  };
+  let current = apply(original);
+  expect(current.inventoryEntries).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ itemId: simple.id, quantity: 1 }),
+      expect.objectContaining({ itemId: focus.id, quantity: 1 }),
+      expect.objectContaining({ name: '旧固定装备', quantity: 2 }),
+    ]),
+  );
+  current = JSON.parse(JSON.stringify(current));
+  expect(apply(current).inventoryEntries).toEqual(current.inventoryEntries);
+  current = apply(current, {
+    classSelections: { ...current.classSelections, [rows[0].id]: ['a'] },
+  });
+  expect(current.inventoryEntries.some((item) => item.itemId === simple.id)).toBe(false);
+  expect(current.inventoryEntries.some((item) => item.itemId === focus.id)).toBe(true);
+  expect(JSON.stringify(raw)).toBe(before);
+});
+it('2014旧套组文字唯一匹配时恢复原分支，歧义时拒绝写入而不是默认猜选', () => {
+  const cls = normalizeClass({
+    name: '旧套组恢复测试职业',
+    source: 'PHB',
+    startingEquipment: { defaultData: [{ a: ['甲|PHB'], b: ['乙|PHB'] }, { _: ['丙|PHB'] }] },
+  });
+  defaultCatalog.register(cls);
+  const original = state();
+  original.classes[0].classId = cls.id;
+  original.selectedClassPackage = '乙，丙';
+  expect(
+    buildEquipmentState(original, 'package').inventoryEntries.map((item) => item.name),
+  ).toEqual(['乙', '丙']);
+  const ambiguous = normalizeClass({
+    name: '旧套组歧义测试职业',
+    source: 'PHB',
+    startingEquipment: { defaultData: [{ a: ['同名|PHB'], b: ['同名|XPHB'] }] },
+  });
+  defaultCatalog.register(ambiguous);
+  original.classes[0].classId = ambiguous.id;
+  original.selectedClassPackage = '同名';
+  const before = JSON.stringify(original);
+  expect(() => apply(original)).toThrow('无法唯一匹配');
+  expect(JSON.stringify(original)).toBe(before);
+});
+it('未知抽象类别保留未解决记录，多件自选独立记入各槽位', () => {
+  const cls = normalizeClass({
+    name: '多槽装备测试职业',
+    source: 'PHB',
+    startingEquipment: {
+      defaultData: [
+        {
+          _: [
+            { equipmentType: 'instrumentMusical', quantity: 2 },
+            { equipmentType: 'unknownCategory' },
+          ],
+        },
+      ],
+    },
+  });
+  defaultCatalog.register(cls);
+  const rows = catalogEntryToClass(cls).startingEquipment.choiceRows!;
+  expect(rows[0].fixedRecords).toHaveLength(3);
+  expect(new Set(rows[0].fixedRecords.map((record) => record.selectionId)).size).toBe(3);
+  const unknown = rows[0].fixedRecords[2];
+  expect(getEquipmentChoiceCandidates(unknown)).toEqual([]);
+  const original = state();
+  original.classes[0].classId = cls.id;
+  const result = buildEquipmentState(original, 'package');
+  expect(result.inventoryEntries).toHaveLength(3);
+  expect(new Set(result.inventoryEntries.map((item) => item.id)).size).toBe(3);
+  expect(result.inventoryEntries.every((item) => !item.itemId)).toBe(true);
+});
+
+it('旧机器键套组文字仍恢复正确分支，多件相同自选物品保持独立实例', () => {
+  const instrument = normalizeItem({ name: '独立槽位测试乐器', source: 'PHB', type: 'INS' });
+  defaultCatalog.register(instrument);
+  const cls = normalizeClass({
+    name: '旧机器键套组测试职业',
+    source: 'PHB',
+    startingEquipment: {
+      defaultData: [
+        { a: ['固定物品|PHB'], b: [{ equipmentType: 'instrumentMusical', quantity: 2 }] },
+      ],
+    },
+  });
+  defaultCatalog.register(cls);
+  const original = state();
+  original.classes[0].classId = cls.id;
+  original.selectedClassPackage = '自选instrumentMusical';
+  const rows = catalogEntryToClass(cls).startingEquipment.choiceRows!;
+  original.classSelections = Object.fromEntries(
+    rows[0].options[1].records.map((record) => [record.selectionId!, [instrument.id]]),
+  );
+  const result = buildEquipmentState(original, 'package');
+  expect(result.inventoryEntries).toHaveLength(2);
+  expect(
+    result.inventoryEntries.every((item) => item.itemId === instrument.id && item.quantity === 1),
+  ).toBe(true);
+  expect(new Set(result.inventoryEntries.map((item) => item.id)).size).toBe(2);
+});
+
+it('逐行选择键绑定来源与AST内容，行顺序改变不串用记录，重复行仍独立', () => {
+  const first = { a: ['甲|PHB'], b: [{ equipmentType: 'weaponSimple' }] };
+  const second = { _: ['乙|PHB'] };
+  const definition = (rows: unknown[]) =>
+    catalogEntryToClass(
+      normalizeClass({
+        name: '稳定装备键测试职业',
+        source: 'PHB',
+        startingEquipment: { defaultData: rows },
+      }),
+    ).startingEquipment.choiceRows!;
+  const original = definition([first, second]);
+  const reordered = definition([second, first]);
+  expect(original[0].id).toBe(reordered[1].id);
+  expect(original[1].id).toBe(reordered[0].id);
+  const repeated = definition([first, first]);
+  expect(repeated[0].id).not.toBe(repeated[1].id);
+});
+
+it('同一行存在无法绑定到分支的不同来源过滤时不扩大候选', () => {
+  const cls = normalizeClass({
+    name: '冲突来源过滤测试职业',
+    source: 'PHB',
+    startingEquipment: {
+      default: ['{@filter 简易|items|source=phb} 或 {@filter 简易|items|source=xphb}'],
+      defaultData: [
+        { a: [{ equipmentType: 'weaponSimple' }], b: [{ equipmentType: 'weaponSimple' }] },
+      ],
+    },
+  });
+  const record = catalogEntryToClass(cls).startingEquipment.choiceRows![0].options[0].records[0];
+  expect(record.equipmentFilterUnresolved).toBe(true);
+  expect(getEquipmentChoiceCandidates(record)).toEqual([]);
 });

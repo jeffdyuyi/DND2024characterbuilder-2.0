@@ -172,6 +172,16 @@ export interface EquipmentRecord {
   };
   selectionId?: string;
   optionName?: string;
+  equipmentType?: string;
+  equipmentSource?: string;
+  equipmentFilterUnresolved?: boolean;
+}
+
+export interface EquipmentChoiceRow {
+  id: string;
+  fixedLabel: string;
+  fixedRecords: EquipmentRecord[];
+  options: { id: string; label: string; records: EquipmentRecord[] }[];
 }
 
 export interface ClassData {
@@ -212,6 +222,7 @@ export interface ClassData {
     choiceARecords?: EquipmentRecord[];
     choiceBRecord?: EquipmentRecord | EquipmentRecord[];
     choiceCRecord?: EquipmentRecord | EquipmentRecord[];
+    choiceRows?: EquipmentChoiceRow[];
   };
   features: ClassFeature[];
   progression: ClassLevelProgression[];

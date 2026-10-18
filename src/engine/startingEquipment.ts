@@ -1,3 +1,4 @@
+import { getEquipmentChoiceCandidates, equipmentTypeLabel } from '@/catalog/equipmentChoices';
 import { resolveBackgroundEquipmentChoices } from './backgroundEquipment';
 import {
   findItemById,
@@ -311,7 +312,14 @@ function resolveEquipmentRecord(
   }
 
   const reference = 'itemReference' in record ? record.itemReference : undefined;
+  const equipmentType = 'equipmentType' in record ? record.equipmentType : undefined;
   let resolvedItemId = record.itemId;
+  if (equipmentType && record.selectionId) {
+    const selected = character.classSelections?.[record.selectionId]?.[0];
+    resolvedItemId = getEquipmentChoiceCandidates(record as EquipmentRecord).find(
+      (item) => item.id === selected,
+    )?.id;
+  }
   if (reference) {
     const normalize = (value: string) =>
       value
@@ -360,7 +368,7 @@ function resolveEquipmentRecord(
   }
 
   // 处理自选项 (Selection)
-  if (!reference && !resolvedItemId && record.selectionId) {
+  if (!reference && !equipmentType && !resolvedItemId && record.selectionId) {
     const selectedValue =
       character.backgroundSelections?.[record.selectionId]?.[0] ||
       character.classSelections?.[record.selectionId]?.[0];
@@ -377,8 +385,8 @@ function resolveEquipmentRecord(
     inventoryEntries: [
       {
         id: itemId
-          ? `${sourceName}:${itemId}:${resolvedLabel}`
-          : `${sourceName}-unresolved:${reference ? `${reference.sourcePackId}:${reference.source || ''}:${reference.name}:` : ''}${resolvedLabel}`,
+          ? `${sourceName}:${record.selectionId ? record.selectionId + ':' : ''}${itemId}:${resolvedLabel}`
+          : `${sourceName}-unresolved:${record.selectionId ? record.selectionId + ':' : ''}${reference ? `${reference.sourcePackId}:${reference.source || ''}:${reference.name}:` : ''}${resolvedLabel}`,
         name: resolvedItem?.name || resolvedLabel,
         quantity: record.quantity,
         source: sourceName,
@@ -438,6 +446,45 @@ function buildBackgroundEquipmentState(
   }
 
   return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
+}
+
+export function resolveClassEquipmentRows(definition: ClassData, character: CharacterState) {
+  const rows = definition.startingEquipment.choiceRows || [];
+  let recovered: Record<string, string> | undefined;
+  let ambiguous = false;
+  const savedPackage = character.selectedClassPackage?.replace(
+    /自选([A-Za-z]+)/g,
+    (_, type: string) => equipmentTypeLabel(type),
+  );
+  if (savedPackage && !rows.some((row) => character.classSelections?.[row.id]?.length)) {
+    const seek = (index: number, labels: string[], selected: Record<string, string>): void => {
+      if (ambiguous) return;
+      if (index === rows.length) {
+        if (labels.join('，') !== savedPackage) return;
+        if (recovered) ambiguous = true;
+        else recovered = selected;
+        return;
+      }
+      const row = rows[index];
+      for (const option of row.options.length ? row.options : [undefined]) {
+        const nextLabels = [...labels, row.fixedLabel, option?.label || ''].filter(Boolean);
+        if (!savedPackage.startsWith(nextLabels.join('，'))) continue;
+        seek(index + 1, nextLabels, option ? { ...selected, [row.id]: option.id } : selected);
+      }
+    };
+    seek(0, [], {});
+  }
+  return rows.map((row) => {
+    const selectedId =
+      character.classSelections?.[row.id]?.[0] ?? (ambiguous ? undefined : recovered?.[row.id]);
+    const selected =
+      ambiguous && !character.classSelections?.[row.id]?.length
+        ? undefined
+        : selectedId === undefined
+          ? row.options[0]
+          : row.options.find((option) => option.id === selectedId);
+    return { row, selected };
+  });
 }
 
 function buildClassEquipmentState(
@@ -521,8 +568,13 @@ function buildClassEquipmentState(
       ? selectedPackageText
       : classPackageOptions[0];
 
-  const choiceARecords = startingEquipment.choiceARecords;
-  if (choiceARecords && choiceARecords.length > 0) {
+  const choiceARecords = startingEquipment.choiceRows
+    ? resolveClassEquipmentRows(primaryClass, character).flatMap(({ row, selected }) => [
+        ...row.fixedRecords,
+        ...(selected?.records || []),
+      ])
+    : startingEquipment.choiceARecords;
+  if (choiceARecords && (choiceARecords.length > 0 || startingEquipment.choiceRows)) {
     const filteredRecords = choiceARecords.filter(
       (r) => !r.optionName || r.optionName === effectivePackageText,
     );
@@ -606,9 +658,21 @@ export function reconcileStartingEquipment(
 ): Partial<CharacterState> {
   const mode = normalizeEquipmentMode(next.equipmentChoiceMode);
   const definition = getPrimaryClassDefinition(next);
+  if (
+    definition?.startingEquipment.choiceRows &&
+    resolveClassEquipmentRows(definition, next).some(
+      ({ row, selected }) => row.options.length > 0 && !selected,
+    )
+  ) {
+    throw new Error('装备组选项无法唯一匹配，请先重新选择；本次未更改库存和金币。');
+  }
   const options = expandEquipmentOptions(definition?.startingEquipment.choiceA || []);
-  const selectedClassPackage =
-    next.selectedClassPackage && options.includes(next.selectedClassPackage)
+  const selectedClassPackage = definition?.startingEquipment.choiceRows
+    ? resolveClassEquipmentRows(definition, next)
+        .flatMap(({ row, selected }) => [row.fixedLabel, selected?.label || ''])
+        .filter(Boolean)
+        .join('，')
+    : next.selectedClassPackage && options.includes(next.selectedClassPackage)
       ? next.selectedClassPackage
       : options[0];
   const normalized = { ...next, equipmentChoiceMode: mode, selectedClassPackage };
