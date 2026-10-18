@@ -7,6 +7,7 @@ import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 import { useCharacterStore } from '@/store/characterStore';
 import {
   buildEquipmentState,
+  getStartingEquipmentKey,
   normalizeEquipmentMode,
   reconcileStartingEquipment,
 } from '../startingEquipment';
@@ -93,6 +94,31 @@ it('A/B/C切换只调整差额，保留手动购买物品、金币支出和装�
   const spent = totalInCP(current.currency);
   current = apply(current, { equipmentChoiceMode: 'choiceC' });
   expect(totalInCP(current.currency)).toBe(spent + 14400);
+});
+it('从提供C方案的职业换到只提供A/B的职业时恢复A方案并保留购买物品', () => {
+  const oldClass = apply(state(), { equipmentChoiceMode: 'choiceC' });
+  oldClass.inventoryEntries.push({ id: 'purchased:test', name: '购买物品' });
+  const legacy = normalizeClass({
+    name: '逐行装备职业',
+    source: 'PHB',
+    startingEquipment: {
+      defaultData: [{ a: ['盾牌|phb'], b: [{ equipmentType: 'weaponSimple' }] }],
+      default: ['(a) 一个盾牌或(b)任意简易武器'],
+    },
+  });
+  defaultCatalog.register(legacy);
+  const replaced = apply(oldClass, {
+    classes: [{ classId: legacy.id, source: 'PHB', level: 1, isMulticlass: false }],
+  });
+  expect(replaced.equipmentChoiceMode).toBe('package');
+  expect(replaced.inventoryEntries.map((item) => item.name)).toContain('盾牌');
+  expect(replaced.inventoryEntries.map((item) => item.name)).toContain('购买物品');
+  expect(totalInCP(replaced.currency)).toBe(0);
+  expect(apply(replaced).inventoryEntries).toEqual(replaced.inventoryEntries);
+
+  const stale = { ...oldClass, classes: replaced.classes };
+  expect(getStartingEquipmentKey(stale)).not.toBe(oldClass.startingEquipmentGrant?.key);
+  expect(apply(stale).equipmentChoiceMode).toBe('package');
 });
 it('相同发放物品的装备标记、备注和容器位置不被其他方案变化覆盖', () => {
   const original = apply(state());

@@ -629,18 +629,23 @@ export function buildEquipmentState(
   return { inventoryEntries, currency };
 }
 
+function resolveClassEquipmentMode(character: CharacterState) {
+  const mode = normalizeEquipmentMode(character.equipmentChoiceMode);
+  const definition = getPrimaryClassDefinition(character);
+  return mode === 'choiceC' && definition && !definition.startingEquipment.choiceC
+    ? 'package'
+    : mode;
+}
+
 /** 两页共用的发放差量；旧角色首次同步按用户确认的当前方案重算金币。 */
 export function getStartingEquipmentKey(character: CharacterState): string {
-  const grant = buildEquipmentState(
-    character,
-    character.equipmentChoiceMode,
-    character.selectedClassPackage,
-  );
+  const mode = resolveClassEquipmentMode(character);
+  const grant = buildEquipmentState(character, mode, character.selectedClassPackage);
   return JSON.stringify([
     character.classes?.[0]?.classId,
     character.classes?.[0]?.source,
     character.backgroundId,
-    normalizeEquipmentMode(character.equipmentChoiceMode),
+    mode,
     grant.inventoryEntries.map(({ id, itemId, name, quantity, source }) => ({
       id,
       itemId,
@@ -656,8 +661,8 @@ export function reconcileStartingEquipment(
   current: CharacterState,
   next: CharacterState,
 ): Partial<CharacterState> {
-  const mode = normalizeEquipmentMode(next.equipmentChoiceMode);
   const definition = getPrimaryClassDefinition(next);
+  const mode = resolveClassEquipmentMode(next);
   if (
     definition?.startingEquipment.choiceRows &&
     resolveClassEquipmentRows(definition, next).some(
