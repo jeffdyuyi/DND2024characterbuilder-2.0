@@ -91,11 +91,10 @@ function normalizeStartingEquipment(value: unknown): ClassData['startingEquipmen
   const upperCasePackages = first && ['A', 'B', 'C'].some((key) => key in first);
 
   if (upperCasePackages && first) {
-    const packages = ['A', 'B'].map((key) => equipmentOption(first[key])).filter(Boolean);
-    const alternative = equipmentOption(first.C) || equipmentText(raw.goldAlternative);
     return {
-      choiceA: packages.length > 1 ? [{ options: packages }] : packages,
-      choiceB: alternative,
+      choiceA: (Array.isArray(first.A) ? first.A : [first.A]).map(equipmentText).filter(Boolean),
+      choiceB: equipmentOption(first.B) || equipmentText(raw.goldAlternative),
+      ...(first.C !== undefined ? { choiceC: equipmentOption(first.C) } : {}),
     };
   }
 

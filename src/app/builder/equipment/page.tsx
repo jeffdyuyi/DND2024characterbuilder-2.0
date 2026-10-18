@@ -1783,7 +1783,7 @@ export default function EquipmentPage() {
                 description={
                   Array.isArray(primaryClass?.startingEquipment.choiceA)
                     ? primaryClass.startingEquipment.choiceA
-                        .map((i) => (typeof i === 'string' ? i : '可选项目'))
+                        .map((i) => (typeof i === 'string' ? i : i.options.join(' 或 ')))
                         .join(', ')
                     : undefined
                 }

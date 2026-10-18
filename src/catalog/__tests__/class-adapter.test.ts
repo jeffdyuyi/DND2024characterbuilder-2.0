@@ -83,17 +83,31 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
 
     const definition = catalogEntryToClass(entry);
     expect(definition.primaryAbility).toEqual(['str', 'dex']);
-    expect(definition.startingEquipment.choiceA).toEqual([
-      {
-        options: ['链甲，8 标枪，4 GP', '镶钉皮甲，长弓，11 GP'],
-      },
-    ]);
-    expect(definition.startingEquipment.choiceB).toBe('155 GP');
+    expect(definition.startingEquipment.choiceA).toEqual(['链甲', '8 标枪', '4 GP']);
+    expect(definition.startingEquipment.choiceB).toBe('镶钉皮甲，长弓，11 GP');
+    expect(definition.startingEquipment.choiceC).toBe('155 GP');
     expect(definition.becomingAClass).toBeUndefined();
     expect(definition.multiclassProficiencies).toMatchObject({
       weapons: ['军用'],
       armor: ['light', 'medium', 'shield'],
     });
+  });
+
+  it('原生A/B方案保留装备与金币的独立位置，不改写源数据', () => {
+    const raw = {
+      name: '方案测试职业',
+      source: 'XPHB',
+      startingEquipment: {
+        defaultData: [{ A: [{ item: '草药工具|xphb' }, { value: 900 }], B: [{ value: 5000 }] }],
+      },
+    };
+    const before = JSON.stringify(raw);
+    const definition = catalogEntryToClass(normalizeClass(raw));
+    expect(definition.startingEquipment).toEqual({
+      choiceA: ['草药工具', '9 GP'],
+      choiceB: '50 GP',
+    });
+    expect(JSON.stringify(raw)).toBe(before);
   });
 
   it('将 2014 起始装备的逐行选项和金币替代方案归一化', () => {

@@ -2079,12 +2079,15 @@ export default function ClassPage() {
                           : '#86868b',
                       }}
                     >
-                      {character.equipmentChoiceMode === 'choiceB'
-                        ? '起始金币'
-                        : character.equipmentChoiceMode === 'choiceA' ||
-                            character.equipmentChoiceMode === 'package'
-                          ? '起始装备'
-                          : '未选'}
+                      {character.equipmentChoiceMode === 'choiceB' ||
+                      character.equipmentChoiceMode === 'gold'
+                        ? '方案 B'
+                        : character.equipmentChoiceMode === 'choiceC'
+                          ? '方案 C'
+                          : character.equipmentChoiceMode === 'choiceA' ||
+                              character.equipmentChoiceMode === 'package'
+                            ? '起始装备'
+                            : '未选'}
                     </div>
                   </div>
 
@@ -2129,9 +2132,9 @@ export default function ClassPage() {
                           }}
                         >
                           {classDefinition.startingEquipment.choiceA.map(
-                            (item: any, idx: number) => (
+                            (item: string | { options: string[] }, idx: number) => (
                               <li key={idx} style={{ marginBottom: '4px' }}>
-                                {typeof item === 'string' ? item : '自选项目'}
+                                {typeof item === 'string' ? item : item.options.join(' 或 ')}
                               </li>
                             ),
                           )}
