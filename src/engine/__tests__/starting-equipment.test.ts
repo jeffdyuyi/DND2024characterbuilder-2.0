@@ -88,6 +88,42 @@ it('2014随机起始金币须确定结果，改额只结算差额且不产生伪
   expect(totalInCP(back.currency)).toBe(0);
   expect(back.inventoryEntries.map((entry) => entry.name)).toEqual(['盾牌', '购买物品']);
 });
+it('2014无乘数骰式和跨职业旧掷骰不会误发金币', () => {
+  expect(parseStartingGoldFormula('5d4')).toEqual({ count: 5, faces: 4, multiplier: 1 });
+  const firstClass = normalizeClass({
+    name: '旧金币职业',
+    source: 'PHB',
+    startingEquipment: {
+      defaultData: [{ _: ['盾牌|PHB'] }],
+      goldAlternative: '{@dice 5d4|5d4|起始金币}',
+    },
+  });
+  const nextClass = normalizeClass({
+    name: '新金币职业',
+    source: 'PHB',
+    startingEquipment: {
+      defaultData: [{ _: ['长棍|PHB'] }],
+      goldAlternative: '{@dice 5d4|5d4|起始金币}',
+    },
+  });
+  defaultCatalog.register(firstClass);
+  defaultCatalog.register(nextClass);
+  const original = {
+    ...state(),
+    classes: [{ classId: firstClass.id, source: 'PHB', level: 1, isMulticlass: false }],
+  };
+  const selected = apply(apply(original), {
+    equipmentChoiceMode: 'gold',
+    startingGoldRoll: { classId: firstClass.id, amount: 15 },
+  });
+  const replaced = apply(selected, {
+    classes: [{ classId: nextClass.id, source: 'PHB', level: 1, isMulticlass: false }],
+  });
+  expect(replaced.equipmentChoiceMode).toBe('package');
+  expect(totalInCP(replaced.currency)).toBe(0);
+  expect(replaced.inventoryEntries.map((entry) => entry.name)).toEqual(['长棍']);
+  expect(() => apply(replaced, { equipmentChoiceMode: 'gold' })).toThrow('请先掷骰或填写');
+});
 it('新角色发放一次，重复进入和JSON往返后不补发已花金币或已移除物品', () => {
   const first = apply(state());
   expect(totalInCP(first.currency)).toBe(900);
