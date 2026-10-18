@@ -1,6 +1,12 @@
 'use client';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
-import { resolveBackgroundEquipmentChoices } from '@/engine/backgroundEquipment';
+import {
+  expandEquipmentOptions,
+  getItemCategory,
+  normalizeEquipmentMode,
+  reconcileStartingEquipment,
+  getStartingEquipmentKey,
+} from '@/engine/startingEquipment';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -10,18 +16,15 @@ import OptionCard from '@/components/OptionCard';
 import styles from '../species/page.module.css';
 import {
   findItemById,
-  findItemByName,
   getBackgroundDefinition,
   getPrimaryClassDefinition,
   isProficientWithArmor,
 } from '@/engine/characterData';
 import { CharacterState, InventoryEntry } from '@/types/characterState';
-import { Background, BackgroundEquipmentRecord } from '@/types/background';
-import { ClassData, EquipmentRecord } from '@/types/class';
 import { getCatalogItems } from '@/catalog';
 import type { Armor, Weapon } from '@/types/equipment';
 import { ALL_TOOLS, translateProficiency } from '@/engine/terminology';
-import { totalInCP, fromCPToCurrency, deductCurrency, parsePriceToCP } from '@/utils/currencyUtils';
+import { totalInCP, parsePriceToCP } from '@/utils/currencyUtils';
 import { Selection } from '@/types/species';
 import MarkdownText from '@/components/MarkdownText';
 import ItemDetailContent from '@/components/ItemDetailContent';
@@ -48,532 +51,6 @@ import { deductCP } from '@/utils/currencyUtils';
 type Currency = CharacterState['currency'];
 
 const currencyOrder: (keyof Currency)[] = ['pp', 'gp', 'ep', 'sp', 'cp'];
-
-function emptyCurrency(): Currency {
-  return { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 };
-}
-
-function parseCurrency(label: string): Partial<Currency> | null {
-  const normalized = label.replace(/\s+/g, '').toUpperCase();
-  const match = normalized.match(/^(\d+)(PP|GP|EP|SP|CP)$/);
-  if (!match) return null;
-  return { [match[2].toLowerCase() as keyof Currency]: parseInt(match[1], 10) };
-}
-
-function mergeCurrency(base: Currency, patch: Partial<Currency>): Currency {
-  return {
-    cp: base.cp + (patch.cp ?? 0),
-    sp: base.sp + (patch.sp ?? 0),
-    ep: base.ep + (patch.ep ?? 0),
-    gp: base.gp + (patch.gp ?? 0),
-    pp: base.pp + (patch.pp ?? 0),
-  };
-}
-
-function getCategoryFromItem(item?: {
-  armorCategory?: string;
-  weaponCategory?: string;
-}): InventoryEntry['category'] {
-  if (!item) return 'other';
-  if ('weaponCategory' in item) return 'weapon';
-  if (item.armorCategory === 'Shield') return 'shield';
-  if (item.armorCategory) return 'armor';
-  return 'gear';
-}
-
-function getItemCategory(input: any): InventoryEntry['category'] {
-  if (!input) return 'other';
-
-  // 如果输入是字符串，则视为 type 字段进行基础匹配
-  if (typeof input === 'string') {
-    if (input.includes('武器')) return 'weapon';
-    if (input.includes('盾') || input.includes('甲')) return 'armor'; // 盾牌归入护甲
-    if (input.includes('工具') || input.includes('赌具') || input.includes('游戏具')) return 'tool';
-    return 'gear';
-  }
-
-  const item = input;
-  const type = item.type || '';
-  const tags = item.tags || [];
-
-  if (type.includes('武器') || item.weaponCategory) return 'weapon';
-  if (
-    type.includes('盾') ||
-    item.armorCategory === 'Shield' ||
-    type.includes('甲') ||
-    item.armorCategory
-  )
-    return 'armor'; // 盾牌归入护甲
-  if (
-    tags.includes('工匠工具') ||
-    tags.includes('游戏具') ||
-    tags.includes('游戏') ||
-    tags.includes('乐器') ||
-    type.includes('工具') ||
-    type.includes('赌具')
-  )
-    return 'tool';
-  if (tags.includes('坐骑') || tags.includes('载具')) return 'vehicle';
-  if (
-    type.includes('弹药') ||
-    type.includes('法器') ||
-    type.includes('套组') ||
-    type.includes('杂物') ||
-    tags.includes('冒险道具')
-  )
-    return 'gear';
-  return 'other';
-}
-
-function expandEquipmentOptions(choiceA: (string | { options: string[] })[]): string[] {
-  let combinations: string[][] = [[]];
-
-  choiceA.forEach((entry) => {
-    if (typeof entry === 'string') {
-      combinations = combinations.map((combo) => [...combo, entry]);
-      return;
-    }
-
-    const next: string[][] = [];
-    entry.options.forEach((option) => {
-      combinations.forEach((combo) => next.push([...combo, option]));
-    });
-    combinations = next;
-  });
-
-  return combinations.map((combo) => combo.join('，'));
-}
-
-function parseLabelWithQuantity(label: string) {
-  // 匹配形如 "2把匕首", "10支箭", "5GP" 的模式
-  // 1. 尝试匹配阿拉伯数字开头的情况
-  const match = label.match(
-    /^(\d+)\s*(把|支|个|件|条|双|套|枚|张|份|瓶|卷|副|包|盒|根|GP|SP|CP|PP|EP)?\s*(.*)$/i,
-  );
-  if (match) {
-    const qty = parseInt(match[1], 10);
-    const unit = match[2];
-    const rest = match[3].trim();
-
-    // 如果单位是货币，直接返回货币
-    if (['GP', 'SP', 'CP', 'PP', 'EP'].includes(unit?.toUpperCase())) {
-      return { quantity: qty, name: unit.toUpperCase(), isCurrency: true };
-    }
-
-    return { quantity: qty, name: rest || unit };
-  }
-
-  // 2. 尝试匹配中文数字量词开头的情况 (如 "一枚俄佐立徽章", "一套高档服装", "一瓶蓝墨水")
-  const matchCn = label.match(
-    /^([一二三四五六七八九十两])\s*(把|支|个|件|条|双|套|枚|张|份|瓶|卷|副|包|盒|根)\s*(.*)$/,
-  );
-  if (matchCn) {
-    const cnDigits: Record<string, number> = {
-      一: 1,
-      二: 2,
-      两: 2,
-      三: 3,
-      四: 4,
-      五: 5,
-      六: 6,
-      七: 7,
-      八: 8,
-      九: 9,
-      十: 10,
-    };
-    const qty = cnDigits[matchCn[1]] || 1;
-    const rest = matchCn[3].trim();
-    return { quantity: qty, name: rest };
-  }
-
-  return { quantity: 1, name: label };
-}
-
-function labelsToInventoryEntries(labels: string[], source: string) {
-  const inventoryEntries: InventoryEntry[] = [];
-  let currency = emptyCurrency();
-
-  // 若传入的标签包含逗号、连词等复合长句，先平铺拆解
-  const flattened: string[] = [];
-  labels.forEach((l) => {
-    if (typeof l !== 'string') return;
-    if (l.includes('，') || l.includes('、') || l.includes('以及') || l.includes('还有')) {
-      const parts = l
-        .split(/[，,;；、]|(?:\s*以及\s*|\s*还有\s*)/)
-        .map((p) => p.trim())
-        .filter(Boolean);
-      flattened.push(...parts);
-    } else {
-      flattened.push(l);
-    }
-  });
-
-  flattened.forEach((label) => {
-    const trimmed = label.trim();
-    if (!trimmed) return;
-
-    // 检查并提取内含货币，例如 "小包（内含 10 GP）" 或 "一条腰带小包内装有10gp"
-    const embeddedCurMatch = trimmed.match(
-      /(?:[（(]?内含|[（(]?内装有|装有)\s*(\d+)\s*(GP|SP|CP|PP|EP)[）)]?/i,
-    );
-    let cleanTrimmed = trimmed;
-    if (embeddedCurMatch) {
-      const amt = parseInt(embeddedCurMatch[1], 10);
-      const curType = embeddedCurMatch[2].toLowerCase() as keyof Currency;
-      currency = mergeCurrency(currency, { [curType]: amt });
-      cleanTrimmed = trimmed
-        .replace(/(?:[（(]?内含|[（(]?内装有|装有)\s*(\d+)\s*(GP|SP|CP|PP|EP)[）)]?/i, '')
-        .replace(/[（(].*?[）)]/g, '')
-        .trim();
-    }
-
-    // 首先尝试解析整条为货币
-    const parsedCurrency = parseCurrency(cleanTrimmed);
-    if (parsedCurrency) {
-      currency = mergeCurrency(currency, parsedCurrency);
-      return;
-    }
-
-    // 解析数量与名称
-    const { quantity, name, isCurrency } = parseLabelWithQuantity(cleanTrimmed);
-
-    if (isCurrency) {
-      const curKey = name.toLowerCase() as keyof Currency;
-      currency = mergeCurrency(currency, { [curKey]: quantity });
-      return;
-    }
-
-    if (!name) return;
-
-    // 尝试根据名称搜索物品
-    const matchedItem = findItemByName(name);
-
-    inventoryEntries.push({
-      id: matchedItem ? `${source}:${matchedItem.id}` : `${source}:${trimmed}`,
-      name: matchedItem?.name || name,
-      source,
-      quantity,
-      category: getItemCategory(matchedItem),
-      itemId: matchedItem?.id,
-      weight: matchedItem?.weight,
-    });
-  });
-
-  return { inventoryEntries, currency };
-}
-
-function toInventoryCategory(
-  category?: BackgroundEquipmentRecord['category'],
-): InventoryEntry['category'] {
-  if (category === 'weapon' || category === 'armor' || category === 'shield') return category;
-  if (category === 'tool' || category === 'gear') return 'gear';
-  return 'other';
-}
-
-function resolveSelectableItemId(selectedValue: string): string | undefined {
-  if (!selectedValue) return undefined;
-  const cleanId = selectedValue.split('|')[0].trim();
-  const cleanName = selectedValue.replace(/\s*\[.*?\]$/, '').trim();
-  const normalized = cleanId.toLowerCase();
-
-  // 1. 尝试通过翻译名查找 (解决 ID 映射问题)
-  // 如果选中了 'alchemistSupplies', translateProficiency 会返回 '炼金工具'
-  // 然后 findItemByName 会找到 'alchemists-supplies-full'
-  const name = translateProficiency(selectedValue);
-  if (name && name !== selectedValue) {
-    const item = findItemByName(name) || findItemByName(cleanName);
-    if (item) return item.id;
-  }
-
-  // 2. 优先尝试直接在物品库中查找
-  const item =
-    findItemByName(selectedValue) ||
-    findItemByName(cleanName) ||
-    findItemById(selectedValue) ||
-    findItemById(cleanId);
-  if (item) return item.id;
-
-  // 3. 类别回退 (针对模糊匹配)
-  if (
-    normalized.includes('bagpipes') ||
-    normalized.includes('drum') ||
-    normalized.includes('dulcimer') ||
-    normalized.includes('flute') ||
-    normalized.includes('lute') ||
-    normalized.includes('lyre') ||
-    normalized.includes('horn') ||
-    normalized.includes('pan flute') ||
-    normalized.includes('shawm') ||
-    normalized.includes('viol') ||
-    normalized.includes('musical') ||
-    normalized.includes('instrument')
-  ) {
-    return 'musical-instruments-full';
-  }
-
-  if (
-    normalized.includes('supplies') ||
-    normalized.includes('tools') ||
-    normalized.includes('utensils') ||
-    normalized.includes('artisan')
-  ) {
-    return 'artisan-tools-full';
-  }
-
-  if (normalized.includes('set') || normalized.includes('gaming')) {
-    return 'gaming-set-full';
-  }
-
-  return undefined;
-}
-
-function resolveEquipmentRecord(
-  record: EquipmentRecord | BackgroundEquipmentRecord,
-  sourceName: string,
-  character: CharacterState,
-) {
-  if (record.kind === 'currency') {
-    return {
-      inventoryEntries: [] as InventoryEntry[],
-      currency: mergeCurrency(emptyCurrency(), record.currency || {}),
-    };
-  }
-
-  let resolvedItemId = record.itemId;
-  let resolvedLabel = record.label;
-  let extraCurrency = record.currency
-    ? mergeCurrency(emptyCurrency(), record.currency)
-    : emptyCurrency();
-
-  // 防御性处理：若 label 仍混有末尾货币（如 "旅行服装， 30 GP" 或 "旅行服装 30 GP"），提取货币并净化装备名
-  const compoundMatch = resolvedLabel.match(
-    /(?:[，,\s]+|\s+)(\d+)\s*(GP|SP|CP|PP|EP|金币|银币|铜币|枚金币|枚)$/i,
-  );
-  if (compoundMatch) {
-    const amt = parseInt(compoundMatch[1], 10);
-    const unit = compoundMatch[2].toLowerCase();
-    const curKey: keyof Currency =
-      unit === '金币' || unit === 'gp' || unit === '枚' || unit === '枚金币'
-        ? 'gp'
-        : unit === '银币' || unit === 'sp'
-          ? 'sp'
-          : unit === '铜币' || unit === 'cp'
-            ? 'cp'
-            : (unit as keyof Currency);
-    extraCurrency = mergeCurrency(extraCurrency, { [curKey]: amt });
-    resolvedLabel = resolvedLabel.slice(0, compoundMatch.index).trim();
-    if (!resolvedItemId) {
-      const found = findItemByName(resolvedLabel);
-      if (found) resolvedItemId = found.id;
-    }
-  }
-
-  // 处理自选项 (Selection)
-  if (!resolvedItemId && record.selectionId) {
-    const selectedValue =
-      character.backgroundSelections?.[record.selectionId]?.[0] ||
-      character.classSelections?.[record.selectionId]?.[0];
-    if (selectedValue) {
-      resolvedLabel = `${record.label}：${selectedValue}`;
-      resolvedItemId = resolveSelectableItemId(selectedValue);
-    }
-  }
-
-  const resolvedItem = resolvedItemId ? findItemById(resolvedItemId) : undefined;
-  const itemId = resolvedItem?.id;
-
-  return {
-    inventoryEntries: [
-      {
-        id: itemId
-          ? `${sourceName}:${itemId}:${resolvedLabel}`
-          : `${sourceName}-unresolved:${resolvedLabel}`,
-        name: resolvedItem?.name || resolvedLabel,
-        quantity: record.quantity,
-        source: sourceName,
-        category: record.category
-          ? toInventoryCategory(record.category as any)
-          : getItemCategory(resolvedItem),
-        itemId,
-        weight: resolvedItem?.weight,
-        notes: itemId ? undefined : '未映射到具体物品数据，保留原文记录',
-      },
-    ],
-    currency: extraCurrency,
-  };
-}
-
-function buildBackgroundEquipmentState(
-  background: Background | undefined,
-  character: CharacterState,
-) {
-  if (!background?.equipment) {
-    return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
-  }
-
-  const selectedChoice = character.backgroundSelections?.[`bg:${background.id}:equipment`]?.[0];
-  const useChoiceB = selectedChoice === 'choiceB';
-  const records = resolveBackgroundEquipmentChoices(background, character.backgroundSelections);
-
-  if (records.length > 0) {
-    return records.reduce(
-      (acc, record) => {
-        const resolved = resolveEquipmentRecord(record, '背景起始装备', character);
-        acc.inventoryEntries.push(...resolved.inventoryEntries);
-        acc.currency = mergeCurrency(acc.currency, resolved.currency);
-        return acc;
-      },
-      { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() },
-    );
-  }
-
-  if (!useChoiceB && background.equipment.choiceA.length) {
-    return labelsToInventoryEntries(
-      background.equipment.choiceA as string[],
-      `背景: ${background.name}`,
-    );
-  }
-
-  if (useChoiceB && background.equipment.choiceB) {
-    const parsedCurrency = parseCurrency(background.equipment.choiceB);
-    return {
-      inventoryEntries: [] as InventoryEntry[],
-      currency: parsedCurrency ? mergeCurrency(emptyCurrency(), parsedCurrency) : emptyCurrency(),
-    };
-  }
-
-  return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
-}
-
-function buildClassEquipmentState(
-  primaryClass: ClassData | undefined,
-  character: CharacterState,
-  mode: 'package' | 'gold' | 'choiceC',
-  selectedPackageText?: string,
-) {
-  if (!primaryClass) return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
-
-  const { startingEquipment } = primaryClass;
-
-  // --- 方案 B 处理 (通常标记为 gold) ---
-  if (mode === 'gold') {
-    // 优先尝试结构化记录 (如战士的方案B包含单品)
-    const choiceBRecord = (startingEquipment as any).choiceBRecord;
-    if (choiceBRecord) {
-      const records = Array.isArray(choiceBRecord) ? choiceBRecord : [choiceBRecord];
-      return records.reduce(
-        (acc, record) => {
-          const resolved = resolveEquipmentRecord(
-            record,
-            `职业: ${primaryClass.name} (方案B)`,
-            character,
-          );
-          acc.inventoryEntries.push(...resolved.inventoryEntries);
-          acc.currency = mergeCurrency(acc.currency, resolved.currency);
-          return acc;
-        },
-        { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() },
-      );
-    }
-
-    // 回退到解析字符串
-    if (startingEquipment.choiceB) {
-      const parsedClassGold = parseCurrency(startingEquipment.choiceB.replace(/\s+/g, ''));
-      return {
-        inventoryEntries: [] as InventoryEntry[],
-        currency: parsedClassGold
-          ? mergeCurrency(emptyCurrency(), parsedClassGold)
-          : emptyCurrency(),
-      };
-    }
-    return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
-  }
-
-  // --- 方案 C 处理 ---
-  if (mode === 'choiceC') {
-    const choiceCRecord = (startingEquipment as any).choiceCRecord;
-    if (choiceCRecord) {
-      const records = Array.isArray(choiceCRecord) ? choiceCRecord : [choiceCRecord];
-      return records.reduce(
-        (acc, record) => {
-          const resolved = resolveEquipmentRecord(
-            record,
-            `职业: ${primaryClass.name} (方案C)`,
-            character,
-          );
-          acc.inventoryEntries.push(...resolved.inventoryEntries);
-          acc.currency = mergeCurrency(acc.currency, resolved.currency);
-          return acc;
-        },
-        { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() },
-      );
-    }
-
-    if (startingEquipment.choiceC) {
-      const labels = startingEquipment.choiceC
-        .split(/[，,]/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      return labelsToInventoryEntries(labels, `职业: ${primaryClass.name} (方案C)`);
-    }
-    return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
-  }
-
-  // --- 方案 A 处理 (通常标记为 package) ---
-  const classPackageOptions = expandEquipmentOptions(startingEquipment.choiceA || []);
-  const effectivePackageText =
-    selectedPackageText || (classPackageOptions.length > 0 ? classPackageOptions[0] : undefined);
-
-  const choiceARecords = startingEquipment.choiceARecords;
-  if (choiceARecords && choiceARecords.length > 0) {
-    const filteredRecords = choiceARecords.filter(
-      (r) => !r.optionName || r.optionName === effectivePackageText,
-    );
-    return filteredRecords.reduce(
-      (acc, record) => {
-        const resolved = resolveEquipmentRecord(
-          record,
-          `职业: ${primaryClass.name} (方案A)`,
-          character,
-        );
-        acc.inventoryEntries.push(...resolved.inventoryEntries);
-        acc.currency = mergeCurrency(acc.currency, resolved.currency);
-        return acc;
-      },
-      { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() },
-    );
-  }
-
-  if (effectivePackageText) {
-    const packageLabels = effectivePackageText
-      .split(/[，,]/)
-      .map((p) => p.trim())
-      .filter(Boolean);
-    return labelsToInventoryEntries(packageLabels, `职业: ${primaryClass.name} (方案A)`);
-  }
-
-  return { inventoryEntries: [] as InventoryEntry[], currency: emptyCurrency() };
-}
-
-function buildEquipmentState(
-  character: CharacterState,
-  mode: 'package' | 'gold' | 'choiceC',
-  selectedPackage?: string,
-) {
-  const primaryClass = getPrimaryClassDefinition(character);
-  const background = getBackgroundDefinition(character);
-
-  const backgroundResult = buildBackgroundEquipmentState(background, character);
-  const classResult = buildClassEquipmentState(primaryClass, character, mode, selectedPackage);
-
-  const inventoryEntries: InventoryEntry[] = [
-    ...backgroundResult.inventoryEntries,
-    ...classResult.inventoryEntries,
-  ];
-  const currency = mergeCurrency(backgroundResult.currency, classResult.currency);
-
-  return { inventoryEntries, currency };
-}
 
 function EquipmentOptionCard({
   title,
@@ -1375,9 +852,11 @@ export default function EquipmentPage() {
   }, [primaryClass, choices]);
 
   const selectedPackage =
-    character?.selectedClassPackage ||
-    (classPackageOptions.length > 0 ? classPackageOptions[0] : undefined);
+    character?.selectedClassPackage && classPackageOptions.includes(character.selectedClassPackage)
+      ? character.selectedClassPackage
+      : classPackageOptions[0];
 
+  const [equipmentError, setEquipmentError] = useState('');
   const [activeTab, setActiveTab] = useState<'inventory' | 'shop'>('inventory');
   const [shopSearch, setShopSearch] = useState('');
   const [shopCategory, setShopCategory] = useState('all');
@@ -1450,7 +929,9 @@ export default function EquipmentPage() {
       if (!character) return;
 
       // 确定新的选择模式
-      const newClassMode = params.classMode ?? (character.equipmentChoiceMode as any) ?? 'package';
+      const newClassMode = normalizeEquipmentMode(
+        params.classMode ?? character.equipmentChoiceMode,
+      );
       const currentBGChoice = background?.id
         ? character.backgroundSelections?.[`bg:${background.id}:equipment`]?.[0]
         : undefined;
@@ -1466,31 +947,22 @@ export default function EquipmentPage() {
         nextBackgroundSelections[`bg:${background.id}:equipment`] = [newBGMode];
       }
 
-      // 计算起始装备结果
-      const { inventoryEntries, currency } = buildEquipmentState(
-        {
-          ...character,
-          backgroundSelections: nextBackgroundSelections,
-          equipmentChoiceMode: newClassMode,
-        },
-        newClassMode,
-        newClassPackage,
-      );
-
-      // 保留非起始装备条目 (如已装备标记、商店购买的物品、手动添加的物品等)
-      const preservedInventoryEntries = character.inventoryEntries.filter((entry) => {
-        const isStarting = entry.source?.startsWith('背景') || entry.source?.startsWith('职业');
-        return !isStarting;
-      });
-
-      updateActiveCharacter({
+      const updates: Partial<CharacterState> = {
         equipmentChoiceMode: newClassMode,
         selectedClassPackage: newClassPackage,
         backgroundSelections: nextBackgroundSelections,
-        inventoryEntries: [...inventoryEntries, ...preservedInventoryEntries],
-        currency,
-        startingEquipmentSynced: true,
-      });
+      };
+      try {
+        updateActiveCharacter({
+          ...updates,
+          ...reconcileStartingEquipment(character, { ...character, ...updates }),
+        });
+        setEquipmentError('');
+      } catch (error) {
+        setEquipmentError(
+          error instanceof Error ? error.message : '装备方案未能同步，请核对配置。',
+        );
+      }
     },
     [character, background, selectedPackage, classPackageOptions, updateActiveCharacter, choices],
   );
@@ -1500,26 +972,9 @@ export default function EquipmentPage() {
     if (!character) return;
     if (!primaryClass && !background) return;
 
-    // 检查角色是否有起始装备记录
-    const hasStartingEntries = character.inventoryEntries.some(
-      (entry) => entry.source?.startsWith('背景') || entry.source?.startsWith('职业'),
-    );
-
-    // 检查职业和背景是否与当前装备匹配
-    const isClassSynced =
-      !primaryClass ||
-      character.inventoryEntries.some((entry) => entry.source?.includes(primaryClass.name)) ||
-      character.equipmentChoiceMode === 'gold';
-
-    const syncKey = [
-      character.id,
-      primaryClass?.catalogId || primaryClass?.name || '',
-      background?.id || '',
-      character.equipmentChoiceMode || 'package',
-      selectedPackage || '',
-    ].join('|');
+    const syncKey = getStartingEquipmentKey(character);
     if (
-      (!character.startingEquipmentSynced || !hasStartingEntries || !isClassSynced) &&
+      (!character.startingEquipmentSynced || character.startingEquipmentGrant?.key !== syncKey) &&
       automaticSyncAttempt.current !== syncKey
     ) {
       automaticSyncAttempt.current = syncKey;
@@ -1772,6 +1227,10 @@ export default function EquipmentPage() {
             })()}
           </section>
 
+          {equipmentError && <p role="alert">{equipmentError}</p>}
+          {!character.startingEquipmentGrant?.currency && (
+            <p role="status">旧角色首次同步按当前方案重算起始金币，后续切换只调整差额。</p>
+          )}
           {/* 职业选择区块 */}
           <section>
             <h4 style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -1787,7 +1246,7 @@ export default function EquipmentPage() {
                         .join(', ')
                     : undefined
                 }
-                selected={(character.equipmentChoiceMode ?? 'package') === 'package'}
+                selected={normalizeEquipmentMode(character.equipmentChoiceMode) === 'package'}
                 onClick={() => applyEquipmentState({ classMode: 'package' })}
               />
               <EquipmentOptionCard
@@ -1798,7 +1257,7 @@ export default function EquipmentPage() {
                     : '方案 B：职业套组'
                 }
                 description={primaryClass?.startingEquipment.choiceB}
-                selected={character.equipmentChoiceMode === 'gold'}
+                selected={normalizeEquipmentMode(character.equipmentChoiceMode) === 'gold'}
                 onClick={() => applyEquipmentState({ classMode: 'gold' })}
               />
               {primaryClass?.startingEquipment.choiceC && (
@@ -1816,7 +1275,7 @@ export default function EquipmentPage() {
             </div>
 
             {/* 如果选择了职业套组，展示具体子方案 */}
-            {(character.equipmentChoiceMode ?? 'package') === 'package' &&
+            {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
               classPackageOptions.length > 1 && (
                 <div
                   style={{

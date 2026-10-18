@@ -59,6 +59,11 @@ const createEmptyCharacter = (id: string): CharacterState => ({
   equippedWeaponIds: [],
   attunedItemIds: [],
   currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+  startingEquipmentGrant: {
+    key: '',
+    inventoryIds: [],
+    currency: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
+  },
   higherLevelGoldRolled: false,
   higherLevelGoldAmount: 0,
   hitDiceUsed: 0,

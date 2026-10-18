@@ -1,4 +1,5 @@
 'use client';
+import { normalizeEquipmentMode, reconcileStartingEquipment } from '@/engine/startingEquipment';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
@@ -20,7 +21,7 @@ import {
 import { WarlockInvocations2024 } from '@/mechanics-overlay/warlockInvocations';
 import { allLanguages } from '@/rules/languages';
 import { SubClass, ClassFeature, ClassLevelProgression, EquipmentRecord } from '@/types/class';
-import { CharacterState, InventoryEntry } from '@/types/characterState';
+import { CharacterState } from '@/types/characterState';
 import {
   translateClass,
   translateProficiency,
@@ -348,6 +349,18 @@ export default function ClassPage() {
 
   const totalLevel = currentClasses.reduce((acc, c) => acc + c.level, 0);
 
+  const [equipmentError, setEquipmentError] = useState('');
+  const applyEquipmentChange = (updates: Partial<CharacterState>) => {
+    if (!character) return;
+    try {
+      const equipment = reconcileStartingEquipment(character, { ...character, ...updates });
+      updateActiveCharacter({ ...updates, ...equipment });
+      setEquipmentError('');
+    } catch (error) {
+      setEquipmentError(error instanceof Error ? error.message : '装备方案未能同步，请核对配置。');
+    }
+  };
+
   const handleSetPrimaryClass = (classId: string) => {
     const prevClassId = currentClasses[0]?.classId;
     let nextSelections = { ...(character?.classSelections || {}) };
@@ -368,7 +381,7 @@ export default function ClassPage() {
 
     // For single class flow, just set class at level 1
     const selectedDefinition = getClassDefinition(classId);
-    updateActiveCharacter({
+    applyEquipmentChange({
       classes: [
         { classId, level: 1, isMulticlass: false, source: selectedDefinition?.source || 'PHB2024' },
       ],
@@ -401,98 +414,15 @@ export default function ClassPage() {
     updateActiveCharacter({ classes: newClasses });
   };
 
-  const handleEquipmentModeChange = (
-    mode: 'choiceA' | 'choiceB' | 'choiceC' | 'package' | 'gold',
-  ) => {
+  const handleEquipmentModeChange = (mode: CharacterState['equipmentChoiceMode']) => {
     if (!classDefinition) return;
-
-    let updates: Partial<CharacterState> = {
-      equipmentChoiceMode: mode,
-    };
-
-    let records: EquipmentRecord[] = [];
-    if (mode === 'choiceA' || mode === 'package') {
-      records = classDefinition.startingEquipment.choiceARecords || [];
-    } else if (mode === 'choiceB' || mode === 'gold') {
-      const bRec = classDefinition.startingEquipment.choiceBRecord;
-      records = Array.isArray(bRec) ? bRec : bRec ? [bRec] : [];
-    } else if (mode === 'choiceC') {
-      const cRec = classDefinition.startingEquipment.choiceCRecord;
-      records = Array.isArray(cRec) ? cRec : cRec ? [cRec] : [];
-    }
-
-    // 1. Static items
-    const items: InventoryEntry[] = records
-      .filter((r: EquipmentRecord) => r.kind === 'item' && !r.selectionId)
-      .map((r: EquipmentRecord) => ({
-        id: r.itemId || Math.random().toString(36).substring(2, 11),
-        name: r.label,
-        quantity: r.quantity || 1,
-        category: (r.category as any) || 'gear',
-        itemId: r.itemId,
-      }));
-
-    // 2. Resolve existing selections if any
-    records
-      .filter((r: EquipmentRecord) => r.selectionId)
-      .forEach((r: EquipmentRecord) => {
-        const selected = character?.classSelections?.[r.selectionId!]?.[0];
-        if (selected) {
-          items.push({
-            id: r.selectionId!,
-            name: translateProficiency(selected),
-            quantity: 1,
-            category: 'gear',
-            itemId: selected,
-          });
-        }
-      });
-
-    const currencyRecord = records.find((r: EquipmentRecord) => r.kind === 'currency');
-    const currency = currencyRecord?.currency || {};
-
-    updates.inventoryEntries = items;
-    updates.currency = { gp: 0, sp: 0, ep: 0, cp: 0, pp: 0, ...currency };
-    updates.equipmentIds = items
-      .filter((i: InventoryEntry) => i.itemId)
-      .map((i: InventoryEntry) => i.itemId!);
-    updates.startingEquipmentSynced = false;
-
-    updateActiveCharacter(updates);
+    applyEquipmentChange({ equipmentChoiceMode: normalizeEquipmentMode(mode) });
   };
 
   const handleEquipmentSelection = (selectionId: string, value: string) => {
-    if (!classDefinition) return;
-
-    const currentSelections = character?.classSelections || {};
-    const nextSelections = {
-      ...currentSelections,
-      [selectionId]: [value],
-    };
-
-    // Update inventory entry for this selection slot
-    const currentInventory = character?.inventoryEntries || [];
-    const existingIdx = currentInventory.findIndex((i) => i.id === selectionId);
-
-    const newEntry = {
-      id: selectionId,
-      name: translateProficiency(value),
-      quantity: 1,
-      category: 'gear' as any,
-      itemId: value,
-    };
-
-    let nextInventory = [...currentInventory];
-    if (existingIdx >= 0) {
-      nextInventory[existingIdx] = newEntry;
-    } else {
-      nextInventory.push(newEntry);
-    }
-
-    updateActiveCharacter({
-      classSelections: nextSelections,
-      inventoryEntries: nextInventory,
-      equipmentIds: Array.from(new Set([...(character?.equipmentIds || []), value])),
+    if (!character || !classDefinition) return;
+    applyEquipmentChange({
+      classSelections: { ...character.classSelections, [selectionId]: [value] },
     });
   };
 
@@ -2044,6 +1974,10 @@ export default function ClassPage() {
                 ) : null}
               </div>
 
+              {equipmentError && <p role="alert">{equipmentError}</p>}
+              {!character.startingEquipmentGrant?.currency && (
+                <p role="status">旧角色首次同步按当前方案重算起始金币，后续切换只调整差额。</p>
+              )}
               {/* 起始装备选择 Starting Equipment Selection */}
               {!primaryClassEntry.isMulticlass && (
                 <div style={{ margin: '32px 0' }}>

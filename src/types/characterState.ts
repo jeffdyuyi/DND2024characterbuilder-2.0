@@ -174,6 +174,11 @@ export interface CharacterState {
   higherLevelGoldApplied?: boolean; // 新增：是否已领取到钱包
   selectedClassPackage?: string; // 选择的具体职业套组方案
   startingEquipmentSynced?: boolean; // 是否已自动同步/初始化起始装备
+  startingEquipmentGrant?: {
+    key: string;
+    inventoryIds: string[];
+    currency: Currency;
+  };
 
   // Inventory & Encumbrance System
   encumbranceMode?: 'full' | 'standard' | 'simple';
