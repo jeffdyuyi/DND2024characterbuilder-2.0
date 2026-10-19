@@ -1,4 +1,4 @@
-import { createBuilderChoices } from '@/catalog/builderChoices';
+import { getCatalogSpells } from '@/catalog';
 import { collectFeatSlotSpellGrantSources } from './featSlotSpellGrants';
 import {
   getBackgroundDefinition,
@@ -111,11 +111,8 @@ export function getNativeFeatSpellGrants(character: CharacterState, candidates?:
     return [];
   const plans = getNativeFeatSpellPlans(character);
   if (!plans.length) return [];
-  const pool =
-    candidates ??
-    createBuilderChoices(character).getCatalogSpells({
-      allowHomebrew: Boolean(character.allowHomebrew),
-    });
+  // 来源范围只限制新候选；已保存的选择仍须按完整目录验证并派生。
+  const pool = candidates ?? getCatalogSpells();
   const result: {
     spellId: string;
     slotId: string;

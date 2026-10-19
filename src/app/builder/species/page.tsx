@@ -5,7 +5,7 @@ import React, { useState, useEffect, useMemo, Suspense, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getCatalogSpecies, getCatalogFeats, SPECIES_RESISTANCE_TRANSLATION } from '@/catalog';
 import { useCatalog } from '@/platform/CatalogProvider';
-import { getSpeciesDefinition } from '@/engine/characterData';
+import { getFeatDefinition, getSpeciesDefinition } from '@/engine/characterData';
 import { getSpeciesSpellAbility, getSpeciesSpellSelections } from '@/engine/speciesSpellSelections';
 import { useCharacterStore } from '@/store/characterStore';
 import OptionCard from '@/components/OptionCard';
@@ -1097,6 +1097,9 @@ const TraitItem = ({
                     data.filter === 'type:origin' ||
                     (!isTypeAny && (!data.options || data.options.length === 0));
                   const catalogFeats = choices.getCatalogFeats();
+                  const selectedFeats = currentSelections
+                    .map((value: string) => getFeatDefinition(value))
+                    .filter((feat): feat is NonNullable<typeof feat> => Boolean(feat));
 
                   let baseFeats = catalogFeats;
                   if (data.options && data.options.length > 0) {
@@ -1141,9 +1144,8 @@ const TraitItem = ({
                   });
 
                   // 若已选专长不在当前来源筛选结果中，将其追加到前面，确保已选专长始终可见并可反选
-                  const selectedExtraFeats = baseFeats.filter(
+                  const selectedExtraFeats = selectedFeats.filter(
                     (f) =>
-                      (currentSelections.includes(f.id) || currentSelections.includes(f.name)) &&
                       !filteredFeats.some(
                         (ff) => ff.id === f.id || (ff.name === f.name && ff.source === f.source),
                       ),
@@ -1205,7 +1207,9 @@ const TraitItem = ({
                               {currentSelections
                                 .map(
                                   (value: string) =>
-                                    catalogFeats.find((feat) => feat.id === value)?.name || value,
+                                    selectedFeats.find(
+                                      (feat) => feat.id === value || feat.name === value,
+                                    )?.name || value,
                                 )
                                 .join('、')}
                             </span>
@@ -1382,7 +1386,7 @@ const TraitItem = ({
                       {/* 专长预览面板 (Feat Preview) */}
                       {previewFeatId &&
                         (() => {
-                          const feat = catalogFeats.find(
+                          const feat = displayFeats.find(
                             (f) => f.id === previewFeatId || f.name === previewFeatId,
                           );
                           if (!feat) return null;

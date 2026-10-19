@@ -240,6 +240,43 @@ it('原生专长在两个页面共用槽位记录，重开后派生三道且移�
   expect(reopened.featSelections?.['background-feat']?.nativeSpellGrants).toBeDefined();
 });
 
+it('禁用已选专长书籍只收紧新候选，JSON重开后原生授法仍在卡面', async () => {
+  defaultCatalog.registerMany([feat, background, ...spells]);
+  const character = state();
+  const block = getNativeFeatSpellPlans(character)[0].grants.blocks.find(
+    (entry) => entry.nameEn === 'Cleric Spells',
+  )!;
+  const known = block.rules.find((rule) => rule.mode === 'known')!;
+  const innate = block.rules.find((rule) => rule.mode === 'innate')!;
+  character.featSelections = {
+    'background-feat': {
+      featId: feat.id,
+      nativeSpellGrants: {
+        originId: feat.id,
+        blockId: block.id,
+        ability: 'wis',
+        selections: { [known.id]: [spells[0].id, spells[1].id], [innate.id]: [spells[2].id] },
+      },
+    },
+  };
+  character.sourceSelection = {
+    mode: 'selected',
+    books: [{ sourcePackId: '5etools-cn', source: 'PHB' }],
+  };
+  expect(
+    createBuilderChoices(character)
+      .getCatalogSpells()
+      .some((spell) => spell.id === spells[0].id),
+  ).toBe(false);
+  const reopened = await importFromJSON(exportToJSON(character));
+  const grants = getInnateSpells(reopened);
+  expect(grants.map((grant) => grant.spellId)).toEqual(spells.slice(0, 3).map((spell) => spell.id));
+  expect(grants[2].freeCastsPerLongRest).toBe(1);
+  expect(deriveCharacterSpellSelection(reopened).cantripIds).toEqual([spells[0].id, spells[1].id]);
+  expect(buildSpellSourceMap(grants, [], '职业')[spells[2].id]).toContain('专长: 魔法学徒');
+  expect(reopened).toEqual(character);
+});
+
 it('来源页与法术页共用选择控件和记录，玩家手选后立即可派生', () => {
   defaultCatalog.registerMany([feat, background, ...spells]);
   let character = state();
