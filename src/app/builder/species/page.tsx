@@ -1143,7 +1143,7 @@ const TraitItem = ({
                   // 若已选专长不在当前来源筛选结果中，将其追加到前面，确保已选专长始终可见并可反选
                   const selectedExtraFeats = baseFeats.filter(
                     (f) =>
-                      currentSelections.includes(f.name) &&
+                      (currentSelections.includes(f.id) || currentSelections.includes(f.name)) &&
                       !filteredFeats.some(
                         (ff) => ff.id === f.id || (ff.name === f.name && ff.source === f.source),
                       ),
@@ -1201,7 +1201,13 @@ const TraitItem = ({
                                 fontWeight: 500,
                               }}
                             >
-                              已选: {currentSelections.join('、')}
+                              已选:{' '}
+                              {currentSelections
+                                .map(
+                                  (value: string) =>
+                                    catalogFeats.find((feat) => feat.id === value)?.name || value,
+                                )
+                                .join('、')}
                             </span>
                           )}
                           <span
@@ -1341,7 +1347,7 @@ const TraitItem = ({
                                   ? currentSelections.filter(
                                       (v: string) => v !== feat.name && v !== feat.id,
                                     )
-                                  : [...currentSelections, feat.name].slice(-data.numToChoose);
+                                  : [...currentSelections, feat.id].slice(-data.numToChoose);
                                 onSelectionChange(next);
                               }}
                             >
