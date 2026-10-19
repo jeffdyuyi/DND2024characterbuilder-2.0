@@ -639,6 +639,9 @@ const SpellsTab: React.FC<SpellsTabProps> = ({
               </div>
             )}
           </div>
+          {freeCastGrants.length > 0 && (
+            <h3 style={{ fontSize: 13, margin: '20px 0 10px' }}>来源免费施法</h3>
+          )}
           {freeCastGrants.map((grant) => {
             const spell = spellDetails.find((entry) => entry.id === grant.spellId);
             const key = grant.freeCastResourceId;
