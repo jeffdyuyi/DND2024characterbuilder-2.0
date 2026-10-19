@@ -165,6 +165,33 @@ it('原生专长在两个页面共用槽位记录，重开后派生三道且移�
     freeCastsPerLongRest: 1,
   });
   const grants = getInnateSpells(character);
+  const resourceId = grants[2].freeCastResourceId!;
+  expect(resourceId).toContain('background-feat');
+  const renderTracker = () => {
+    buttons.length = 0;
+    return renderToStaticMarkup(
+      <SpellsTab
+        character={character}
+        spellcasting={{ spellSlots: {}, cantripsKnown: 2, spellsPrepared: 1 }}
+        primaryClass={undefined}
+        cantripDetails={grants.slice(0, 2).map((entry) => getSpellDefinition(entry.spellId))}
+        spellDetails={[getSpellDefinition(grants[2].spellId)]}
+        spellSourceMap={buildSpellSourceMap(grants, [], '专长')}
+        freeCastGrants={[grants[2]]}
+        spellSlotUsage={{}}
+        updateActiveCharacter={(patch) => Object.assign(character, patch)}
+        router={{ push() {} }}
+        id={character.id}
+      />,
+    );
+  };
+  expect(renderTracker()).toContain('免费施法 1 / 1');
+  buttons.find((button) => button.children === '消耗免费次数').onClick();
+  expect(character.resourceUsage[resourceId]).toBe(1);
+  expect(renderTracker()).toContain('免费施法 0 / 1');
+  expect((await importFromJSON(exportToJSON(character))).resourceUsage[resourceId]).toBe(1);
+  buttons.find((button) => button.children === '长休恢复').onClick();
+  expect(character.resourceUsage[resourceId]).toBe(0);
   const sheet = renderToStaticMarkup(
     <SpellsTab
       character={character}

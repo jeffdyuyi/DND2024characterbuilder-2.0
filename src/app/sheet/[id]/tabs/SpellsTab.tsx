@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from '../../sheet.module.css';
 import PillButton from '@/components/PillButton';
 import MarkdownText from '@/components/MarkdownText';
+import type { InnateSpellSource } from '@/engine/spellcasting';
 import {
   translateAbilityKey,
   translateSpellSchool,
@@ -323,6 +324,7 @@ interface SpellsTabProps {
   spellDetails: any[];
   spellbookDetails?: any[];
   spellSourceMap: Record<string, string>;
+  freeCastGrants?: InnateSpellSource[];
   spellSlotUsage: any;
   updateActiveCharacter: (data: any) => void;
   router: any;
@@ -337,6 +339,7 @@ const SpellsTab: React.FC<SpellsTabProps> = ({
   spellDetails,
   spellbookDetails = [],
   spellSourceMap,
+  freeCastGrants = [],
   spellSlotUsage,
   updateActiveCharacter,
   router,
@@ -636,6 +639,45 @@ const SpellsTab: React.FC<SpellsTabProps> = ({
               </div>
             )}
           </div>
+          {freeCastGrants.map((grant) => {
+            const spell = spellDetails.find((entry) => entry.id === grant.spellId);
+            const key = grant.freeCastResourceId;
+            const max = grant.freeCastsPerLongRest;
+            if (!spell || !key || typeof max !== 'number') return null;
+            const used = Math.min(max, Math.max(0, character.resourceUsage?.[key] || 0));
+            return (
+              <div key={key} style={{ marginTop: 16, fontSize: 12 }}>
+                <div>
+                  {spell.name} · 免费施法 {max - used} / {max}（长休）
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <PillButton
+                    size="sm"
+                    disabled={used >= max}
+                    onClick={() =>
+                      updateActiveCharacter({
+                        resourceUsage: { ...character.resourceUsage, [key]: used + 1 },
+                      })
+                    }
+                  >
+                    消耗免费次数
+                  </PillButton>
+                  <PillButton
+                    size="sm"
+                    variant="outline"
+                    disabled={used === 0}
+                    onClick={() =>
+                      updateActiveCharacter({
+                        resourceUsage: { ...character.resourceUsage, [key]: 0 },
+                      })
+                    }
+                  >
+                    长休恢复
+                  </PillButton>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 

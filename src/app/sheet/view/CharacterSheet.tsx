@@ -383,6 +383,7 @@ function LoadedCharacterSheet({
             spellDetails={spellDetails}
             spellbookDetails={spellbookDetails}
             spellSourceMap={spellSourceMap}
+            freeCastGrants={innate.filter((grant) => grant.freeCastResourceId)}
             spellSlotUsage={character.spellSlotUsage || {}}
             updateActiveCharacter={updateActiveCharacter}
             router={router}

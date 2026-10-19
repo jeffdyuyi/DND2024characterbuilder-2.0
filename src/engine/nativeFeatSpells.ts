@@ -184,7 +184,8 @@ export function getNativeFeatSpellGrants(character: CharacterState, candidates?:
           ruleId: rule.id,
           source,
           level: rule.gate.value || slot.level || 1,
-          freeCastsPerLongRest: onePerLongRest && rule === daily[0] ? 1 : undefined,
+          freeCastsPerLongRest:
+            onePerLongRest && rule === daily[0] && ids.length === 1 ? 1 : undefined,
         });
     }
   }

@@ -598,6 +598,9 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       unlockLevel: grant.level,
       isPrepared: true,
       freeCastsPerLongRest: grant.freeCastsPerLongRest,
+      freeCastResourceId: grant.freeCastsPerLongRest
+        ? JSON.stringify(['native-feat-free-cast', grant.slotId, grant.sourceId, grant.ruleId])
+        : undefined,
     });
   }
 
@@ -989,6 +992,8 @@ export interface InnateSpellSource {
   unlockLevel: number;
   isPrepared: boolean;
   freeCastsPerLongRest?: number | string;
+  /** 原生专长明确一次长休免费施法的稳定计数身份。 */
+  freeCastResourceId?: string;
   /** 新原生职业固定准备由职业记录实时派生，不混入无来源的持久化ID。 */
   nativeClassPrepared?: true;
   nativeSubclassGrant?: true;
