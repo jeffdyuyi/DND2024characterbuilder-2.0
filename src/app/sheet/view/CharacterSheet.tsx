@@ -104,14 +104,11 @@ function LoadedCharacterSheet({
   const { computed, final, flags } = sheetView;
   const { ability, combat, proficiencies, spellcasting, totalLevel, proficiencyBonus } = computed;
 
-  // 增强的施法数据解析，修复 DC/攻击加值显示
-  const safeAbilityKey = spellcasting.abilityKey;
+  // 无统一职业施法属性时，来源法术各自计算 DC；概览只显示明确的手动覆盖。
   const spellDC =
-    final.spellSaveDc ||
-    8 + proficiencyBonus + (safeAbilityKey ? (final.modifiers as any)[safeAbilityKey] || 0 : 0);
+    spellcasting.abilityKey || flags.isSpellSaveDcManual ? final.spellSaveDc : undefined;
   const spellAttack =
-    final.spellAttackBonus ||
-    proficiencyBonus + (safeAbilityKey ? (final.modifiers as any)[safeAbilityKey] || 0 : 0);
+    spellcasting.abilityKey || flags.isSpellAttackBonusManual ? final.spellAttackBonus : undefined;
 
   const species = getSpeciesDefinition(character!);
   const background = getBackgroundDefinition(character!);

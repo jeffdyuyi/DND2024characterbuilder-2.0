@@ -177,6 +177,25 @@ it('旧聚合记录和正式卡手动准备保留，不猜测来源而删除用�
   expect(JSON.stringify(control.state)).toBe(snapshot);
 });
 
+it('无职业施法属性时不显示伪造的概览 DC，仍尊重手动覆盖', () => {
+  control.state.classes = [];
+  control.state.cantripIds = [light.id];
+  renderSheet();
+  expect(control.sheetProps.spellcasting.spellDC).toBeUndefined();
+  expect(control.sheetProps.spellcasting.spellAttack).toBeUndefined();
+
+  control.state.manualOverrides = { spellSaveDc: 13, spellAttackBonus: 5 };
+  renderSheet();
+  expect(control.sheetProps.spellcasting.spellDC).toBe(13);
+  expect(control.sheetProps.spellcasting.spellAttack).toBe(5);
+
+  control.state.classes = [{ classId: caster.id, level: 1, source: 'PHB', isMulticlass: false }];
+  control.state.manualOverrides = undefined;
+  renderSheet();
+  expect(control.sheetProps.spellcasting.spellDC).toBe(13);
+  expect(control.sheetProps.spellcasting.spellAttack).toBe(5);
+});
+
 it('真实种族属性在来源页读法、授予描述与实际卡面一致，清空不复活旧镜像', async () => {
   const slot = getSpeciesSpellChoiceSlots(control.state)[0];
   const traitKey = slot.key.replace(/:spell-\d+$/, '');
