@@ -204,6 +204,30 @@ it('移除一个已有选择来源后另一个保留；全部移除后不残留�
   expect(deriveCharacterSpellSelection(state).preparedSpellIds).toEqual([]);
 });
 
+it('双来源逐一撤销后经存档重开，剩余来源与最终移除状态一致', async () => {
+  const state = character();
+  delete state.featSelections!.first;
+  const oneSource = await importFromJSON(exportToJSON(state));
+  const remaining = deriveCharacterSpellSelection(oneSource);
+  expect(remaining).toEqual({
+    cantripIds: [light.id],
+    preparedSpellIds: [command.id],
+    spellbookIds: [],
+  });
+  expect(
+    buildSpellSourceMap(getInnateSpells(oneSource), remaining.preparedSpellIds, '职业')[command.id],
+  ).toBe('专长: 链路专长乙');
+
+  oneSource.featSelections = {};
+  const noSource = await importFromJSON(exportToJSON(oneSource));
+  expect(getInnateSpells(noSource)).toEqual([]);
+  expect(deriveCharacterSpellSelection(noSource)).toEqual({
+    cantripIds: [],
+    preparedSpellIds: [],
+    spellbookIds: [],
+  });
+});
+
 it('卡面实际法术组件同一法术只渲染一项且展示两种来源', async () => {
   const saved = await importFromJSON(exportToJSON(character()));
   const derived = deriveCharacterSpellSelection(saved);

@@ -4,6 +4,7 @@ import { CatalogEntry, EntryKind } from '../types';
 import { migrateCharacterCatalogReferences, resolveCatalogReference } from '../references';
 import { normalizeClass, normalizeSubclass } from '@/source/fiveetools-cn/normalizers/class';
 import { makeEntryId } from '../identity';
+import { getSourceReferenceStatus } from '../sourcePolicy';
 
 const entry = (
   id: string,
@@ -193,5 +194,42 @@ describe('Catalog 稳定引用与存档迁移', () => {
     const refreshed = migrateCharacterCatalogReferences(first, catalog);
     expect(refreshed.knownSpellIds).toEqual([id]);
     expect(refreshed.contentSnapshots?.[id]).toMatchObject({ name: '新译名', revision: 'r2' });
+  });
+
+  it('专长授法在资料暂缺与重载之间保留选择并更新来源快照', () => {
+    const featId = '5etools-cn:feat:xphb:example';
+    const spellId = '5etools-cn:spell:xphb:example';
+    const catalog = new InMemoryCatalogService();
+    catalog.register(entry(featId, 'feat', '原专长名', 'XPHB', { revision: 'r1' }));
+    catalog.register(entry(spellId, 'spell', '原法术名', 'XPHB', { revision: 'r1' }));
+    const original = character({
+      featSelections: { origin: { featId, spells: [spellId] } },
+      sourceSelection: {
+        mode: 'selected',
+        books: [{ sourcePackId: '5etools-cn', source: 'XPHB' }],
+      },
+    });
+    const first = migrateCharacterCatalogReferences(original, catalog);
+    const missing = migrateCharacterCatalogReferences(first, new InMemoryCatalogService());
+    expect(missing.featSelections).toEqual(first.featSelections);
+    expect(missing.contentSnapshots).toEqual(first.contentSnapshots);
+    expect(missing.sourceSelection).toEqual(original.sourceSelection);
+    expect(
+      getSourceReferenceStatus(spellId, new InMemoryCatalogService(), {
+        selection: missing.sourceSelection,
+        allowHomebrew: false,
+      }).status,
+    ).toBe('unresolved');
+
+    catalog.register(entry(featId, 'feat', '新专长名', 'XPHB', { revision: 'r2' }));
+    catalog.register(entry(spellId, 'spell', '新法术名', 'XPHB', { revision: 'r2' }));
+    const restored = migrateCharacterCatalogReferences(missing, catalog);
+    expect(restored.featSelections).toEqual(original.featSelections);
+    expect(restored.contentSnapshots?.[featId]).toMatchObject({ name: '新专长名', revision: 'r2' });
+    expect(restored.contentSnapshots?.[spellId]).toMatchObject({
+      name: '新法术名',
+      revision: 'r2',
+    });
+    expect(original.contentSnapshots).toBeUndefined();
   });
 });
