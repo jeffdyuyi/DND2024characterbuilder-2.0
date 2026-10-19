@@ -32,36 +32,57 @@ const SpellSlotTracker = ({ level, max, used, onUpdate }: any) => {
       <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-primary)' }}>
         {level === 0 ? '戏法' : `${level} 环`}
       </div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 4 }}>
-          {Array.from({ length: max }).map((_, i) => (
-            <div
-              key={i}
-              onClick={() => onUpdate(level, max - (i + 1))}
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                background: i < remaining ? 'var(--color-primary)' : 'var(--color-border-dark)',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                boxShadow: i < remaining ? '0 0 8px rgba(0, 113, 227, 0.3)' : 'none',
-              }}
-            />
-          ))}
+      <div>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 4 }}>
+            {Array.from({ length: max }).map((_, i) => (
+              <div
+                key={i}
+                onClick={() => onUpdate(level, max - (i + 1))}
+                style={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  background: i < remaining ? 'var(--color-primary)' : 'var(--color-border-dark)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: i < remaining ? '0 0 8px rgba(0, 113, 227, 0.3)' : 'none',
+                }}
+              />
+            ))}
+          </div>
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              marginLeft: 8,
+              color: 'var(--color-text-tertiary)',
+              minWidth: 35,
+              textAlign: 'right',
+            }}
+          >
+            {remaining} / {max}
+          </span>
         </div>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 700,
-            marginLeft: 8,
-            color: 'var(--color-text-tertiary)',
-            minWidth: 35,
-            textAlign: 'right',
-          }}
-        >
-          {remaining} / {max}
-        </span>
+        {max > 0 && (
+          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 6 }}>
+            <PillButton
+              size="xs"
+              disabled={remaining <= 0}
+              onClick={() => onUpdate(level, used + 1)}
+            >
+              消耗一枚
+            </PillButton>
+            <PillButton
+              size="xs"
+              variant="outline"
+              disabled={used <= 0}
+              onClick={() => onUpdate(level, used - 1)}
+            >
+              恢复一枚
+            </PillButton>
+          </div>
+        )}
       </div>
     </div>
   );
