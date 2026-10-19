@@ -245,3 +245,29 @@ export function getReferenceSnapshot(
 ): ContentReferenceSnapshot | undefined {
   return id ? character.contentSnapshots?.[id] : undefined;
 }
+
+/** 只提示存档中明确记录的法术引用；资料暂缺时不以快照代替规则内容。 */
+export function getUnresolvedSpellReferences(character: CharacterState, catalog: CatalogService) {
+  const references = new Set<string>([
+    ...(character.cantripIds || []),
+    ...(character.preparedSpellIds || []),
+    ...(character.knownSpellIds || []),
+    ...(character.spellbookIds || []),
+  ]);
+  for (const levels of Object.values(character.spellsByLevel || {})) {
+    for (const selection of Object.values(levels)) {
+      [...(selection.cantrips || []), ...(selection.spells || [])].forEach((id) =>
+        references.add(id),
+      );
+    }
+  }
+  for (const selection of Object.values(character.featSelections || {})) {
+    selection.spells?.forEach((id) => references.add(id));
+    Object.values(selection.nativeSpellGrants?.selections || {}).forEach((ids) =>
+      ids.forEach((id) => references.add(id)),
+    );
+  }
+  return [...references]
+    .filter((id) => id && !catalog.get(id))
+    .map((id) => ({ id, name: character.contentSnapshots?.[id]?.name || id }));
+}

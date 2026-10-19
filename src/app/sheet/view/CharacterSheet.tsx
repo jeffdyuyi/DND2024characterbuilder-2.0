@@ -4,6 +4,8 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
 import { useCatalog } from '@/platform/CatalogProvider';
 import { CharacterState } from '@/types/characterState';
+import { defaultCatalog } from '@/catalog/catalog';
+import { getUnresolvedSpellReferences } from '@/catalog/references';
 import { CatalogStats } from '@/platform/catalogLoader';
 import GlassNav from '@/components/GlassNav';
 import PillButton from '@/components/PillButton';
@@ -136,6 +138,7 @@ function LoadedCharacterSheet({
     .map(getSpellDefinition)
     .filter(Boolean);
   const spellbookDetails = (character?.spellbookIds || []).map(getSpellDefinition).filter(Boolean);
+  const unresolvedSpells = getUnresolvedSpellReferences(character, defaultCatalog);
 
   const spellSourceMap = useMemo(() => {
     return buildSpellSourceMap(
@@ -371,24 +374,36 @@ function LoadedCharacterSheet({
         )}
 
         {activeTab === 1 && (
-          <SpellsTab
-            character={character}
-            spellcasting={{
-              ...spellcasting,
-              spellDC: spellDC,
-              spellAttack: spellAttack,
-            }}
-            primaryClass={primaryClass}
-            cantripDetails={cantripDetails}
-            spellDetails={spellDetails}
-            spellbookDetails={spellbookDetails}
-            spellSourceMap={spellSourceMap}
-            freeCastGrants={innate.filter((grant) => grant.freeCastResourceId)}
-            spellSlotUsage={character.spellSlotUsage || {}}
-            updateActiveCharacter={updateActiveCharacter}
-            router={router}
-            id={id}
-          />
+          <>
+            {unresolvedSpells.length > 0 && (
+              <div role="status" style={{ padding: 16, marginBottom: 16 }}>
+                资料暂缺，以下存档法术引用已保留，重载来源后可恢复详情：{' '}
+                {unresolvedSpells.map(({ id, name }) => (
+                  <span key={id}>
+                    {name}（{id}）{' '}
+                  </span>
+                ))}
+              </div>
+            )}
+            <SpellsTab
+              character={character}
+              spellcasting={{
+                ...spellcasting,
+                spellDC: spellDC,
+                spellAttack: spellAttack,
+              }}
+              primaryClass={primaryClass}
+              cantripDetails={cantripDetails}
+              spellDetails={spellDetails}
+              spellbookDetails={spellbookDetails}
+              spellSourceMap={spellSourceMap}
+              freeCastGrants={innate.filter((grant) => grant.freeCastResourceId)}
+              spellSlotUsage={character.spellSlotUsage || {}}
+              updateActiveCharacter={updateActiveCharacter}
+              router={router}
+              id={id}
+            />
+          </>
         )}
 
         {[2, 3, 4, 5, 6].map(

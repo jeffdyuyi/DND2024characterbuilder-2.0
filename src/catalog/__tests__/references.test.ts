@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryCatalogService } from '../catalog';
 import { CatalogEntry, EntryKind } from '../types';
-import { migrateCharacterCatalogReferences, resolveCatalogReference } from '../references';
+import {
+  getUnresolvedSpellReferences,
+  migrateCharacterCatalogReferences,
+  resolveCatalogReference,
+} from '../references';
 import { normalizeClass, normalizeSubclass } from '@/source/fiveetools-cn/normalizers/class';
 import { makeEntryId } from '../identity';
 import { getSourceReferenceStatus } from '../sourcePolicy';
@@ -214,6 +218,9 @@ describe('Catalog 稳定引用与存档迁移', () => {
     expect(missing.featSelections).toEqual(first.featSelections);
     expect(missing.contentSnapshots).toEqual(first.contentSnapshots);
     expect(missing.sourceSelection).toEqual(original.sourceSelection);
+    expect(getUnresolvedSpellReferences(missing, new InMemoryCatalogService())).toEqual([
+      { id: spellId, name: '原法术名' },
+    ]);
     expect(
       getSourceReferenceStatus(spellId, new InMemoryCatalogService(), {
         selection: missing.sourceSelection,
@@ -224,6 +231,7 @@ describe('Catalog 稳定引用与存档迁移', () => {
     catalog.register(entry(featId, 'feat', '新专长名', 'XPHB', { revision: 'r2' }));
     catalog.register(entry(spellId, 'spell', '新法术名', 'XPHB', { revision: 'r2' }));
     const restored = migrateCharacterCatalogReferences(missing, catalog);
+    expect(getUnresolvedSpellReferences(restored, catalog)).toEqual([]);
     expect(restored.featSelections).toEqual(original.featSelections);
     expect(restored.contentSnapshots?.[featId]).toMatchObject({ name: '新专长名', revision: 'r2' });
     expect(restored.contentSnapshots?.[spellId]).toMatchObject({
