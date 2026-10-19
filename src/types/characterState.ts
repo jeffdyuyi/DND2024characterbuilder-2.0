@@ -90,6 +90,8 @@ export interface FeatChoices {
     blockId?: string;
     ability?: string;
     selections: Record<string, string[]>;
+    /** 每次升级最多替换一道同规则法术；原始选择不覆盖。 */
+    replacements?: Record<number, { ruleId: string; from: string; to: string }>;
   };
   weaponMasteries?: string[]; // 专长带来的武器精通选择
   other?: any; // 其他特定专长的自定义选择

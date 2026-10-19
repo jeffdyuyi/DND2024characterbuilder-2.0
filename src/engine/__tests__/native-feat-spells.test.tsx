@@ -11,6 +11,7 @@ import {
   getNativeFeatSpellPlans,
   getNativeFeatSpellGrants,
   requiresDistinctNativeFeatBlocks,
+  allowsNativeFeatLevelReplacement,
 } from '../nativeFeatSpells';
 import {
   getInnateSpells,
@@ -47,6 +48,7 @@ const feat = normalizeFeat({
     { type: 'entries', entries: [`从${links}法术列表中选择一个列表。`] },
     '你可以无需法术位地施展该法术一次，并在完成长休后重获以此法施展该法术的能力。',
     '你可多次选择本专长，但是你每次都必须选择一个不同的法术列表。',
+    '每当你获得一级新等级，你都能将通过本专长习得的一道法术替换为同法术列表中同环阶的另一道法术。',
   ],
 });
 const background = normalizeBackground({
@@ -82,6 +84,13 @@ const spells = [
     source: 'XPHB',
     level: 0,
     classes: ['法师'],
+  }),
+  normalizeSpell({
+    name: '测试戏法三',
+    ENG_name: 'Test Cantrip Three',
+    source: 'XPHB',
+    level: 0,
+    classes: ['牧师'],
   }),
 ];
 function state(): CharacterState {
@@ -278,4 +287,61 @@ it('PHB 原生职业法表沿用固定施法属性与独立来源身份', () => 
   expect(grants.map((entry) => entry.spellId)).toEqual(legacySpells.map((entry) => entry.id));
   expect(grants[0].source).toContain('感知');
   expect(grants.every((entry) => entry.sourceId === legacyFeat.id)).toBe(true);
+});
+
+it('XPHB 原生专长升级替换逐级生效，降级保留初始记录且再次升级恢复', async () => {
+  defaultCatalog.registerMany([feat, background, ...spells]);
+  expect(allowsNativeFeatLevelReplacement(feat.id)).toBe(true);
+  const character = state();
+  const block = getNativeFeatSpellPlans(character)[0].grants.blocks.find(
+    (entry) => entry.nameEn === 'Cleric Spells',
+  )!;
+  const known = block.rules.find((rule) => rule.mode === 'known')!;
+  character.featSelections = {
+    'background-feat': {
+      featId: feat.id,
+      nativeSpellGrants: {
+        originId: feat.id,
+        blockId: block.id,
+        ability: 'wis',
+        selections: { [known.id]: [spells[0].id, spells[1].id] },
+        replacements: { 2: { ruleId: known.id, from: spells[0].id, to: spells[4].id } },
+      },
+    },
+  };
+  expect(getNativeFeatSpellGrants(character).map((entry) => entry.spellId)).toEqual([
+    spells[0].id,
+    spells[1].id,
+  ]);
+  character.classes = [{ classId: 'test-class', source: 'XPHB', level: 2, isMulticlass: false }];
+  expect(getNativeFeatSpellGrants(character).map((entry) => entry.spellId)).toEqual([
+    spells[4].id,
+    spells[1].id,
+  ]);
+  const reopened = await importFromJSON(exportToJSON(character));
+  expect(getNativeFeatSpellGrants(reopened).map((entry) => entry.spellId)).toEqual([
+    spells[4].id,
+    spells[1].id,
+  ]);
+  const html = renderToStaticMarkup(
+    <NativeFeatSpellChoices
+      character={character}
+      candidates={createBuilderChoices(character).getCatalogSpells()}
+      onChange={() => {}}
+    />,
+  );
+  expect(html).toContain('角色 2 级');
+  character.classes[0].level = 1;
+  expect(getNativeFeatSpellGrants(character).map((entry) => entry.spellId)).toEqual([
+    spells[0].id,
+    spells[1].id,
+  ]);
+  character.classes[0].level = 2;
+  expect(getNativeFeatSpellGrants(character).map((entry) => entry.spellId)).toEqual([
+    spells[4].id,
+    spells[1].id,
+  ]);
+  expect(
+    character.featSelections['background-feat'].nativeSpellGrants!.selections[known.id],
+  ).toEqual([spells[0].id, spells[1].id]);
 });

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import PillButton from '@/components/PillButton';
 import {
+  canRecordNativeFeatLevelReplacement,
+  getActiveNativeFeatRuleSelections,
   getNativeFeatSpellPlans,
   requiresDistinctNativeFeatBlocks,
 } from '@/engine/nativeFeatSpells';
@@ -10,6 +12,98 @@ import { resolveSpellGrantCandidates } from '@/engine/spellGrantCandidates';
 import { translateAbilityKey } from '@/engine/terminology';
 import type { CharacterState, FeatChoices } from '@/types/characterState';
 import type { Spell } from '@/types/spell';
+import type { ParsedSpellGrants } from '@/types/spellGrant';
+
+function NativeFeatLevelReplacement({
+  block,
+  origin,
+  saved,
+  candidates,
+  level,
+  acquiredLevel,
+  onChange,
+}: {
+  block: ParsedSpellGrants['blocks'][number];
+  origin: ParsedSpellGrants['origin'];
+  saved: NonNullable<FeatChoices['nativeSpellGrants']>;
+  candidates: Spell[];
+  level: number;
+  acquiredLevel: number;
+  onChange: (replacements: NonNullable<FeatChoices['nativeSpellGrants']>['replacements']) => void;
+}) {
+  const existing = saved.replacements?.[level];
+  const [from, setFrom] = useState(
+    existing ? JSON.stringify([existing.ruleId, existing.from]) : '',
+  );
+  const choices = block.rules.flatMap((rule) => {
+    if (rule.selection.kind !== 'choose') return [];
+    const resolved = resolveSpellGrantCandidates(origin, rule, candidates);
+    if (resolved.diagnostics.length) return [];
+    return getActiveNativeFeatRuleSelections(
+      saved,
+      rule,
+      resolved.spellIds,
+      level - 1,
+      acquiredLevel,
+      true,
+    ).map((id) => ({ rule, id }));
+  });
+  if (!choices.length) return null;
+  const current = choices.find((choice) => JSON.stringify([choice.rule.id, choice.id]) === from);
+  const pool = current
+    ? resolveSpellGrantCandidates(origin, current.rule, candidates).spellIds
+    : [];
+  const prior = current
+    ? getActiveNativeFeatRuleSelections(saved, current.rule, pool, level - 1, acquiredLevel, true)
+    : [];
+  const targets = candidates.filter(
+    (spell) => pool.includes(spell.id) && spell.id !== current?.id && !prior.includes(spell.id),
+  );
+  return (
+    <details style={{ marginTop: 12 }} open={Boolean(existing)}>
+      <summary>角色 {level} 级：替换一道同列表、同环阶法术（可选）</summary>
+      <select
+        aria-label="要替换的法术"
+        value={from}
+        onChange={(event) => setFrom(event.target.value)}
+      >
+        <option value="">选择原法术</option>
+        {choices.map(({ rule, id }) => (
+          <option key={`${rule.id}:${id}`} value={JSON.stringify([rule.id, id])}>
+            {candidates.find((spell) => spell.id === id)?.name || id}
+          </option>
+        ))}
+      </select>
+      <select
+        aria-label="替换成的法术"
+        value={
+          current && existing?.from === current.id && existing.ruleId === current.rule.id
+            ? existing.to
+            : ''
+        }
+        disabled={!current}
+        onChange={(event) => {
+          const replacements = { ...saved.replacements };
+          if (current && event.target.value)
+            replacements[level] = {
+              ruleId: current.rule.id,
+              from: current.id,
+              to: event.target.value,
+            };
+          else delete replacements[level];
+          onChange(replacements);
+        }}
+      >
+        <option value="">不替换</option>
+        {targets.map((spell) => (
+          <option key={spell.id} value={spell.id}>
+            {spell.name}
+          </option>
+        ))}
+      </select>
+    </details>
+  );
+}
 
 export default function NativeFeatSpellChoices({
   character,
@@ -147,6 +241,10 @@ export default function NativeFeatSpellChoices({
                     return (
                       <div key={rule.id}>
                         <p>
+                          {characterLevel > (slot.level || 1) &&
+                          canRecordNativeFeatLevelReplacement(character, slot, grants.origin.id)
+                            ? '初始'
+                            : ''}
                           {rule.mode === 'known' ? '习得' : '获得'}法术：{selected.length}/{count}
                           {rule.usage.kind !== 'unspecified' ? '（免费施法次数按原文）' : ''}
                         </p>
@@ -172,6 +270,25 @@ export default function NativeFeatSpellChoices({
                       </div>
                     );
                   })}
+                {current &&
+                  canRecordNativeFeatLevelReplacement(character, slot, grants.origin.id) &&
+                  Array.from(
+                    { length: Math.max(0, characterLevel - (slot.level || 1)) },
+                    (_, index) => (slot.level || 1) + index + 1,
+                  ).map((level) => (
+                    <NativeFeatLevelReplacement
+                      key={`${slot.id}:${level}:${block.id}`}
+                      block={block}
+                      origin={grants.origin}
+                      saved={current}
+                      candidates={candidates}
+                      level={level}
+                      acquiredLevel={slot.level || 1}
+                      onChange={(replacements) =>
+                        update(slot.id, slot.currentFeatId!, grants.origin.id, { replacements })
+                      }
+                    />
+                  ))}
               </>
             )}
           </div>
