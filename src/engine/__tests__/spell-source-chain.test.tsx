@@ -2,6 +2,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { expect, it } from 'vitest';
 import { defaultCatalog } from '@/catalog/catalog';
+import { createBuilderChoices, getExcludedCharacterChoices } from '@/catalog/builderChoices';
 import { normalizeFeat } from '@/source/fiveetools-cn/normalizers/feat';
 import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
@@ -107,6 +108,63 @@ it('已有选择JSON往返后保留两个专长来源，最终法术ID仍唯一'
   });
   expect(JSON.stringify(saved)).toBe(before);
   expect(saved).toEqual(original);
+});
+
+it('书籍范围往返只改变新候选，已保存的双来源授法与卡面记录保持可追溯', async () => {
+  const otherBookFeat = normalizeFeat({ name: '另一书籍的链路专长', source: 'TST2' });
+  defaultCatalog.register(otherBookFeat);
+  const state = character();
+  state.featSelections!.second.featId = otherBookFeat.id;
+  state.sourceSelection = {
+    mode: 'selected',
+    books: [
+      { sourcePackId: '5etools-cn', source: 'TST' },
+      { sourcePackId: '5etools-cn', source: 'TST2' },
+    ],
+  };
+  const original = JSON.stringify(state);
+  const narrow = await importFromJSON(
+    exportToJSON({
+      ...state,
+      sourceSelection: {
+        mode: 'selected',
+        books: [{ sourcePackId: '5etools-cn', source: 'TST' }],
+      },
+    }),
+  );
+  expect(
+    createBuilderChoices(narrow)
+      .getCatalogFeats()
+      .some((feat) => feat.id === otherBookFeat.id),
+  ).toBe(false);
+  expect(getExcludedCharacterChoices(narrow).map((entry) => entry.id)).toContain(otherBookFeat.id);
+  expect(getInnateSpells(narrow).filter((grant) => grant.spellId === command.id)).toHaveLength(2);
+  const derived = deriveCharacterSpellSelection(narrow);
+  expect(derived.preparedSpellIds).toEqual([command.id]);
+  const map = buildSpellSourceMap(getInnateSpells(narrow), derived.preparedSpellIds, '职业');
+  expect(map[command.id]).toContain('专长: 链路专长甲');
+  expect(map[command.id]).toContain('专长: 另一书籍的链路专长');
+  const html = renderToStaticMarkup(
+    <SpellsTab
+      character={{ ...narrow, ...derived }}
+      spellcasting={computeSpellcasting(narrow)}
+      primaryClass={undefined}
+      cantripDetails={derived.cantripIds.map(getSpellDefinition)}
+      spellDetails={derived.preparedSpellIds.map(getSpellDefinition)}
+      spellbookDetails={[]}
+      spellSourceMap={map}
+      spellSlotUsage={{}}
+      updateActiveCharacter={() => {}}
+      router={{ push() {} }}
+      id={narrow.id}
+    />,
+  );
+  expect(html).toContain('专长: 另一书籍的链路专长');
+  expect(html.split('链路命令术')).toHaveLength(2);
+  expect(
+    await importFromJSON(exportToJSON({ ...narrow, sourceSelection: state.sourceSelection })),
+  ).toEqual(state);
+  expect(JSON.stringify(state)).toBe(original);
 });
 
 it('多来源保留后不重复增加戏法和准备数量', () => {
