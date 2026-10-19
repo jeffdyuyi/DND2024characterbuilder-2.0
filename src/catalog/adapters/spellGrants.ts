@@ -34,7 +34,44 @@ function signature(value: unknown): string {
   return `${(a >>> 0).toString(16)}-${(b >>> 0).toString(16)}`;
 }
 
-/** 只做原生结构解析；不解析正文，不激活装备，不改变已有选择或宣称引用已加载。 */
+/** 只接受正文明确的单一法表选择，并要求正文列出的职业恰好覆盖所有授予块。 */
+function hasExclusiveSpellListChoice(
+  raw: Record<string, unknown>,
+  blocks: ParsedSpellGrants['blocks'],
+): boolean {
+  const texts: string[] = [];
+  const visit = (node: unknown): void => {
+    if (typeof node === 'string') texts.push(node);
+    else if (Array.isArray(node)) node.forEach(visit);
+    else if (object(node))
+      Object.entries(node).forEach(([key, value]) => {
+        if (key === 'entries') visit(value);
+      });
+  };
+  visit(raw.entries);
+  const choice = texts.find((text) => /选择一个(?:法术)?列表|指定一个职业/.test(text));
+  if (!choice || blocks.length < 2) return false;
+  const mentioned = new Set(
+    [...choice.matchAll(/\{@filter [^|}]+\|spells\|[^}]*?class=([^|}]+)[^}]*\}/g)].flatMap(
+      (match) => match[1].split(';').map((name) => name.trim()),
+    ),
+  );
+  if (mentioned.size !== blocks.length) return false;
+  return blocks.every((block) => {
+    const classes = new Set(
+      block.rules.flatMap((rule) =>
+        rule.selection.kind === 'fixed' || !rule.selection.filter
+          ? []
+          : [...rule.selection.filter.matchAll(/(?:^|\|)class=([^|]+)/g)].flatMap((match) =>
+              match[1].split(';').map((name) => name.trim()),
+            ),
+      ),
+    );
+    return classes.size === 1 && mentioned.has([...classes][0]);
+  });
+}
+
+/** 解析原生授法结构及明确的法表互斥正文；不激活装备或改写存档。 */
 export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants {
   const { id, kind, name, source, sourcePackId, edition, revision } = entry;
   const result: ParsedSpellGrants = {
@@ -272,6 +309,13 @@ export function parseCatalogSpellGrants(entry: CatalogEntry): ParsedSpellGrants 
       parsed.requiresReview = result.diagnostics.length > diagnosticsBeforeBlock;
       result.blocks.push(parsed);
     }
+    if (
+      result.blockRelationship === 'unspecified' &&
+      result.blocks.length === additional.length &&
+      result.blocks.every((block) => !block.requiresReview) &&
+      hasExclusiveSpellListChoice(entry.raw, result.blocks)
+    )
+      result.blockRelationship = 'exclusive';
   }
   const attached = entry.raw.attachedSpells;
   if (attached !== undefined) {

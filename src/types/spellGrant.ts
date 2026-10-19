@@ -31,7 +31,7 @@ export interface ParsedSpellGrants {
     'id' | 'kind' | 'name' | 'source' | 'sourcePackId' | 'edition' | 'revision'
   >;
   /** 多块的互斥/累加关系不能仅据数组存在而推断。 */
-  blockRelationship: 'single' | 'unspecified';
+  blockRelationship: 'single' | 'exclusive' | 'unspecified';
   blocks: {
     id: string;
     /** 元数据无法区分多个块时仍使用内容身份；这类块跨修订不能自动迁移选择。 */

@@ -35,6 +35,35 @@ function sample(name: string, source: string) {
 const rules = (value: ReturnType<typeof parseCatalogSpellGrants>) =>
   value.blocks.flatMap((block) => block.rules);
 
+it.each(['PHB', 'XPHB'])('原文明确单一法表时将 %s 多块识别为互斥，保留原文和原生规则', (source) => {
+  const original = sample('Magic Initiate', source);
+  const classes =
+    source === 'PHB'
+      ? ['吟游诗人', '牧师', '德鲁伊', '术士', '魔契师', '法师']
+      : ['牧师', '德鲁伊', '法师'];
+  const links = classes
+    .map((name) => `{@filter ${name}|spells|level=0;1|class=${name}}`)
+    .join('、');
+  const raw = {
+    ...original.raw,
+    entries: [
+      source === 'PHB'
+        ? `指定一个职业：${links}。`
+        : { type: 'entries', entries: [`从${links}法术列表中选择一个列表。`] },
+    ],
+  };
+  const before = JSON.stringify(raw);
+  const parsed = parseCatalogSpellGrants({ ...original, raw });
+  expect(parsed.blockRelationship).toBe('exclusive');
+  expect(parsed.blocks).toHaveLength(classes.length);
+  expect(JSON.stringify(raw)).toBe(before);
+  expect(parseCatalogSpellGrants(original).blockRelationship).toBe('unspecified');
+  expect(
+    parseCatalogSpellGrants({ ...original, raw: { ...raw, entries: ['选择一个列表。'] } })
+      .blockRelationship,
+  ).toBe('unspecified');
+});
+
 it.each([
   { choose: 'level=0;1;2;3;4;5' },
   { choose: { from: ['命令术|PHB', '鉴定术|PHB'], count: 1 } },
