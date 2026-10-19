@@ -31,6 +31,7 @@ import {
 } from '@/engine/terminology';
 import { buildCharacterFeatSlots } from '@/engine/featSlots';
 import { getFeatSpellCandidates, toggleFeatSpellChoice } from '@/engine/featSpellChoices';
+import NativeFeatSpellChoices from '../spells/NativeFeatSpellChoices';
 import { FeatChoices, AbilityScores } from '@/types/characterState';
 
 import { allLanguages } from '@/rules/languages';
@@ -691,6 +692,13 @@ export default function FeatsPage() {
                     >
                       <MarkdownText text={selectedFeatData.description} />
                     </div>
+
+                    <NativeFeatSpellChoices
+                      character={character}
+                      candidates={allSpells}
+                      slotId={activeSlot.id}
+                      onChange={(featSelections) => updateActiveCharacter({ featSelections })}
+                    />
 
                     <div
                       style={{

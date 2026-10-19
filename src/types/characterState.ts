@@ -84,6 +84,13 @@ export interface FeatChoices {
   languages?: string[]; // 专长带来的语言选择
   spellList?: string; // 专长带来的法术列表选择 (如：牧师、德鲁伊、法师)
   spells?: string[]; // 专长带来的法术选择 (戏法或 1 环法术)
+  /** 原生 additionalSpells 的独立记录；不覆盖旧 mechanics.spells 选择。 */
+  nativeSpellGrants?: {
+    originId: string;
+    blockId?: string;
+    ability?: string;
+    selections: Record<string, string[]>;
+  };
   weaponMasteries?: string[]; // 专长带来的武器精通选择
   other?: any; // 其他特定专长的自定义选择
 }

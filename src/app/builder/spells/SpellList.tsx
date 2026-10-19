@@ -38,6 +38,7 @@ import MarkdownText from '@/components/MarkdownText';
 import PillButton from '@/components/PillButton';
 import SourceGrantedSpells from './SourceGrantedSpells';
 import SpeciesSpellChoices from './SpeciesSpellChoices';
+import NativeFeatSpellChoices from './NativeFeatSpellChoices';
 import { createSpellClassMatcher } from './spellClassMatcher';
 import { Check, Lock, ChevronLeft, ChevronRight, Info, Sparkles, RotateCcw } from 'lucide-react';
 
@@ -712,6 +713,13 @@ export default function SpellList({ character }: SpellListProps) {
   const innateSpellIds = useMemo(() => innateSpells.map((s) => s.spellId), [innateSpells, choices]);
   const sourcePageGrants = innateSpells.filter((grant) => /^(种族|背景|专长)/.test(grant.source));
   const sourceGrantedSection = <SourceGrantedSpells grants={sourcePageGrants} />;
+  const nativeFeatSection = (
+    <NativeFeatSpellChoices
+      character={character}
+      candidates={allSpells}
+      onChange={(featSelections) => updateActiveCharacter({ featSelections })}
+    />
+  );
   const speciesChoicesSection = (
     <SpeciesSpellChoices
       character={character}
@@ -862,6 +870,7 @@ export default function SpellList({ character }: SpellListProps) {
     return (
       <div>
         {speciesChoicesSection}
+        {nativeFeatSection}
         {sourceGrantedSection}
         {nativePreparedSection}
         <div style={{ padding: 40, textAlign: 'center', color: '#86868b' }}>
@@ -891,6 +900,7 @@ export default function SpellList({ character }: SpellListProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       {speciesChoicesSection}
+      {nativeFeatSection}
       {sourceGrantedSection}
       {nativePreparedSection}
       {backgroundSpellList.diagnostics.length > 0 && (

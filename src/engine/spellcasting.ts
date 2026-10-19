@@ -18,6 +18,7 @@ import { Spell } from '@/types/spell';
 import { getNativeClassPreparedSpells } from './nativeClassPreparedSpells';
 import { getNativeSubclassSpellPlans, getNativeSubclassSpellGrants } from './nativeSubclassSpells';
 import { resolveSpellGrantCandidates } from './spellGrantCandidates';
+import { getNativeFeatSpellGrants } from './nativeFeatSpells';
 import type { ParsedSpellGrants, SpellGrantRule } from '@/types/spellGrant';
 import { getSpeciesSpellAbility, getSpeciesSpellSelections } from './speciesSpellSelections';
 
@@ -588,6 +589,17 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       });
     });
   });
+
+  for (const grant of getNativeFeatSpellGrants(state)) {
+    result.push({
+      spellId: grant.spellId,
+      source: grant.source,
+      grantSourceId: JSON.stringify(['native-feat', grant.slotId, grant.sourceId, grant.ruleId]),
+      unlockLevel: grant.level,
+      isPrepared: true,
+      freeCastsPerLongRest: grant.freeCastsPerLongRest,
+    });
+  }
 
   const legacyPreparedByClass = new Map<string, Set<string>>();
   const legacyPreparedBySubclass = new Map<string, Set<string>>();
