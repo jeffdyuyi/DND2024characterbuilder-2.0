@@ -18,6 +18,24 @@ export function exportToFVTT(character: CharacterState): string {
   const combat = computeCombatStats(character);
   const profs = computeProficiencies(character);
   const spellcasting = computeSpellcasting(character);
+  const slotUsage = character.spellSlotUsageByPool
+    ? Object.fromEntries(
+        Array.from({ length: 9 }, (_, index) => {
+          const level = index + 1;
+          return [
+            level,
+            Math.min(
+              spellcasting.standardSpellSlots?.[level] || 0,
+              character.spellSlotUsageByPool!.standard[level] || 0,
+            ) +
+              Math.min(
+                spellcasting.pactMagicSlots?.[level] || 0,
+                character.spellSlotUsageByPool!.pact[level] || 0,
+              ),
+          ];
+        }),
+      )
+    : character.spellSlotUsage;
   const primaryClass = character.classes?.[0]
     ? getClassDefinition(character.classes[0].classId)
     : undefined;
@@ -216,45 +234,46 @@ export function exportToFVTT(character: CharacterState): string {
       },
       spells: {
         spell1: {
-          value: (spellcasting.spellSlots[1] ?? 0) - (character.spellSlotUsage?.[1] ?? 0),
+          value: (spellcasting.spellSlots[1] ?? 0) - (slotUsage?.[1] ?? 0),
           override: spellcasting.spellSlots[1] ?? 0,
         },
         spell2: {
-          value: (spellcasting.spellSlots[2] ?? 0) - (character.spellSlotUsage?.[2] ?? 0),
+          value: (spellcasting.spellSlots[2] ?? 0) - (slotUsage?.[2] ?? 0),
           override: spellcasting.spellSlots[2] ?? 0,
         },
         spell3: {
-          value: (spellcasting.spellSlots[3] ?? 0) - (character.spellSlotUsage?.[3] ?? 0),
+          value: (spellcasting.spellSlots[3] ?? 0) - (slotUsage?.[3] ?? 0),
           override: spellcasting.spellSlots[3] ?? 0,
         },
         spell4: {
-          value: (spellcasting.spellSlots[4] ?? 0) - (character.spellSlotUsage?.[4] ?? 0),
+          value: (spellcasting.spellSlots[4] ?? 0) - (slotUsage?.[4] ?? 0),
           override: spellcasting.spellSlots[4] ?? 0,
         },
         spell5: {
-          value: (spellcasting.spellSlots[5] ?? 0) - (character.spellSlotUsage?.[5] ?? 0),
+          value: (spellcasting.spellSlots[5] ?? 0) - (slotUsage?.[5] ?? 0),
           override: spellcasting.spellSlots[5] ?? 0,
         },
         spell6: {
-          value: (spellcasting.spellSlots[6] ?? 0) - (character.spellSlotUsage?.[6] ?? 0),
+          value: (spellcasting.spellSlots[6] ?? 0) - (slotUsage?.[6] ?? 0),
           override: spellcasting.spellSlots[6] ?? 0,
         },
         spell7: {
-          value: (spellcasting.spellSlots[7] ?? 0) - (character.spellSlotUsage?.[7] ?? 0),
+          value: (spellcasting.spellSlots[7] ?? 0) - (slotUsage?.[7] ?? 0),
           override: spellcasting.spellSlots[7] ?? 0,
         },
         spell8: {
-          value: (spellcasting.spellSlots[8] ?? 0) - (character.spellSlotUsage?.[8] ?? 0),
+          value: (spellcasting.spellSlots[8] ?? 0) - (slotUsage?.[8] ?? 0),
           override: spellcasting.spellSlots[8] ?? 0,
         },
         spell9: {
-          value: (spellcasting.spellSlots[9] ?? 0) - (character.spellSlotUsage?.[9] ?? 0),
+          value: (spellcasting.spellSlots[9] ?? 0) - (slotUsage?.[9] ?? 0),
           override: spellcasting.spellSlots[9] ?? 0,
         },
       },
     },
     flags: {
       codex: {
+        spellSlotUsageByPool: character.spellSlotUsageByPool,
         class: resolveDisplayName(primaryClass),
         subclass: resolveDisplayName(subclass),
         species: resolveDisplayName(species),

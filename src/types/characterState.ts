@@ -215,6 +215,10 @@ export interface CharacterState {
   spellbookIds: string[];
   spellsByLevel?: Record<string, Record<number, ClassSpellSelection>>; // classId -> level -> choices
   spellSlotUsage: Record<number, number>;
+  spellSlotUsageByPool?: {
+    standard: Record<number, number>;
+    pact: Record<number, number>;
+  };
   resourceUsage: Record<string, number>; // 新增：特性资源消耗追踪 (如: { 'rage': 2, 'ki': 3 })
 
   // Step 8: Languages

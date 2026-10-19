@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import styles from '../../sheet.module.css';
 import PillButton from '@/components/PillButton';
 import MarkdownText from '@/components/MarkdownText';
+import SpellSlotResources from './SpellSlotResources';
 import type { InnateSpellSource } from '@/engine/spellcasting';
 import {
   translateAbilityKey,
@@ -13,80 +14,6 @@ import {
 } from '@/engine/terminology';
 
 // --- Sub-components (Upgraded for Premium Look) ---
-
-const SpellSlotTracker = ({ level, max, used, onUpdate }: any) => {
-  const remaining = max - used;
-  return (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 14px',
-        background: 'rgba(0,0,0,0.02)',
-        borderRadius: 12,
-        marginBottom: 10,
-        border: '1px solid rgba(0,0,0,0.04)',
-      }}
-    >
-      <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--color-text-primary)' }}>
-        {level === 0 ? '戏法' : `${level} 环`}
-      </div>
-      <div>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center', justifyContent: 'flex-end' }}>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {Array.from({ length: max }).map((_, i) => (
-              <div
-                key={i}
-                onClick={() => onUpdate(level, max - (i + 1))}
-                style={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  background: i < remaining ? 'var(--color-primary)' : 'var(--color-border-dark)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: i < remaining ? '0 0 8px rgba(0, 113, 227, 0.3)' : 'none',
-                }}
-              />
-            ))}
-          </div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              marginLeft: 8,
-              color: 'var(--color-text-tertiary)',
-              minWidth: 35,
-              textAlign: 'right',
-            }}
-          >
-            {remaining} / {max}
-          </span>
-        </div>
-        {max > 0 && (
-          <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end', marginTop: 6 }}>
-            <PillButton
-              size="xs"
-              disabled={remaining <= 0}
-              onClick={() => onUpdate(level, used + 1)}
-            >
-              消耗一枚
-            </PillButton>
-            <PillButton
-              size="xs"
-              variant="outline"
-              disabled={used <= 0}
-              onClick={() => onUpdate(level, used - 1)}
-            >
-              恢复一枚
-            </PillButton>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const DetailedSpellItem = ({ spell, source }: any) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -633,32 +560,12 @@ const SpellsTab: React.FC<SpellsTabProps> = ({
               />
               法术位 Spell Slots
             </h3>
-            {Object.entries(spellcasting.spellSlots).length > 0 ? (
-              Object.entries(spellcasting.spellSlots).map(([level, count]) => (
-                <SpellSlotTracker
-                  key={level}
-                  level={parseInt(level)}
-                  max={count}
-                  used={spellSlotUsage[parseInt(level)] || 0}
-                  onUpdate={(lvl: number, val: number) => {
-                    updateActiveCharacter({
-                      spellSlotUsage: { ...spellSlotUsage, [lvl]: val },
-                    });
-                  }}
-                />
-              ))
-            ) : (
-              <div
-                style={{
-                  fontSize: 12,
-                  color: 'var(--color-text-tertiary)',
-                  fontStyle: 'italic',
-                  padding: '10px 0',
-                }}
-              >
-                该职业无每日法术位
-              </div>
-            )}
+            <SpellSlotResources
+              character={character}
+              spellcasting={spellcasting}
+              spellSlotUsage={spellSlotUsage}
+              onChange={updateActiveCharacter}
+            />
           </div>
           {freeCastGrants.length > 0 && (
             <h3 style={{ fontSize: 13, margin: '20px 0 10px' }}>来源免费施法</h3>

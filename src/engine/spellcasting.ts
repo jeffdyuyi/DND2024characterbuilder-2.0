@@ -25,6 +25,8 @@ import { getSpeciesSpellAbility, getSpeciesSpellSelections } from './speciesSpel
 export interface SpellcastingStats {
   casterLevel: number;
   spellSlots: Record<number, number>; // level -> count
+  standardSpellSlots?: Record<number, number>;
+  pactMagicSlots?: Record<number, number>;
   cantripsKnown: number;
   spellsPrepared: number;
   featCapacity: number;
@@ -341,7 +343,8 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
     slots = { ...(MULTICLASS_SLOTS[Math.min(20, totalCasterLevel)] || {}) };
   }
 
-  // Add Pact Magic slots to any existing slots
+  const standardSpellSlots = { ...slots };
+  // 合并视图供已有候选/摘要消费者使用，资源记录使用独立池。
   Object.entries(pactMagicSlots).forEach(([lvl, count]) => {
     const l = parseInt(lvl);
     slots[l] = (slots[l] || 0) + count;
@@ -436,6 +439,8 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
   return {
     casterLevel: totalCasterLevel,
     spellSlots: slots,
+    standardSpellSlots,
+    pactMagicSlots,
     cantripsKnown: totalCantrips + innateCantrips,
     spellsPrepared: totalPrepared + innatePrepared,
     featCapacity: featCapacity,

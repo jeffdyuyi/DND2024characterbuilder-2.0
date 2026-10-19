@@ -181,9 +181,38 @@ export function assembleCatalogClass(
       ?.rowsSpellProgression || [];
   const preparedProgression =
     raw.preparedSpellsProgression || raw.spellsKnownProgressionFixed || [];
+  const pactTable =
+    raw.casterProgression === 'pact'
+      ? (raw.classTableGroups || []).find(
+          (group: any) =>
+            group.colLabels?.some((label: string) => /^(法术位|spell slots)$/i.test(label)) &&
+            group.colLabels?.some((label: string) => /^(法术位环阶|slot level)$/i.test(label)),
+        )
+      : undefined;
+  const pactCountIndex = pactTable?.colLabels.findIndex((label: string) =>
+    /^(法术位|spell slots)$/i.test(label),
+  );
+  const pactLevelIndex = pactTable?.colLabels.findIndex((label: string) =>
+    /^(法术位环阶|slot level)$/i.test(label),
+  );
   const progression: ClassLevelProgression[] = Array.from({ length: 20 }, (_, index) => {
     const level = index + 1;
-    const row = spellRows[index];
+    const pactRow = pactTable?.rows?.[index];
+    const count = Number(pactRow?.[pactCountIndex]);
+    const slotLevelRaw = pactRow?.[pactLevelIndex];
+    const slotLevel =
+      typeof slotLevelRaw === 'number'
+        ? slotLevelRaw
+        : Number(String(slotLevelRaw).match(/(?:^|\|)level=(\d+)/i)?.[1]);
+    const pactSlots =
+      Number.isInteger(count) &&
+      count > 0 &&
+      Number.isInteger(slotLevel) &&
+      slotLevel >= 1 &&
+      slotLevel <= 9
+        ? Array.from({ length: slotLevel }, (_, slot) => (slot + 1 === slotLevel ? count : 0))
+        : undefined;
+    const row = spellRows[index] || pactSlots;
     return {
       level,
       proficiencyBonus: 2 + Math.floor((level - 1) / 4),
