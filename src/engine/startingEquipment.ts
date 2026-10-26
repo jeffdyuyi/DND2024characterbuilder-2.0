@@ -327,7 +327,7 @@ function resolveEquipmentRecord(
   let resolvedItemId = record.itemId;
   if (equipmentType && record.selectionId) {
     const selected = character.classSelections?.[record.selectionId]?.[0];
-    resolvedItemId = getEquipmentChoiceCandidates(record as EquipmentRecord).find(
+    resolvedItemId = getEquipmentChoiceCandidates(record as EquipmentRecord, character).find(
       (item) => item.id === selected,
     )?.id;
   }

@@ -5,6 +5,8 @@ import ClassStartingGoldChoice from '@/components/ClassStartingGoldChoice';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 import { clean5eTags } from '@/source/fiveetools-cn/utils';
+import { getEquipmentChoiceCandidates } from '@/catalog/equipmentChoices';
+import { getSourceDisplayName } from '@/config/sourceMapping';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -1905,6 +1907,44 @@ export default function ClassPage() {
                 </CollapsibleSection>
               )}
 
+              {/* Progression Table (Collapsible) */}
+              <CollapsibleSection title="职业特性表 Progression Table">
+                <div className={classStyles.progressionTableWrapper}>
+                  <table className={classStyles.progressionTable}>
+                    <thead>
+                      <tr>
+                        <th>等级</th>
+                        <th>熟练</th>
+                        <th>特性</th>
+                        {classDefinition.progression?.[0]?.values?.map((v: any) => (
+                          <th key={v.label}>{translateLabel(v.label)}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {classDefinition.progression?.map((row: ClassLevelProgression) => (
+                        <tr
+                          key={row.level}
+                          style={{ opacity: primaryClassEntry.level >= row.level ? 1 : 0.4 }}
+                        >
+                          <td style={{ fontWeight: 700 }}>{row.level}</td>
+                          <td>+{Math.floor((row.level - 1) / 4) + 2}</td>
+                          <td style={{ textAlign: 'left', paddingLeft: 16 }}>
+                            {classDefinition.features
+                              .filter((f: ClassFeature) => f.level === row.level)
+                              .map((f: ClassFeature) => f.name)
+                              .join(', ') || '-'}
+                          </td>
+                          {row.values?.map((v: any) => (
+                            <td key={v.label}>{v.value}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CollapsibleSection>
+
               {/* Core Traits Grid */}
               <div className={classStyles.coreTraitsGrid}>
                 <div className={classStyles.coreTraitRow}>
@@ -2294,7 +2334,10 @@ export default function ClassPage() {
                               const currentVal =
                                 character.classSelections?.[selectionId]?.[0] || '';
 
-                              // Determine options based on record label, itemId, selectionId
+                              const itemCandidates = record.equipmentType
+                                ? getEquipmentChoiceCandidates(record, character)
+                                : [];
+                              // Legacy manual choices have no native equipment type.
                               let rawOptions: string[] = [];
                               const recLabel = (record.label || '').toLowerCase();
                               const recItemId = (record.itemId || '').toLowerCase();
@@ -2355,17 +2398,36 @@ export default function ClassPage() {
                                     选择 {record.label}：
                                   </div>
                                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                                    {options.map((opt) => (
-                                      <PillButton
-                                        key={opt}
-                                        size="sm"
-                                        variant={currentVal === opt ? 'primary' : 'outline'}
-                                        onClick={() => handleEquipmentSelection(selectionId, opt)}
-                                      >
-                                        {translateProficiency(opt)}
-                                      </PillButton>
-                                    ))}
+                                    {itemCandidates.length > 0
+                                      ? itemCandidates.map((item) => (
+                                          <PillButton
+                                            key={item.id}
+                                            size="sm"
+                                            variant={currentVal === item.id ? 'primary' : 'outline'}
+                                            onClick={() =>
+                                              handleEquipmentSelection(selectionId, item.id)
+                                            }
+                                          >
+                                            {item.name} [{getSourceDisplayName(item.source)}]
+                                          </PillButton>
+                                        ))
+                                      : !record.equipmentType &&
+                                        options.map((opt) => (
+                                          <PillButton
+                                            key={opt}
+                                            size="sm"
+                                            variant={currentVal === opt ? 'primary' : 'outline'}
+                                            onClick={() =>
+                                              handleEquipmentSelection(selectionId, opt)
+                                            }
+                                          >
+                                            {translateProficiency(opt)}
+                                          </PillButton>
+                                        ))}
                                   </div>
+                                  {record.equipmentType && itemCandidates.length === 0 && (
+                                    <p role="status">当前来源范围内暂无匹配装备，原选择保留。</p>
+                                  )}
                                 </div>
                               );
                             })}
@@ -2409,44 +2471,6 @@ export default function ClassPage() {
                   </div>
                 </div>
               )}
-
-              {/* Progression Table (Collapsible) */}
-              <CollapsibleSection title="职业特性表 Progression Table">
-                <div className={classStyles.progressionTableWrapper}>
-                  <table className={classStyles.progressionTable}>
-                    <thead>
-                      <tr>
-                        <th>等级</th>
-                        <th>熟练</th>
-                        <th>特性</th>
-                        {classDefinition.progression?.[0]?.values?.map((v: any) => (
-                          <th key={v.label}>{translateLabel(v.label)}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {classDefinition.progression?.map((row: ClassLevelProgression) => (
-                        <tr
-                          key={row.level}
-                          style={{ opacity: primaryClassEntry.level >= row.level ? 1 : 0.4 }}
-                        >
-                          <td style={{ fontWeight: 700 }}>{row.level}</td>
-                          <td>+{Math.floor((row.level - 1) / 4) + 2}</td>
-                          <td style={{ textAlign: 'left', paddingLeft: 16 }}>
-                            {classDefinition.features
-                              .filter((f: ClassFeature) => f.level === row.level)
-                              .map((f: ClassFeature) => f.name)
-                              .join(', ') || '-'}
-                          </td>
-                          {row.values?.map((v: any) => (
-                            <td key={v.label}>{v.value}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CollapsibleSection>
             </div>
           ) : (
             <div className={styles.emptyState}>

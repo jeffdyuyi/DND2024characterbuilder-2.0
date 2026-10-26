@@ -10,6 +10,28 @@ import mesmerSample from '@/source/__fixtures__/homebrew/mesmer-class.sample.jso
 import { translateProficiency } from '@/engine/terminology';
 
 describe('Catalog Class & Subclass Adapter Tests', () => {
+  it('2024 套组内自选物品生成独立选择槽，保留原始装备结构', () => {
+    const raw = {
+      name: '套组职业',
+      source: 'XPHB',
+      startingEquipment: {
+        defaultData: [
+          {
+            A: [{ item: '皮甲|XPHB' }, { equipmentType: 'instrumentMusical' }],
+            B: [{ value: 9000 }],
+          },
+        ],
+      },
+    };
+    const before = JSON.stringify(raw);
+    const definition = catalogEntryToClass(normalizeClass(raw));
+    expect(
+      definition.startingEquipment.choiceARecords?.find(
+        (record) => record.equipmentType === 'instrumentMusical',
+      )?.selectionId,
+    ).toContain(':equipment:A:');
+    expect(JSON.stringify(raw)).toBe(before);
+  });
   it('原生武器、护甲及工具标签统一转为带来源引用，不泄漏标签或修改 raw', () => {
     const raw = {
       name: '标签熟练测试',

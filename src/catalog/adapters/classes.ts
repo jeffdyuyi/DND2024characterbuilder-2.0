@@ -153,9 +153,13 @@ function normalizeStartingEquipment(
       choiceA: (Array.isArray(first.A) ? first.A : [first.A]).map(equipmentText).filter(Boolean),
       choiceB: equipmentOption(first.B) || equipmentText(raw.goldAlternative),
       ...(first.C !== undefined ? { choiceC: equipmentOption(first.C) } : {}),
-      choiceARecords: equipmentRecords(first.A, sourcePackId),
-      ...(first.B !== undefined ? { choiceBRecord: equipmentRecords(first.B, sourcePackId) } : {}),
-      ...(first.C !== undefined ? { choiceCRecord: equipmentRecords(first.C, sourcePackId) } : {}),
+      choiceARecords: equipmentRecords(first.A, sourcePackId, `${classId}:equipment:A`),
+      ...(first.B !== undefined
+        ? { choiceBRecord: equipmentRecords(first.B, sourcePackId, `${classId}:equipment:B`) }
+        : {}),
+      ...(first.C !== undefined
+        ? { choiceCRecord: equipmentRecords(first.C, sourcePackId, `${classId}:equipment:C`) }
+        : {}),
     };
   }
 

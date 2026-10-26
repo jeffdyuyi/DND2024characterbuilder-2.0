@@ -243,16 +243,20 @@ function InventoryItemRow({
           padding: '14px 24px',
           gap: 16,
           cursor: 'pointer',
-          background: isExpanded ? '#f8fafc' : 'white',
+          background: isExpanded ? 'var(--color-bg-surface-elevated)' : 'var(--color-bg-dark)',
           transition: 'background 0.2s ease',
         }}
         onClick={() => setIsExpanded(!isExpanded)}
-        onMouseEnter={(e) => !isExpanded && (e.currentTarget.style.background = '#fcfdfe')}
-        onMouseLeave={(e) => !isExpanded && (e.currentTarget.style.background = 'white')}
+        onMouseEnter={(e) =>
+          !isExpanded && (e.currentTarget.style.background = 'var(--color-bg-surface-elevated)')
+        }
+        onMouseLeave={(e) =>
+          !isExpanded && (e.currentTarget.style.background = 'var(--color-bg-dark)')
+        }
       >
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>
+            <span style={{ fontWeight: 800, color: 'var(--color-text-primary)', fontSize: '1rem' }}>
               {entry.name}
             </span>
             {entry.quantity && entry.quantity > 1 && (
@@ -417,7 +421,7 @@ function InventoryItemRow({
               <div
                 style={{
                   display: 'flex',
-                  background: '#f1f5f9',
+                  background: 'var(--color-bg-surface-elevated)',
                   padding: '3px',
                   borderRadius: '10px',
                   gap: 2,
@@ -491,7 +495,7 @@ function InventoryItemRow({
                   title="拆分为单个物品"
                   style={{
                     border: 'none',
-                    background: '#f1f5f9',
+                    background: 'var(--color-bg-surface-elevated)',
                     width: '32px',
                     height: '32px',
                     borderRadius: '8px',
@@ -539,7 +543,7 @@ function InventoryItemRow({
           <div
             style={{
               padding: '16px',
-              background: '#f8fafc',
+              background: 'var(--color-bg-surface-elevated)',
               borderRadius: '12px',
               border: '1px solid #e2e8f0',
             }}
@@ -565,7 +569,7 @@ function InventoryItemRow({
                 <div
                   style={{
                     display: 'flex',
-                    background: '#f1f5f9',
+                    background: 'var(--color-bg-surface-elevated)',
                     padding: '3px',
                     borderRadius: '8px',
                     gap: 2,
@@ -627,7 +631,7 @@ function InventoryItemRow({
                   style={{
                     fontSize: '0.85rem',
                     fontWeight: 'bold',
-                    color: '#1e293b',
+                    color: 'var(--color-text-primary)',
                     marginBottom: 12,
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -715,13 +719,17 @@ function ShopItemRow({
           alignItems: 'center',
           padding: '16px 20px',
           gap: 16,
-          background: isExpanded ? '#f8fafc' : 'white',
+          background: isExpanded ? 'var(--color-bg-surface-elevated)' : 'var(--color-bg-dark)',
           borderBottom: isExpanded ? '1px solid #f1f5f9' : 'none',
           cursor: 'pointer',
           transition: 'background 0.2s ease',
         }}
-        onMouseEnter={(e) => !isExpanded && (e.currentTarget.style.background = '#f8fafc')}
-        onMouseLeave={(e) => !isExpanded && (e.currentTarget.style.background = 'white')}
+        onMouseEnter={(e) =>
+          !isExpanded && (e.currentTarget.style.background = 'var(--color-bg-surface-elevated)')
+        }
+        onMouseLeave={(e) =>
+          !isExpanded && (e.currentTarget.style.background = 'var(--color-bg-dark)')
+        }
       >
         <div
           style={{
@@ -738,7 +746,9 @@ function ShopItemRow({
 
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontWeight: 800, fontSize: '1.1rem', color: '#0f172a' }}>
+            <span
+              style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--color-text-primary)' }}
+            >
               {item.name}
             </span>
             <span
@@ -1294,7 +1304,10 @@ export default function EquipmentPage() {
             )}
 
             {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
-              primaryClass?.startingEquipment.choiceRows && (
+              (primaryClass?.startingEquipment.choiceRows ||
+                primaryClass?.startingEquipment.choiceARecords?.some(
+                  (record) => record.equipmentType && record.selectionId,
+                )) && (
                 <ClassEquipmentChoices
                   character={character}
                   definition={primaryClass}
@@ -1561,7 +1574,10 @@ export default function EquipmentPage() {
                 flex: 1,
                 padding: '16px',
                 border: 'none',
-                background: activeTab === 'inventory' ? 'white' : 'rgba(0,0,0,0.02)',
+                background:
+                  activeTab === 'inventory'
+                    ? 'var(--color-bg-surface-elevated)'
+                    : 'var(--color-bg-dark)',
                 color:
                   activeTab === 'inventory' ? 'var(--color-primary)' : 'var(--color-text-tertiary)',
                 fontWeight: 'bold',
@@ -1582,7 +1598,10 @@ export default function EquipmentPage() {
                 flex: 1,
                 padding: '16px',
                 border: 'none',
-                background: activeTab === 'shop' ? 'white' : 'rgba(0,0,0,0.02)',
+                background:
+                  activeTab === 'shop'
+                    ? 'var(--color-bg-surface-elevated)'
+                    : 'var(--color-bg-dark)',
                 color: activeTab === 'shop' ? 'var(--color-primary)' : 'var(--color-text-tertiary)',
                 fontWeight: 'bold',
                 cursor: 'pointer',
@@ -1780,7 +1799,7 @@ export default function EquipmentPage() {
                   style={{
                     padding: '0',
                     borderBottom: '1px solid rgba(0,0,0,0.05)',
-                    background: '#f8fafc',
+                    background: 'var(--color-bg-surface-elevated)',
                   }}
                 >
                   <div
