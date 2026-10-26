@@ -35,6 +35,7 @@ import ClassFeatureGuidance from '@/components/ClassFeatureGuidance';
 import MarkdownText from '@/components/MarkdownText';
 import { buildCharacterFeatSlots } from '../featSlots';
 import { getClassDefinition } from '../characterData';
+import { computeProficiencies } from '../proficiency';
 
 function nodes(node: any): any[] {
   if (!node || typeof node !== 'object') return [];
@@ -206,4 +207,45 @@ it('武器精通按原生武器身份限制已有熟练，呈现原文名称和�
   expect(Object.values(store.update.mock.calls.at(-1)![0].classSelections)).toContainEqual([
     'Fixture Blade|TST',
   ]);
+});
+
+it('职业技能表自选使用父职业原生技能池，不引入其他段落的技能', () => {
+  defaultCatalog.registerMany([
+    {
+      ...parent,
+      raw: {
+        ...parent.raw,
+        startingProficiencies: { skills: [{ choose: { from: ['arcana', 'history'], count: 1 } }] },
+        classFeatures: ['知识训练|Page Wizard|XPHB|1'],
+      },
+    },
+    feature('知识训练', 1, [
+      'Choose one skill from the Page Wizard skill list. You gain proficiency in that skill.',
+      'When you make a check with {@skill Stealth}, use the additional benefit.',
+    ]),
+  ]);
+  const tree = nodes(ClassDetailPage());
+  const options = tree.filter((node) => typeof node.props?.onClick === 'function');
+  const chosen = options.find((node) => node.props.children?.[0] === '奥秘（智力）');
+  expect(chosen).toBeDefined();
+  expect(options.some((node) => node.props.children?.[0] === '历史（智力）')).toBe(true);
+  expect(options.some((node) => node.props.children?.[0] === '隐匿（敏捷）')).toBe(false);
+  chosen.props.onClick();
+  expect(Object.values(store.update.mock.calls.at(-1)![0].classSelections)).toContainEqual([
+    'arcana',
+  ]);
+});
+
+it('固定技能授予传入正式卡计算，不呈现额外任选技能', () => {
+  defaultCatalog.registerMany([
+    { ...parent, raw: { ...parent.raw, classFeatures: ['固定训练|Page Wizard|XPHB|1'] } },
+    feature('固定训练', 1, ['你获得{@skill 奥秘}技能的熟练。']),
+  ]);
+  const before = JSON.stringify(store.character);
+  expect(computeProficiencies(store.character).skills).toContainEqual(
+    expect.objectContaining({ id: 'arcana' }),
+  );
+  const tree = nodes(ClassDetailPage());
+  expect(tree.some((node) => node.props?.children?.[0] === '奥秘（智力）')).toBe(false);
+  expect(JSON.stringify(store.character)).toBe(before);
 });

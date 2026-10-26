@@ -23,6 +23,10 @@ function toFeature(entry: CatalogEntry): ClassFeature {
   const parsed = parseFeatureChoices(entry);
   const existingChoices = Array.isArray(raw.mechanics?.choices) ? raw.mechanics.choices : [];
   const fixedProficiencies: Record<string, string[]> = {};
+  if (parsed.skillProficiencies.length)
+    fixedProficiencies.skillProficiencies = [
+      ...new Set([...(raw.mechanics?.skillProficiencies || []), ...parsed.skillProficiencies]),
+    ];
   for (const field of [
     'skillProficiencies',
     'toolProficiencies',

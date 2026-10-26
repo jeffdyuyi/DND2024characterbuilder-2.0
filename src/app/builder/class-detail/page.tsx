@@ -474,6 +474,9 @@ export default function ClassDetailPage() {
 
     // Expansion logic for generic keywords
     let options = [...(selection.options || [])];
+    if (category === 'skill' && selection.filter === 'class-skills') {
+      options = [...(classDefinition?.proficiencies.skills.options || [])];
+    }
     if (category === 'expertise' && selection.filter === 'proficient-skills') {
       const toolName = (value: string) =>
         translateProficiency(value)

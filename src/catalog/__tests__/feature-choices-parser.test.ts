@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { parseFeatureChoices } from '../adapters/featureChoicesParser';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 import type { CatalogEntry } from '../types';
+import barbarian from '@/source/__fixtures__/fiveetools-cn/barbarian-class.json';
 
 function feature(name: string, entries: unknown[]): CatalogEntry {
   return {
@@ -15,6 +16,43 @@ function feature(name: string, entries: unknown[]): CatalogEntry {
 }
 
 describe('职业特性通用选项解析器', () => {
+  it('明确授予的技能直接记录，不能展开为任意技能选择，也不提前授予 options 分支', () => {
+    const result = parseFeatureChoices(feature('知识授予', ['你获得{@skill 奥秘}技能的熟练。']));
+    expect(result.choices).toEqual([]);
+    expect(result.skillProficiencies).toEqual(['arcana']);
+    expect(
+      parseFeatureChoices(
+        feature('熟练举例', ['You gain proficiency in a skill, such as {@skill Arcana}.']),
+      ).skillProficiencies,
+    ).toEqual([]);
+
+    const branch = parseFeatureChoices(
+      feature('分支训练', [
+        {
+          type: 'options',
+          count: 1,
+          entries: [
+            { name: '学者', entries: ['You gain proficiency in the {@skill Arcana} skill.'] },
+            { name: '斥候', entries: ['You gain proficiency in the {@skill Stealth} skill.'] },
+          ],
+        },
+      ]),
+    );
+    expect(branch.skillProficiencies).toEqual([]);
+  });
+
+  it.each(['PHB', 'XPHB'])('原初学识遵守 %s 职业技能表，其他段落标签不充当候选', (source) => {
+    const raw = barbarian.classFeature.find(
+      (entry) => entry.ENG_name === 'Primal Knowledge' && entry.classSource === source,
+    )!;
+    const result = parseFeatureChoices({ ...feature(raw.name, raw.entries), raw });
+    expect(result.choices[0]).toMatchObject({
+      type: 'skill',
+      numToChoose: 1,
+      filter: 'class-skills',
+    });
+  });
+
   it.each([
     [
       '吟游诗人激励',

@@ -6,6 +6,7 @@ type FeatureChoice = NonNullable<NonNullable<ClassFeature['mechanics']>['choices
 
 export interface FeatureChoiceParseResult {
   choices: FeatureChoice[];
+  skillProficiencies: string[];
   diagnostics: string[];
 }
 
@@ -16,12 +17,15 @@ function stripTags(value: string): string {
   );
 }
 
-function flattenText(value: unknown): string[] {
-  if (typeof value === 'string') return [stripTags(value)];
-  if (Array.isArray(value)) return value.flatMap(flattenText);
+function flattenText(value: unknown, excludeOptions = false): string[] {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap((child) => flattenText(child, excludeOptions));
   if (!value || typeof value !== 'object') return [];
   const node = value as Record<string, unknown>;
-  return [node.name, node.entry, node.entries, node.items].flatMap(flattenText);
+  if (excludeOptions && node.type === 'options') return [];
+  return [node.name, node.entry, node.entries, node.items].flatMap((child) =>
+    flattenText(child, excludeOptions),
+  );
 }
 
 function optionLabel(value: unknown): string | undefined {
@@ -121,13 +125,33 @@ function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoi
       options.push('thievesTools');
     }
   } else if (type === 'skill') {
-    const referenced = [
-      ...JSON.stringify(entry.raw.entries || []).matchAll(/\{@skill\s+([^|}]+)/g),
-    ].map((match) => normalizeSkillId(match[1]));
-    options =
-      /(?:从|from|following)/i.test(entriesText) && referenced.length
-        ? [...new Set(referenced)]
-        : [...ALL_SKILLS];
+    const className = String(entry.raw.className || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const classSkills =
+      /from (?:your|the) class(?:'s)? skill list/i.test(entriesText) ||
+      (className &&
+        new RegExp(
+          '(?:从|from)[^。.!]{0,12}' +
+            className +
+            '[^。.!]{0,32}(?:技能(?:熟练项)?(?:列表|表)|skill list)',
+          'i',
+        ).test(entriesText));
+    const choiceText = flattenText(entry.raw.entries)
+      .flatMap((text) => text.split(/[。.!！？?]/))
+      .filter((text) => /choose|choice|select|选择|自选|任选/i.test(text))
+      .join(' ');
+    const referenced = [...choiceText.matchAll(/\{@skill\s+([^|}]+)/g)].map((match) =>
+      normalizeSkillId(match[1]),
+    );
+    if (classSkills) {
+      filter = 'class-skills';
+      options = ['Any'];
+    } else {
+      if (!choiceText) return [];
+      options =
+        /(?:从|from|following)/i.test(choiceText) && referenced.length
+          ? [...new Set(referenced)]
+          : [...ALL_SKILLS];
+    }
   } else if (type === 'weaponMastery') {
     filter = 'proficient-weapons';
     options = ['Any'];
@@ -176,7 +200,7 @@ function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoi
  */
 export function parseFeatureChoices(entry: CatalogEntry): FeatureChoiceParseResult {
   const raw = (entry.raw || {}) as Record<string, unknown>;
-  const entriesText = flattenText(raw.entries).join(' ');
+  const entriesText = flattenText(raw.entries).map(stripTags).join(' ');
   const fullText = [entry.name, entry.englishName, entriesText].filter(Boolean).join(' ');
   const inferredType = inferChoiceType(fullText);
   const optionNodes: Record<string, unknown>[] = [];
@@ -239,11 +263,27 @@ export function parseFeatureChoices(entry: CatalogEntry): FeatureChoiceParseResu
   }
 
   const diagnostics: string[] = [];
+  const skillProficiencies = Array.isArray(raw.skillProficiencies)
+    ? []
+    : [
+        ...new Set(
+          flattenText(raw.entries, true)
+            .flatMap((text) => text.split(/[。.!！？?]/))
+            .filter(
+              (text) =>
+                /你(?:获得|拥有|习得)\s*(?:\{@skill[^}]+\}[、，和与及\s]*)+技能(?:的)?熟练|\byou (?:(?:gain|have) proficiency in|(?:are|become) proficient in) (?:the )?\{@skill\s/i.test(
+                  text,
+                ) && !/choose|choice|select|选择|自选|任选|如果|若|\bif\b/i.test(text),
+            )
+            .flatMap((text) => [...text.matchAll(/\{@skill\s+([^|}]+)/g)])
+            .map((match) => normalizeSkillId(match[1])),
+        ),
+      ];
   if (choices.length === 0 && /(choose|choice|select|选择|自选|任选)/i.test(entriesText)) {
     diagnostics.push(`feature-choice-unresolved:${entry.id}`);
   }
   if (choices.some((choice) => choice.type === 'custom')) {
     diagnostics.push(`feature-choice-generic:${entry.id}`);
   }
-  return { choices, diagnostics };
+  return { choices, skillProficiencies, diagnostics };
 }
