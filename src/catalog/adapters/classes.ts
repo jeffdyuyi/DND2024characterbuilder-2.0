@@ -232,17 +232,20 @@ function normalizeStartingEquipment(
   };
 }
 
-function normalizeProficiencyList(items: unknown, itemReferences = false): string[] {
+function normalizeProficiencyList(items: unknown): string[] {
   if (!Array.isArray(items)) return [];
+  const normalize = (value: string) => {
+    const trimmed = value.trim();
+    const reference = trimmed.match(/^\{@item\s+([^}]+)\}$/i);
+    return reference ? reference[1].split('|').slice(0, 2).join('|') : trimmed;
+  };
   const result: string[] = [];
   for (const item of items) {
     if (!item) continue;
     if (typeof item === 'string') {
-      const trimmed = item.trim();
       // 原生物品标签转为带来源的引用；保留 raw，不将来源压成纯显示名称。
-      const reference = itemReferences && trimmed.match(/^\{@item\s+([^}]+)\}$/i);
-      if (reference) result.push(reference[1].split('|').slice(0, 2).join('|'));
-      else if (trimmed) result.push(trimmed);
+      const reference = normalize(item);
+      if (reference) result.push(reference);
     } else if (typeof item === 'object') {
       const obj = item as Record<string, any>;
       const prof =
@@ -252,7 +255,8 @@ function normalizeProficiencyList(items: unknown, itemReferences = false): strin
             ? obj.name.trim()
             : '';
       if (prof) {
-        result.push(obj.optional ? `${prof}（可选）` : prof);
+        const reference = normalize(prof);
+        result.push(obj.optional ? `${reference}（可选）` : reference);
       }
     }
   }
@@ -375,7 +379,7 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
       tools:
         structuredTools?.tools ??
         (Array.isArray(startProf.tools)
-          ? normalizeProficiencyList(startProf.tools, true)
+          ? normalizeProficiencyList(startProf.tools)
           : startProf.tools || []),
     },
     startingEquipment: normalizeStartingEquipment(

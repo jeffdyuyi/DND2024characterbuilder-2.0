@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { computeAbilityScores } from '../ability';
 import { computeCombatStats } from '../combat';
-import { computeProficiencies } from '../proficiency';
+import { computeProficiencies, isProficientWithWeapon } from '../proficiency';
 import { computeSpellcasting } from '../spellcasting';
 import { CharacterState } from '../../types/characterState';
 import { defaultCatalog } from '@/catalog';
@@ -38,6 +38,20 @@ const baseCharacterState = (): Omit<
 });
 
 describe('Engine: Class fixed tool proficiencies', () => {
+  it('武器熟练通过原生中英文物品身份匹配，不依赖静态译名字典', () => {
+    const weapon = normalizeItem({
+      name: '测试细刃',
+      ENG_name: 'Fixture Blade',
+      source: 'TST',
+      weapon: true,
+      type: 'M',
+    });
+    defaultCatalog.register(weapon);
+    expect(isProficientWithWeapon('Fixture Blade', ['测试细刃|TST'])).toBe(true);
+    expect(isProficientWithWeapon(weapon.id, ['测试细刃|TST'])).toBe(true);
+    expect(isProficientWithWeapon(weapon.id, ['不存在的武器|TST'])).toBe(false);
+  });
+
   it('孤立专精不授予熟练；已有熟练才加倍，卡面被动值与导出一致', () => {
     const state = {
       ...baseCharacterState(),
@@ -65,6 +79,65 @@ describe('Engine: Class fixed tool proficiencies', () => {
     expect(
       hasExpertise(computeProficiencies(JSON.parse(JSON.stringify(state))), 'perception'),
     ).toBe(false);
+  });
+
+  it('专精随所属职业、子职业和等级启停，不被聚合字段或同名低等级特性重新激活', () => {
+    const training = (level: number) => ({
+      name: '专精',
+      level,
+      description: '',
+      mechanics: {
+        choices: [
+          {
+            id: 'expertise-' + level,
+            type: 'expertise',
+            numToChoose: 1,
+            options: ['history', 'perception'],
+          },
+        ],
+      },
+    });
+    const entry = normalizeClass({
+      name: '专精生命周期测试',
+      ENG_name: 'ExpertiseLifecycle',
+      source: 'TST',
+      features: [training(2), training(9)],
+      subClassInfo: {
+        unlockLevel: 3,
+        options: [
+          { name: '学者', nameEn: 'Scholar', traits: [{ ...training(3), name: '学者专精' }] },
+          { name: '旅者', nameEn: 'Traveler', traits: [] },
+        ],
+      },
+    });
+    defaultCatalog.register(entry);
+    const state = {
+      ...baseCharacterState(),
+      classes: [{ classId: entry.id, level: 9, subclassId: 'Scholar' }],
+      baseAbilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      selectedSkills: ['history', 'perception'],
+      expertiseSkills: ['history', 'perception'],
+      classSelections: {
+        ['cls:' + entry.id + ':feat:专精:expertise-9']: ['history'],
+        ['cls:' + entry.id + ':feat:学者专精:expertise-3']: ['perception'],
+      },
+    } as CharacterState;
+    const active = () => computeProficiencies(JSON.parse(JSON.stringify(state)));
+    expect(hasExpertise(active(), 'history')).toBe(true);
+    expect(hasExpertise(active(), 'perception')).toBe(true);
+    state.classes[0].level = 3;
+    expect(hasExpertise(active(), 'history')).toBe(false);
+    expect(hasExpertise(active(), 'perception')).toBe(true);
+    state.classes[0].subclassId = 'Traveler';
+    expect(hasExpertise(active(), 'perception')).toBe(false);
+    state.classes[0].level = 9;
+    expect(hasExpertise(active(), 'history')).toBe(true);
+    state.classes = [];
+    expect(hasExpertise(active(), 'history')).toBe(false);
+    expect(active().skills.map((item) => item.id)).toEqual(
+      expect.arrayContaining(['history', 'perception']),
+    );
+    expect(state.expertiseSkills).toEqual(['history', 'perception']);
   });
 
   it('职业和子职业按选择类型记录熟练，不凭选项名称猜类型或把专精变成新熟练', () => {

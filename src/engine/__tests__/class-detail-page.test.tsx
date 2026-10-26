@@ -30,6 +30,7 @@ vi.mock('@/store/characterStore', () => ({
 }));
 import ClassDetailPage from '@/app/builder/class-detail/page';
 import SubclassChoice from '@/components/SubclassChoice';
+import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 import ClassFeatureGuidance from '@/components/ClassFeatureGuidance';
 import MarkdownText from '@/components/MarkdownText';
 import { buildCharacterFeatSlots } from '../featSlots';
@@ -168,4 +169,41 @@ it('基础熟练移除后不再计入专精完成度，重新选择时释放失�
       classSelections: { [key]: ['history', 'performance'] },
     }),
   );
+});
+
+it('武器精通按原生武器身份限制已有熟练，呈现原文名称和出处', () => {
+  defaultCatalog.registerMany([
+    {
+      ...parent,
+      raw: {
+        ...parent.raw,
+        startingProficiencies: { weapons: ['测试细刃|TST'] },
+        classFeatures: ['武器精通|Page Wizard|XPHB|1'],
+      },
+    },
+    feature('武器精通', 1, ['你可以运用一种你熟练武器的精通词条。']),
+    normalizeItem({
+      name: '测试细刃',
+      ENG_name: 'Fixture Blade',
+      source: 'TST',
+      type: 'M',
+      weaponCategory: 'simple',
+    }),
+    normalizeItem({
+      name: '未熟练细刃',
+      ENG_name: 'Untrained Blade',
+      source: 'TST',
+      type: 'M',
+      weaponCategory: 'martial',
+    }),
+  ]);
+  const tree = nodes(ClassDetailPage());
+  const options = tree.filter((node) => typeof node.props?.onClick === 'function');
+  const weapon = options.find((node) => node.props.children?.[0] === '测试细刃 [TST]');
+  expect(weapon).toBeDefined();
+  expect(options.some((node) => node.props.children?.[0] === '未熟练细刃 [TST]')).toBe(false);
+  weapon.props.onClick();
+  expect(Object.values(store.update.mock.calls.at(-1)![0].classSelections)).toContainEqual([
+    'Fixture Blade|TST',
+  ]);
 });

@@ -53,7 +53,12 @@ import {
 import MarkdownText from '@/components/MarkdownText';
 import { computeSpellcasting, getInnateSpells } from '@/engine/spellcasting';
 import { computeAbilityScores } from '@/engine/ability';
-import { getSpellDefinition, getClassDefinition, getFeatDefinition } from '@/engine/characterData';
+import {
+  getSpellDefinition,
+  getClassDefinition,
+  getFeatDefinition,
+  findItemById,
+} from '@/engine/characterData';
 
 /**
  * Local component for collapsible sections in description
@@ -675,6 +680,14 @@ export default function ClassDetailPage() {
       }
     }
 
+    if (category === 'weaponMastery' && selection.filter === 'proficient-weapons') {
+      resolvedOptions = resolvedOptions.filter((option) =>
+        isProficientWithWeapon(
+          option,
+          allProficiencies.weapons.map((weapon) => weapon.id),
+        ),
+      );
+    }
     const finalOptions = choices.filterOptions(resolvedOptions, category);
     if (finalOptions.length === 0) return null;
     if (category === 'expertise') {
@@ -1133,6 +1146,10 @@ export default function ClassDetailPage() {
             const normalizedOptId =
               category === 'skill' || category === 'expertise' ? normalizeSkillId(optId) : optId;
             const isChosen = chosen.includes(normalizedOptId);
+            const weapon =
+              category === 'weapon' || category === 'weaponMastery'
+                ? findItemById(optId)
+                : undefined;
 
             return (
               <PillButton
@@ -1152,12 +1169,14 @@ export default function ClassDetailPage() {
               >
                 {category === 'skill' || category === 'expertise'
                   ? translateSkill(optId)
-                  : category === 'tool' || category === 'weapon' || category === 'weaponMastery'
-                    ? translateProficiency(optId)
-                    : category === 'language'
-                      ? choices.getCatalogLanguages().find((entry) => entry.id === optId)?.name ||
-                        translateLabel(optId)
-                      : translateLabel(optId)}
+                  : weapon
+                    ? `${weapon.name} [${getSourceDisplayName(weapon.source || '')}]`
+                    : category === 'tool' || category === 'weapon' || category === 'weaponMastery'
+                      ? translateProficiency(optId)
+                      : category === 'language'
+                        ? choices.getCatalogLanguages().find((entry) => entry.id === optId)?.name ||
+                          translateLabel(optId)
+                        : translateLabel(optId)}
                 {isDisabled && <span style={{ fontSize: '10px', marginLeft: 4 }}>(已选)</span>}
               </PillButton>
             );

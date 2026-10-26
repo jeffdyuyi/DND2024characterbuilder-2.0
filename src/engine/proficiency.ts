@@ -18,6 +18,7 @@ import {
   getFeatDefinition,
   getSpeciesDefinition,
   getSubspeciesDefinition,
+  findItemById,
 } from './characterData';
 import { computeAbilityScores } from './ability';
 import { TraitFeatures } from '../types/species';
@@ -371,7 +372,17 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
     }
   });
 
-  const expertiseRequests = new Set((state.expertiseSkills || []).map(normalizeSkillId));
+  const expertiseRequests = new Set<string>();
+  const selectionsByKey = new Map(
+    Object.entries(state.classSelections || {}).map(([key, values]) => [key.toLowerCase(), values]),
+  );
+  const recordedExpertise = new Set(
+    Object.entries(state.classSelections || {})
+      .filter(([key]) => /expertise|专精/i.test(key))
+      .flatMap(([, values]) => values.map(normalizeSkillId)),
+  );
+  const featureChoiceActivity = new Map<string, boolean>();
+  const activeClassKeys = new Set<string>();
   const handledFeatureChoices = new Set<string>();
   const scopedClassChoices: string[] = [];
 
@@ -381,6 +392,32 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
     if (!classDef) return;
 
     const sourceName = `职业: ${classDef.name}`;
+    const classKeys = [cEntry.classId, classDef.nameEn].filter(Boolean);
+    classKeys.forEach((key) => activeClassKeys.add(key.toLowerCase()));
+    const registerChoices = (feature: any, active: boolean) => {
+      for (const choice of feature.mechanics?.choices || []) {
+        for (const owner of classKeys) {
+          const key = `cls:${owner}:feat:${feature.name}:${choice.id}`.toLowerCase();
+          featureChoiceActivity.set(key, active || featureChoiceActivity.get(key) === true);
+          if (choice.type === 'expertise') {
+            selectionsByKey
+              .get(key)
+              ?.forEach((value) => recordedExpertise.add(normalizeSkillId(value)));
+          }
+        }
+      }
+    };
+    classDef.features?.forEach((feature) =>
+      registerChoices(feature, feature.level <= cEntry.level),
+    );
+    classDef.subClassInfo?.options.forEach((subclass) => {
+      const selected = [subclass.catalogId, subclass.nameEn, subclass.name].includes(
+        cEntry.subclassId,
+      );
+      subclass.traits?.forEach((feature) =>
+        registerChoices(feature, selected && feature.level <= cEntry.level),
+      );
+    });
     if (classDef.features?.length)
       scopedClassChoices.push(
         ...[cEntry.classId, classDef.nameEn].map((id) => `cls:${id}:feat:`.toLowerCase()),
@@ -443,10 +480,15 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
       );
       for (const [key, selected] of Object.entries(state.classSelections || {})) {
         if (!prefixes.some((prefix) => key.toLowerCase().startsWith(prefix))) continue;
-        handledFeatureChoices.add(key);
         const choice = feature.mechanics?.choices?.find((candidate: any) =>
           key.endsWith(':' + candidate.id),
         );
+        if (
+          featureChoiceActivity.get(key.toLowerCase()) === false ||
+          (!choice && featureChoiceActivity.has(key.toLowerCase()))
+        )
+          continue;
+        handledFeatureChoices.add(key);
         for (const value of selected || []) {
           if (choice?.type === 'expertise' || /expertise|专精/i.test(key)) {
             expertiseRequests.add(normalizeSkillId(value));
@@ -592,6 +634,9 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
   Object.entries(state.classSelections || {}).forEach(([id, choices]) => {
     if (handledFeatureChoices.has(id)) return;
     const lowId = id.toLowerCase();
+    if (featureChoiceActivity.has(lowId)) return;
+    const classOwner = lowId.match(/^cls:(.+?):feat:/)?.[1];
+    if (classOwner && !activeClassKeys.has(classOwner)) return;
     // Known class trees already consumed active, unlocked features above.
     if (
       scopedClassChoices.some((prefix) => lowId.startsWith(prefix)) &&
@@ -638,6 +683,12 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
     });
   });
 
+  // The aggregate field mirrors keyed choices; only unscoped legacy/manual values stand alone.
+  state.expertiseSkills?.forEach((value) => {
+    const id = normalizeSkillId(value);
+    if (!recordedExpertise.has(id)) expertiseRequests.add(id);
+  });
+
   // Expertise only augments independently granted proficiency; it never grants one.
   for (const id of expertiseRequests) {
     if (result.skills.some((skill) => skill.id === id))
@@ -680,7 +731,7 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
  */
 export const isProficientWithWeapon = (weaponId: string, proficiencies: string[]): boolean => {
   const normalize = (value: string) => {
-    const base = value.split('|')[0].toLowerCase().trim();
+    const base = (findItemById(value)?.nameEn || value.split('|')[0]).toLowerCase().trim();
     return (
       Object.keys(WEAPON_MAP).find((key) => WEAPON_MAP[key] === base) ||
       (base === '简易' || base === '简易武器'

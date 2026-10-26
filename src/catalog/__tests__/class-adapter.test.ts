@@ -8,9 +8,32 @@ import { InMemoryCatalogService } from '../catalog';
 import { makeEntryId } from '../identity';
 import mesmerSample from '@/source/__fixtures__/homebrew/mesmer-class.sample.json';
 import { translateProficiency } from '@/engine/terminology';
-import { clean5eTags } from '@/source/fiveetools-cn/utils';
 
 describe('Catalog Class & Subclass Adapter Tests', () => {
+  it('原生武器、护甲及工具标签统一转为带来源引用，不泄漏标签或修改 raw', () => {
+    const raw = {
+      name: '标签熟练测试',
+      source: 'PHB',
+      startingProficiencies: {
+        weapons: ['简易', '{@item 刺剑|PHB}'],
+        armor: [{ proficiency: '{@item 盾牌|PHB}', optional: true }],
+        tools: ['{@item 草药工具|PHB}'],
+      },
+      multiclassing: {
+        proficienciesGained: { weapons: ['{@item 手弩|PHB}'], tools: ['{@item 赌具|PHB}'] },
+      },
+    };
+    const original = JSON.stringify(raw);
+    const def = catalogEntryToClass(normalizeClass(raw));
+    expect(def.proficiencies.weapons).toEqual(['简易', '刺剑|PHB']);
+    expect(def.proficiencies.armor).toEqual(['盾牌|PHB（可选）']);
+    expect(def.proficiencies.tools).toEqual(['草药工具|PHB']);
+    expect(def.multiclassProficiencies?.weapons).toEqual(['手弩|PHB']);
+    expect(def.multiclassProficiencies?.tools).toEqual(['赌具|PHB']);
+    expect(translateProficiency('刺剑|PHB')).toBe('刺剑 [玩家手册]');
+    expect(JSON.stringify(raw)).toBe(original);
+  });
+
   it('原生任意技能与工具分类自选保留数量，固定工具与自选并存', () => {
     for (const source of ['PHB', 'XPHB']) {
       const raw = {
@@ -61,8 +84,8 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
     };
     const before = JSON.stringify(raw);
     const definition = catalogEntryToClass(normalizeClass(raw));
-    expect(definition.proficiencies.weapons).toEqual(raw.startingProficiencies.weapons);
-    expect(translateProficiency(clean5eTags(definition.proficiencies.weapons[0]))).toBe('短棒');
+    expect(definition.proficiencies.weapons).toEqual(['短棒|phb']);
+    expect(translateProficiency(definition.proficiencies.weapons[0])).toBe('短棒 [玩家手册]');
     expect(definition.primaryAbility).toEqual(['str']);
     expect(definition.spellcastingAbility).toBe('wis');
     expect(JSON.stringify(raw)).toBe(before);
