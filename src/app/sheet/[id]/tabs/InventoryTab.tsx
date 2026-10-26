@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import styles from '../../sheet.module.css';
 import { findItemById, getAttunementStatus, isProficientWithArmor } from '@/engine/characterData';
 import { getCatalogItems, isMagicItemDefinition } from '@/catalog';
+import { getCharacterSourcePolicy } from '@/catalog/sourcePolicy';
+import { getSourceDisplayName } from '@/config/sourceMapping';
 import { useCatalog } from '@/platform/CatalogProvider';
 import type { Armor } from '@/types/equipment';
 import { CharacterState, InventoryEntry } from '@/types/characterState';
@@ -24,15 +26,20 @@ interface InventoryTabProps {
   character: CharacterState;
   updateActiveCharacter: (data: Partial<CharacterState>) => void;
   isEditMode: boolean;
+  onEnableEdit: () => void;
 }
 
 const InventoryTab: React.FC<InventoryTabProps> = ({
   character,
   updateActiveCharacter,
   isEditMode,
+  onEnableEdit,
 }) => {
   const { status: catalogStatus } = useCatalog();
-  const catalogItems = useMemo(() => getCatalogItems(), [catalogStatus]);
+  const catalogItems = useMemo(
+    () => getCatalogItems({ sourcePolicy: getCharacterSourcePolicy(character) }),
+    [catalogStatus, character.sourceSelection, character.allowHomebrew],
+  );
   const inventory = (character.inventoryEntries || []).filter(
     (e: InventoryEntry) => e.category !== 'package',
   );
@@ -45,6 +52,16 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<string>('all');
   const [isMagicOnly, setIsMagicOnly] = useState(false);
+  const [searchSource, setSearchSource] = useState('all');
+  const [isCustomOpen, setIsCustomOpen] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customCategory, setCustomCategory] = useState<InventoryEntry['category']>('gear');
+  const [customWeight, setCustomWeight] = useState('');
+  const [customNotes, setCustomNotes] = useState('');
+  const itemSources = useMemo(
+    () => [...new Set(catalogItems.map((item) => item.source).filter(Boolean))].sort(),
+    [catalogItems],
+  );
 
   // Container state
   const [activeContainerId, setActiveContainerId] = useState<string>('player');
@@ -159,6 +176,36 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
       };
       updateActiveCharacter({ inventoryEntries: [...character.inventoryEntries, newEntry] });
     }
+  };
+
+  const addCustomItem = () => {
+    const name = customName.trim();
+    const weight = customWeight.trim();
+    if (
+      !isEditMode ||
+      !name ||
+      (weight && (!Number.isFinite(Number(weight)) || Number(weight) < 0))
+    )
+      return;
+    updateActiveCharacter({
+      inventoryEntries: [
+        ...character.inventoryEntries,
+        {
+          id: `custom-${crypto.randomUUID()}`,
+          name,
+          quantity: 1,
+          category: customCategory,
+          source: '自定义',
+          weight: weight || '---',
+          notes: customNotes.trim(),
+          locationId: activeContainerId,
+        },
+      ],
+    });
+    setCustomName('');
+    setCustomWeight('');
+    setCustomNotes('');
+    setIsCustomOpen(false);
   };
 
   const addContainer = (item: any) => {
@@ -854,6 +901,21 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
     );
   };
 
+  const filteredCatalogItems = catalogItems.filter((item) => {
+    const query = searchQuery.trim().toLowerCase();
+    if (query && !`${item.name} ${(item as any).nameEn || ''}`.toLowerCase().includes(query))
+      return false;
+    if (searchSource !== 'all' && item.source !== searchSource) return false;
+    const category =
+      (item as any).category ||
+      ((item as any).weaponCategory ? 'weapon' : (item as any).armorCategory ? 'armor' : 'gear');
+    if (isMagicOnly && !isMagicItemDefinition(item)) return false;
+    return (
+      searchCategory === 'all' ||
+      (searchCategory === 'magic' ? isMagicItemDefinition(item) : category === searchCategory)
+    );
+  });
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
@@ -954,6 +1016,7 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
                       size="xs"
                       onClick={() => {
                         setIsMagicOnly(false);
+                        setSearchCategory('all');
                         setIsSearchOpen(true);
                       }}
                     >
@@ -965,14 +1028,23 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
                       style={{ color: '#9333ea', borderColor: '#9333ea' }}
                       onClick={() => {
                         setIsMagicOnly(true);
+                        setSearchCategory('magic');
                         setIsSearchOpen(true);
                       }}
                     >
                       <Wand2 size={12} style={{ marginRight: 4 }} /> 魔法物品
                     </PillButton>
+                    <PillButton size="xs" variant="outline" onClick={() => setIsCustomOpen(true)}>
+                      <Plus size={12} style={{ marginRight: 4 }} /> 自定义物品
+                    </PillButton>
                   </div>
                 )}
               </h3>
+              {!isEditMode && (
+                <PillButton size="xs" onClick={onEnableEdit}>
+                  编辑物品与钱币
+                </PillButton>
+              )}
             </div>
 
             {categorizedInventory.length > 0 ? (
@@ -1263,7 +1335,10 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
                       onChange={(e) =>
                         isEditMode &&
                         updateActiveCharacter({
-                          currency: { ...character.currency, [key]: parseInt(e.target.value) || 0 },
+                          currency: {
+                            ...character.currency,
+                            [key]: Math.max(0, Math.trunc(Number(e.target.value) || 0)),
+                          },
                         })
                       }
                       readOnly={!isEditMode}
@@ -1331,6 +1406,67 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
         </div>
       </div>
       {/* 搜索添加 Modal */}
+      {isCustomOpen && isEditMode && (
+        <div className={styles.overlay} onClick={() => setIsCustomOpen(false)}>
+          <div
+            className={styles.modal}
+            onClick={(event) => event.stopPropagation()}
+            style={{ maxWidth: 440 }}
+          >
+            <h2 style={{ marginTop: 0 }}>新增自定义物品</h2>
+            <label>
+              名称
+              <input
+                className={styles.inputField}
+                value={customName}
+                onChange={(event) => setCustomName(event.target.value)}
+              />
+            </label>
+            <label>
+              分类
+              <select
+                className={styles.inputField}
+                value={customCategory}
+                onChange={(event) =>
+                  setCustomCategory(event.target.value as InventoryEntry['category'])
+                }
+              >
+                <option value="gear">冒险物品</option>
+                <option value="weapon">武器</option>
+                <option value="armor">护甲</option>
+                <option value="shield">盾牌</option>
+                <option value="tool">工具</option>
+                <option value="other">其他</option>
+              </select>
+            </label>
+            <label>
+              重量（磅，可留空）
+              <input
+                className={styles.inputField}
+                type="number"
+                min="0"
+                step="0.1"
+                value={customWeight}
+                onChange={(event) => setCustomWeight(event.target.value)}
+              />
+            </label>
+            <label>
+              备注
+              <textarea
+                className={styles.inputField}
+                value={customNotes}
+                onChange={(event) => setCustomNotes(event.target.value)}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+              <PillButton variant="outline" onClick={() => setIsCustomOpen(false)}>
+                取消
+              </PillButton>
+              <PillButton onClick={addCustomItem}>添加</PillButton>
+            </div>
+          </div>
+        </div>
+      )}
       {isSearchOpen && (
         <div className={styles.overlay} onClick={() => setIsSearchOpen(false)}>
           <div
@@ -1436,120 +1572,126 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
               ))}
             </div>
 
+            <div
+              style={{
+                display: 'flex',
+                gap: 6,
+                flexWrap: 'wrap',
+                marginBottom: 12,
+                maxHeight: 82,
+                overflowY: 'auto',
+              }}
+            >
+              <PillButton
+                size="xs"
+                variant={searchSource === 'all' ? 'primary' : 'outline'}
+                onClick={() => setSearchSource('all')}
+              >
+                全部来源
+              </PillButton>
+              {itemSources.map((source) => (
+                <PillButton
+                  key={source}
+                  size="xs"
+                  variant={searchSource === source ? 'primary' : 'outline'}
+                  onClick={() => setSearchSource(source)}
+                >
+                  {getSourceDisplayName(source)}
+                </PillButton>
+              ))}
+            </div>
+
             <div style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
-              {catalogItems
-                .filter((item) => {
-                  const matchesQuery =
-                    item.name.includes(searchQuery) ||
-                    (item as any).nameEn?.toLowerCase().includes(searchQuery.toLowerCase());
+              {filteredCatalogItems.slice(0, 50).map((item) => {
+                const itemCat =
+                  (item as any).category ||
+                  ((item as any).weaponCategory
+                    ? 'weapon'
+                    : (item as any).armorCategory
+                      ? 'armor'
+                      : 'gear');
+                const isWeapon = (item as any).weaponCategory;
+                const isArmor = (item as any).armorCategory;
 
-                  if (!matchesQuery) return false;
-
-                  const itemCat =
-                    (item as any).category ||
-                    ((item as any).weaponCategory
-                      ? 'weapon'
-                      : (item as any).armorCategory
-                        ? 'armor'
-                        : 'gear');
-                  const isMagic = isMagicItemDefinition(item);
-
-                  if (isMagicOnly && !isMagic) return false;
-                  if (searchCategory === 'all') return true;
-                  if (searchCategory === 'magic') return isMagic;
-
-                  return itemCat === searchCategory;
-                })
-                .slice(0, 50)
-                .map((item) => {
-                  const itemCat =
-                    (item as any).category ||
-                    ((item as any).weaponCategory
-                      ? 'weapon'
-                      : (item as any).armorCategory
-                        ? 'armor'
-                        : 'gear');
-                  const isWeapon = (item as any).weaponCategory;
-                  const isArmor = (item as any).armorCategory;
-
-                  return (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '12px 16px',
-                        borderRadius: 12,
-                        marginBottom: 8,
-                        background: 'rgba(0,0,0,0.02)',
-                        border: '1px solid transparent',
-                        transition: 'all 0.2s',
-                      }}
-                    >
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                          <span style={{ fontWeight: 700, fontSize: 14 }}>{item.name}</span>
-                          <span
-                            style={{
-                              fontSize: 10,
-                              color: 'var(--color-text-tertiary)',
-                              background: 'rgba(0,0,0,0.05)',
-                              padding: '1px 6px',
-                              borderRadius: 4,
-                            }}
-                          >
-                            {getCategoryLabel(itemCat)}
-                          </span>
-                        </div>
-                        <div
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                      borderRadius: 12,
+                      marginBottom: 8,
+                      background: 'rgba(0,0,0,0.02)',
+                      border: '1px solid transparent',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontWeight: 700, fontSize: 14 }}>{item.name}</span>
+                        <span
                           style={{
-                            fontSize: 11,
+                            fontSize: 10,
                             color: 'var(--color-text-tertiary)',
-                            marginTop: 2,
-                            display: 'flex',
-                            gap: 10,
+                            background: 'rgba(0,0,0,0.05)',
+                            padding: '1px 6px',
+                            borderRadius: 4,
                           }}
                         >
-                          <span>{(item as any).nameEn}</span>
-                          {isWeapon && (
-                            <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                              {(item as any).damage} {(item as any).damageType}
-                            </span>
-                          )}
-                          {isArmor && (
-                            <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
-                              AC {(item as any).ac}
-                            </span>
-                          )}
-                          {item.weight && <span>{item.weight} lb</span>}
-                        </div>
+                          {getCategoryLabel(itemCat)}
+                        </span>
                       </div>
-                      <div style={{ display: 'flex', gap: 8 }}>
-                        {itemCat === 'vehicle' ||
-                        itemCat === 'mount' ||
-                        (item as any).containerCapacity ? (
-                          <PillButton
-                            size="xs"
-                            variant="primary"
-                            style={{
-                              background: 'var(--color-warning)',
-                              borderColor: 'var(--color-warning)',
-                            }}
-                            onClick={() => addContainer(item)}
-                          >
-                            作为载具添加
-                          </PillButton>
-                        ) : (
-                          <PillButton size="xs" onClick={() => addItemToInventory(item)}>
-                            添加
-                          </PillButton>
+                      <div
+                        style={{
+                          fontSize: 11,
+                          color: 'var(--color-text-tertiary)',
+                          marginTop: 2,
+                          display: 'flex',
+                          gap: 10,
+                        }}
+                      >
+                        <span>{(item as any).nameEn}</span>
+                        <span>{getSourceDisplayName(item.source)}</span>
+                        {isWeapon && (
+                          <span style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
+                            {(item as any).damage} {(item as any).damageType}
+                          </span>
                         )}
+                        {isArmor && (
+                          <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>
+                            AC {(item as any).ac}
+                          </span>
+                        )}
+                        {item.weight && <span>{item.weight} lb</span>}
                       </div>
                     </div>
-                  );
-                })}
-              {catalogItems.filter((item) => item.name.includes(searchQuery)).length === 0 && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {itemCat === 'vehicle' ||
+                      itemCat === 'mount' ||
+                      (item as any).containerCapacity ? (
+                        <PillButton
+                          size="xs"
+                          variant="primary"
+                          style={{
+                            background: 'var(--color-warning)',
+                            borderColor: 'var(--color-warning)',
+                          }}
+                          onClick={() => addContainer(item)}
+                        >
+                          作为载具添加
+                        </PillButton>
+                      ) : (
+                        <PillButton size="xs" onClick={() => addItemToInventory(item)}>
+                          添加
+                        </PillButton>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {filteredCatalogItems.length === 0 && (
                 <div
                   style={{ textAlign: 'center', padding: 40, color: 'var(--color-text-tertiary)' }}
                 >

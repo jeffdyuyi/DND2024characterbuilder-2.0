@@ -257,9 +257,12 @@ export function catalogEntryToItem(entry: CatalogEntry): AnyItem {
 export function isMagicItemDefinition(item: AnyItem | undefined): boolean {
   if (!item) return false;
   const value = item as any;
+  const rarity = String(value.rarity || '')
+    .trim()
+    .toLowerCase();
   return Boolean(
     value.magicVariantId ||
-    value.rarity ||
+    (rarity && !['none', 'mundane', '-'].includes(rarity)) ||
     value.requiresAttunement ||
     value.bonusAc ||
     value.bonusWeapon ||

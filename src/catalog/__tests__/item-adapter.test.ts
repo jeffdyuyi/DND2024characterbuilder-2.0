@@ -103,6 +103,11 @@ describe('Catalog Item Adapter Tests', () => {
     expect(isMagicItemDefinition(item)).toBe(true);
   });
 
+  it('无稀有度的普通装备不进入魔法物品筛选', () => {
+    expect(isMagicItemDefinition({ rarity: 'none' } as any)).toBe(false);
+    expect(isMagicItemDefinition({ rarity: 'common' } as any)).toBe(true);
+  });
+
   it('materializes magicvariant templates against matching public base items', () => {
     const catalog = new InMemoryCatalogService();
     catalog.register(

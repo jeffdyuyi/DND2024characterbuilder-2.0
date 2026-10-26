@@ -507,16 +507,10 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
         });
       }
 
-      for (const key of possibleKeys) {
-        if (character.speciesSelections[key]) return character.speciesSelections[key];
-      }
-
-      const fuzzyMatch = Object.entries(character.speciesSelections).find(([k]) =>
-        k.includes(`trait:${traitId}`),
-      );
-      if (fuzzyMatch) return fuzzyMatch[1];
-
-      return [];
+      const matches = (Object.entries(character.speciesSelections) as [string, string[]][])
+        .filter(([key]) => possibleKeys.includes(key) || key.includes(`trait:${traitId}`))
+        .flatMap(([, values]) => values);
+      return [...new Set(matches)];
     };
 
     // 1.2 处理亚种与变体覆盖关系
@@ -742,128 +736,146 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
 
   // 2. 职业特性处理逻辑
   const getClassFeaturesList = () => {
-    if (!primaryClass) return [];
+    return character.classes.flatMap((classEntry: any) => {
+      const classDefinition = getClassDefinition(classEntry.classId);
+      if (!classDefinition) return [];
+      const selectedSubclass = getSubclassDefinition({ ...character, classes: [classEntry] });
+      const currentLevel = classEntry.level || 0;
 
-    // 2.1 收集基础职业特性与子职业特性
-    const rawList: any[] = (primaryClass.features || [])
-      .filter((f: any) => f.level <= classLevel)
-      .filter((f: any) => {
-        const isPlaceholder =
-          f.name === '子职特性' ||
-          f.name === '战士子职' ||
-          f.name === '子职业' ||
-          f.nameEn === 'Subclass Feature' ||
-          f.nameEn === 'Fighter Subclass';
+      // 2.1 收集基础职业特性与子职业特性
+      const rawList: any[] = (classDefinition.features || [])
+        .filter((f: any) => f.level <= currentLevel)
+        .filter((f: any) => {
+          const isPlaceholder =
+            f.name === '子职特性' ||
+            f.name === '战士子职' ||
+            f.name === '子职业' ||
+            f.nameEn === 'Subclass Feature' ||
+            f.nameEn === 'Fighter Subclass';
 
-        return !subclass || !isPlaceholder;
-      })
-      .map((f: any) => ({ ...f, type: '职业' }));
+          return !selectedSubclass || !isPlaceholder;
+        })
+        .map((f: any) => ({ ...f, type: '职业', sourceName: classDefinition.name }));
 
-    if (subclass) {
-      const subclassFeatures = (subclass.traits || [])
-        .filter((f: any) => f.level <= classLevel)
-        .map((f: any) => ({
-          ...f,
-          name: f.name,
-          nameEn: f.nameEn ? `${f.nameEn} (${subclass.nameEn || subclass.name})` : undefined,
-          type: '子职业',
-          sourceName: subclass.name,
-        }));
-      rawList.push(...subclassFeatures);
-    }
-
-    // 2.2 收集专长
-    const slotFeats = (character.selectedFeats || [])
-      .filter((f: any) => f.classId === primaryClass.nameEn && f.level <= classLevel)
-      .map((f: any) => {
-        const featDef = getFeatDefinition(f.featId);
-        return featDef
-          ? {
-              ...featDef,
-              level: f.level,
-              type: '职业专长',
-              category: featDef.category || 'General',
-            }
-          : null;
-      })
-      .filter(Boolean);
-
-    rawList.push(...slotFeats);
-
-    // 2.3 解析选择
-    const resolveClassSelection = (feature: any, choice: any) => {
-      if (!character.classSelections) return [];
-
-      const traitId = feature.id || feature.name;
-      const traitName = feature.name;
-      const level = feature.level;
-
-      const possibleKeys = [
-        `cls:${primaryClass.nameEn}:feat:${traitName}:${choice.id}`,
-        `cls:${primaryClass.nameEn}:${traitId}:${choice.id}`,
-        `${choice.id}_lvl${level}`,
-        `${traitId}_lvl${level}`,
-        choice.id,
-        `${primaryClass.nameEn}:${traitId}:${choice.id}`,
-        `${primaryClass.nameEn}:${traitId}`,
-        traitId,
-      ];
-
-      for (const key of possibleKeys) {
-        if (character.classSelections[key]) return character.classSelections[key];
+      if (selectedSubclass) {
+        const subclassFeatures = (selectedSubclass.traits || [])
+          .filter((f: any) => f.level <= currentLevel)
+          .map((f: any) => ({
+            ...f,
+            name: f.name,
+            nameEn: f.nameEn
+              ? `${f.nameEn} (${selectedSubclass.nameEn || selectedSubclass.name})`
+              : undefined,
+            type: '子职业',
+            sourceName: selectedSubclass.name,
+          }));
+        rawList.push(...subclassFeatures);
       }
 
-      const fuzzyMatch = Object.entries(character.classSelections).find(
-        ([k]) =>
-          (k.includes(choice.id) && (k.includes(traitId) || k.includes(traitName))) ||
-          (k.includes(choice.id) && k.includes(`lvl${level}`)),
-      );
+      // 2.2 收集专长
+      const slotFeats = (character.selectedFeats || [])
+        .filter(
+          (f: any) =>
+            [classDefinition.nameEn, classEntry.classId].includes(f.classId) &&
+            f.level <= currentLevel,
+        )
+        .map((f: any) => {
+          const featDef = getFeatDefinition(f.featId);
+          return featDef
+            ? {
+                ...featDef,
+                level: f.level,
+                type: '职业专长',
+                category: featDef.category || 'General',
+              }
+            : null;
+        })
+        .filter(Boolean);
 
-      if (fuzzyMatch) return fuzzyMatch[1];
-      return [];
-    };
+      rawList.push(...slotFeats);
 
-    const resolvedList = rawList.map((feature) => {
-      const choices = feature.mechanics?.choices || [];
-      if (choices.length === 0) return feature;
+      // 2.3 解析选择
+      const resolveClassSelection = (feature: any, choice: any) => {
+        if (!character.classSelections) return [];
 
-      let extraDescription = '';
-      choices.forEach((choice: any) => {
-        const selected = resolveClassSelection(feature, choice);
-        if (selected && Array.isArray(selected) && selected.length > 0) {
-          const selectedDetails = selected.map((val) => {
-            const feat = getFeatDefinition(val);
-            if (feat) return { name: feat.name, description: feat.description };
+        const traitId = feature.id || feature.name;
+        const traitName = feature.name;
+        const level = feature.level;
+        const owners = [
+          ...new Set(
+            [classEntry.classId, classDefinition.catalogId, classDefinition.nameEn].filter(Boolean),
+          ),
+        ];
 
-            const localOption = (feature.options || []).find(
-              (o: any) =>
-                typeof o === 'object' && (o.id === val || o.nameEn === val || o.name === val),
-            );
-            if (localOption && typeof localOption === 'object') {
-              return { name: localOption.name, description: localOption.description };
-            }
-
-            const translated =
-              translateSkill(val) !== val
-                ? translateSkill(val)
-                : translateProficiency(val) !== val
-                  ? translateProficiency(val).split(' (')[0]
-                  : val;
-            return { name: translated, description: '' };
-          });
-
-          const label = choice.name || (choice.id?.includes('prof') ? '熟练项' : '选择');
-          extraDescription += `\n\n> **已选项目 (${label})：**\n${selectedDetails.map((d) => `> - **${d.name}**${d.description ? `\n>   ${d.description.replace(/\n/g, '\n>   ')}` : ''}`).join('\n')}`;
+        const possibleKeys = owners.flatMap((owner) => [
+          `cls:${owner}:feat:${traitName}:${choice.id}`,
+          `cls:${owner}:${traitId}:${choice.id}`,
+          `${owner}:${traitId}:${choice.id}`,
+          `${owner}:${traitId}`,
+        ]);
+        if (classEntry === character.classes[0]) {
+          possibleKeys.push(
+            `${choice.id}_lvl${level}`,
+            `${traitId}_lvl${level}`,
+            choice.id,
+            traitId,
+          );
         }
+
+        for (const key of possibleKeys) {
+          if (character.classSelections[key]) return character.classSelections[key];
+        }
+
+        const fuzzyMatch = Object.entries(character.classSelections).find(([key]) =>
+          owners.some((owner) => key.includes(`cls:${owner}:`) && key.includes(choice.id)),
+        );
+
+        if (fuzzyMatch) return fuzzyMatch[1];
+        return [];
+      };
+
+      const resolvedList = rawList.map((feature) => {
+        const choices = feature.mechanics?.choices || [];
+        if (choices.length === 0) return feature;
+
+        let extraDescription = '';
+        choices.forEach((choice: any) => {
+          const selected = resolveClassSelection(feature, choice);
+          if (selected && Array.isArray(selected) && selected.length > 0) {
+            const selectedDetails = selected.map((val) => {
+              const feat = getFeatDefinition(val);
+              if (feat) return { name: feat.name, description: feat.description };
+
+              const localOption = (feature.options || []).find(
+                (o: any) =>
+                  typeof o === 'object' && (o.id === val || o.nameEn === val || o.name === val),
+              );
+              if (localOption && typeof localOption === 'object') {
+                return { name: localOption.name, description: localOption.description };
+              }
+
+              const translated =
+                translateSkill(val) !== val
+                  ? translateSkill(val)
+                  : translateProficiency(val) !== val
+                    ? translateProficiency(val).split(' (')[0]
+                    : val;
+              return { name: translated, description: '' };
+            });
+
+            const label = choice.name || (choice.id?.includes('prof') ? '熟练项' : '选择');
+            extraDescription += `\n\n> **已选项目 (${label})：**\n${selectedDetails.map((d) => `> - **${d.name}**${d.description ? `\n>   ${d.description.replace(/\n/g, '\n>   ')}` : ''}`).join('\n')}`;
+          }
+        });
+
+        return {
+          ...feature,
+          description: feature.description + extraDescription,
+        };
       });
 
-      return {
-        ...feature,
-        description: feature.description + extraDescription,
-      };
+      return resolvedList.sort((a, b) => a.level - b.level);
     });
-
-    return resolvedList.sort((a, b) => a.level - b.level);
   };
 
   const classFeatures = getClassFeaturesList();

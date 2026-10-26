@@ -428,6 +428,7 @@ function LoadedCharacterSheet({
             character={character}
             updateActiveCharacter={updateActiveCharacter}
             isEditMode={isEditMode}
+            onEnableEdit={() => setIsEditMode(true)}
           />
         )}
 
