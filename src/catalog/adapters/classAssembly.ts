@@ -3,6 +3,7 @@ import { ClassFeature, ClassLevelProgression, SubClass } from '@/types/class';
 import { getFeatureMechanicsOverlay } from '@/mechanics-overlay/features';
 import { parseFeatureChoices } from './featureChoicesParser';
 import { belongsToClass, createClassFeatureLookup } from './classReferences';
+import { flattenEntries } from '@/source/fiveetools-cn/utils';
 
 type FeatureLookups = {
   classFeature: ReturnType<typeof createClassFeatureLookup>;
@@ -21,16 +22,38 @@ function toFeature(entry: CatalogEntry): ClassFeature {
   const overlay = getFeatureMechanicsOverlay(entry);
   const parsed = parseFeatureChoices(entry);
   const existingChoices = Array.isArray(raw.mechanics?.choices) ? raw.mechanics.choices : [];
+  const fixedProficiencies: Record<string, string[]> = {};
+  for (const field of [
+    'skillProficiencies',
+    'toolProficiencies',
+    'languageProficiencies',
+    'weaponProficiencies',
+  ]) {
+    if (!Array.isArray(raw[field])) continue;
+    fixedProficiencies[field] = raw[field].flatMap((group: unknown) =>
+      typeof group === 'string'
+        ? [group]
+        : group && typeof group === 'object'
+          ? Object.entries(group)
+              .filter(([, value]) => value === true)
+              .map(([key]) => key)
+          : [],
+    );
+  }
   return {
     name: entry.name,
     nameEn: entry.englishName || entry.name,
     level: Number(raw.level || 0),
-    description: entry.description || '',
+    description: entry.description || flattenEntries(raw.entries),
     source: entry.source,
     mechanics:
-      overlay || parsed.choices.length > 0 || raw.mechanics
+      overlay ||
+      parsed.choices.length > 0 ||
+      raw.mechanics ||
+      Object.keys(fixedProficiencies).length > 0
         ? {
             ...(raw.mechanics || {}),
+            ...fixedProficiencies,
             ...(parsed.choices.length > 0
               ? { choices: [...existingChoices, ...parsed.choices] }
               : {}),
@@ -107,24 +130,54 @@ export function assembleCatalogClass(
   const findClassFeature = lookups?.classFeature || createClassFeatureLookup(catalog);
   const findSubclassFeature = lookups?.subclassFeature || createClassFeatureLookup(catalog, true);
 
-  const featureRefs: RefValue[] = Array.isArray(raw.classFeatures) ? raw.classFeatures : [];
-  const features = featureRefs.flatMap((ref, referenceIndex) => {
-    const text = refText(ref, 'classFeature');
-    const found = findClassFeature(text, entry);
+  const expandFeature = (
+    text: string,
+    owner: CatalogEntry,
+    kind: 'classFeature' | 'subclassFeature',
+    referenceIndex: number,
+    seen: Set<string>,
+  ): ClassFeature[] => {
+    const found = (kind === 'classFeature' ? findClassFeature : findSubclassFeature)(text, owner);
     if (!found) {
-      if (text) unresolvedReferences.push(`classFeature:${text}`);
-      if (text)
-        referenceFailures.push({
-          ownerId: entry.id,
-          kind: 'classFeature',
-          reference: text,
-          referenceIndex,
-        });
+      if (text) {
+        unresolvedReferences.push(`${kind}:${text}`);
+        referenceFailures.push({ ownerId: owner.id, kind, reference: text, referenceIndex });
+      }
       return [];
     }
-    const feature = toFeature(found);
+    if (seen.has(found.id)) return [];
+    seen.add(found.id);
     choiceDiagnostics.push(...parseFeatureChoices(found).diagnostics);
-    return [feature];
+    const nested: ClassFeature[] = [];
+    const visit = (value: unknown) => {
+      if (Array.isArray(value)) {
+        value.forEach(visit);
+        return;
+      }
+      if (!value || typeof value !== 'object') return;
+      const node = value as Record<string, any>;
+      // Alternatives are selections, never unconditional grants.
+      if (node.type === 'options') return;
+      for (const childKind of ['classFeature', 'subclassFeature'] as const) {
+        if (
+          node.type === `ref${childKind[0].toUpperCase()}${childKind.slice(1)}` &&
+          typeof node[childKind] === 'string'
+        ) {
+          nested.push(...expandFeature(node[childKind], owner, childKind, referenceIndex, seen));
+          return;
+        }
+      }
+      Object.values(node).forEach(visit);
+    };
+    visit(found.raw.entries);
+    return [toFeature(found), ...nested];
+  };
+
+  const featureRefs: RefValue[] = Array.isArray(raw.classFeatures) ? raw.classFeatures : [];
+  const classSeen = new Set<string>();
+  const features = featureRefs.flatMap((ref, referenceIndex) => {
+    const text = refText(ref, 'classFeature');
+    return expandFeature(text, entry, 'classFeature', referenceIndex, classSeen);
   });
 
   const subclassCatalogEntries = catalog
@@ -146,23 +199,10 @@ export function assembleCatalogClass(
       const level = Number(refText(ref, 'subclassFeature').split('|')[5] || 0);
       if (level > 0) subclassUnlockLevel = Math.min(subclassUnlockLevel, level);
     }
+    const seen = new Set<string>();
     const traits = refs.flatMap((ref, referenceIndex) => {
       const text = refText(ref, 'subclassFeature');
-      const found = findSubclassFeature(text, subclass);
-      if (!found) {
-        if (text) unresolvedReferences.push(`subclassFeature:${text}`);
-        if (text)
-          referenceFailures.push({
-            ownerId: subclass.id,
-            kind: 'subclassFeature',
-            reference: text,
-            referenceIndex,
-          });
-        return [];
-      }
-      const feature = toFeature(found);
-      choiceDiagnostics.push(...parseFeatureChoices(found).diagnostics);
-      return [feature];
+      return expandFeature(text, subclass, 'subclassFeature', referenceIndex, seen);
     });
     const firstLevel = traits.reduce((min, trait) => Math.min(min, trait.level), 20);
     subclassUnlockLevel = Math.min(subclassUnlockLevel, firstLevel);

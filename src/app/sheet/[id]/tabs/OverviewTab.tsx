@@ -1,3 +1,4 @@
+import { hasExpertise } from '@/engine/proficiency';
 import React from 'react';
 import styles from '../../sheet.module.css';
 import PillButton from '@/components/PillButton';
@@ -2147,7 +2148,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             {renderItem('豁免', `${translateAbilityKey(key)}豁免`, key, mod, isSaveProf)}
             {relatedSkills.map((skillId: string) => {
               const isProf = proficiencies.skills.some((p: any) => p.id === skillId);
-              const isExpertise = (character.expertiseSkills || []).includes(skillId);
+              const isExpertise = hasExpertise(proficiencies, skillId);
               return renderItem(
                 '技能',
                 translateSkill(skillId, false),

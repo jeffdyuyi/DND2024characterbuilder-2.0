@@ -1,3 +1,4 @@
+import { hasExpertise } from '@/engine/proficiency';
 import { CharacterState } from '../types/characterState';
 import { computeAbilityScores } from './ability';
 import { computeCombatStats } from './combat';
@@ -76,7 +77,7 @@ export function exportToFVTT(character: CharacterState): string {
   const fvttSkills: any = {};
   Object.entries(skillMapping).forEach(([id, fvttId]) => {
     const isProf = profs.skills.some((s) => s.id === id);
-    const isExp = character.expertiseSkills?.includes(id);
+    const isExp = hasExpertise(profs, id);
     fvttSkills[fvttId] = {
       value: isExp ? 2 : isProf ? 1 : 0,
       ability: '', // Let FVTT handle default ability

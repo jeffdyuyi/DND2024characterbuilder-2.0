@@ -1,3 +1,4 @@
+import { hasExpertise } from '@/engine/proficiency';
 import { CharacterState, AbilityScores } from '../types/characterState';
 import { computeAbilityScores } from './ability';
 import { computeCombatStats } from './combat';
@@ -91,7 +92,7 @@ export function buildCharacterSheetView(character: CharacterState): CharacterShe
     character.proficiencies?.skills?.includes('perception') ||
     character.selectedSkills?.includes('perception') ||
     profRes.skills.some((s) => s.id === 'perception');
-  const isPerceptionExpert = character.expertiseSkills?.includes('perception');
+  const isPerceptionExpert = hasExpertise(profRes, 'perception');
   const perceptionBonus =
     abilityRes.modifiers.wis + (isPerceptionProf ? pb : 0) + (isPerceptionExpert ? pb : 0);
   const computedPassivePerception = 10 + perceptionBonus;

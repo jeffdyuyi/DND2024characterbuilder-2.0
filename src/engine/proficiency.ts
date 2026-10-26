@@ -1,6 +1,7 @@
 import { CharacterState } from '../types/characterState';
 import {
   normalizeSkillId,
+  translateProficiency,
   normalizeAbilityKey,
   SIMPLE_WEAPONS,
   MARTIAL_WEAPONS,
@@ -25,6 +26,19 @@ import { SPECIES_RESISTANCE_TRANSLATION } from '../catalog/adapters/speciesChoic
 export interface ProficiencySource {
   id: string; // e.g., 'stealth'
   sources: string[]; // e.g., ['background:criminal', 'class:rogue']
+}
+
+export function hasExpertise(
+  proficiencies: { skills?: ProficiencySource[]; tools?: ProficiencySource[] } | undefined,
+  id: string,
+  category: 'skills' | 'tools' = 'skills',
+): boolean {
+  const normalized = category === 'skills' ? normalizeSkillId(id) : id;
+  return Boolean(
+    proficiencies?.[category]?.some(
+      (item) => item.id === normalized && item.sources.includes('Expertise Selection'),
+    ),
+  );
 }
 
 export interface ComputedProficiencies {
@@ -357,12 +371,20 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
     }
   });
 
+  const expertiseRequests = new Set((state.expertiseSkills || []).map(normalizeSkillId));
+  const handledFeatureChoices = new Set<string>();
+  const scopedClassChoices: string[] = [];
+
   // 3. 处理职业 (Classes)
   state.classes?.forEach((cEntry, index) => {
     const classDef = getClassDefinition(cEntry.classId);
     if (!classDef) return;
 
     const sourceName = `职业: ${classDef.name}`;
+    if (classDef.features?.length)
+      scopedClassChoices.push(
+        ...[cEntry.classId, classDef.nameEn].map((id) => `cls:${id}:feat:`.toLowerCase()),
+      );
 
     // 3.1 处理职业基础熟练 (cls:[ID]:base:prof:[TYPE])
     Object.entries(state.classSelections || {}).forEach(([key, chosen]) => {
@@ -398,68 +420,78 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
       }
     }
 
-    // 3.3 处理职业特性选择 (cls:[ID]:feat:[FeatureName]:[ChoiceID])
-    classDef.features?.forEach((f) => {
-      if (f.level <= cEntry.level) {
-        const featLabel = `${sourceName} (${f.name})`;
-        addDynamicBonuses(f.mechanics, featLabel);
-
-        if (f.nameEn === 'Jack of All Trades' || f.name === '万事通')
-          result.hasJackOfAllTrades = true;
-
-        Object.entries(state.classSelections || {}).forEach(([key, chosen]) => {
-          if (key.startsWith(`cls:${cEntry.classId}:feat:${f.name}:`)) {
-            chosen.forEach((sel) => {
-              const opt =
-                f.options?.find((o: any) => o.name === sel || o.nameEn === sel) ||
-                f.mechanics?.choices
-                  ?.flatMap((c: any) => c.options || [])
-                  .find((o: any) => o.name === sel || o.nameEn === sel);
-              if (opt?.mechanics) addDynamicBonuses(opt.mechanics, `${featLabel} (${opt.name})`);
-
-              const nid = normalizeSkillId(sel);
-              if (SKILL_MAP[nid]) addProficiency('skills', nid, featLabel);
-              else if (TOOL_MAP[sel]) addProficiency('tools', sel, featLabel);
+    const applyFeature = (feature: any, label: string) => {
+      if (feature.level > cEntry.level) return;
+      const applyMechanics = (mechanics: any, source: string) => {
+        addDynamicBonuses(mechanics, source);
+        const fixed: Record<string, ProficiencyCategory> = {
+          skillProficiencies: 'skills',
+          toolProficiencies: 'tools',
+          languageProficiencies: 'languages',
+          weaponProficiencies: 'weapons',
+        };
+        for (const [field, category] of Object.entries(fixed)) {
+          if (Array.isArray(mechanics?.[field]))
+            mechanics[field].forEach((value: unknown) => {
+              if (typeof value === 'string') addProficiency(category, value, source);
             });
-          }
-        });
-      }
-    });
-
-    // 3.4 子职业特性
-    if (cEntry.subclassId) {
-      const subDef = classDef.subClassInfo?.options.find(
-        (o) =>
-          o.catalogId === cEntry.subclassId ||
-          o.nameEn === cEntry.subclassId ||
-          o.name === cEntry.subclassId,
+        }
+      };
+      applyMechanics(feature.mechanics, label);
+      const prefixes = [cEntry.classId, classDef.nameEn].map((id) =>
+        ('cls:' + id + ':feat:' + feature.name + ':').toLowerCase(),
       );
-      if (subDef) {
-        const subSourceName = `子职: ${subDef.name}`;
-        subDef.traits?.forEach((t) => {
-          if (t.level <= cEntry.level) {
-            const traitLabel = `${subSourceName} (${t.name})`;
-            addDynamicBonuses(t.mechanics, traitLabel);
-
-            Object.entries(state.classSelections || {}).forEach(([key, chosen]) => {
-              if (key.startsWith(`cls:${cEntry.classId}:feat:${t.name}:`)) {
-                chosen.forEach((sel) => {
-                  const opt =
-                    t.options?.find((o: any) => o.name === sel || o.nameEn === sel) ||
-                    t.mechanics?.choices
-                      ?.flatMap((c: any) => c.options || [])
-                      .find((o: any) => o.name === sel || o.nameEn === sel);
-                  if (opt?.mechanics)
-                    addDynamicBonuses(opt.mechanics, `${traitLabel} (${opt.name})`);
-
-                  const nid = normalizeSkillId(sel);
-                  if (SKILL_MAP[nid]) addProficiency('skills', nid, traitLabel);
-                });
-              }
-            });
+      for (const [key, selected] of Object.entries(state.classSelections || {})) {
+        if (!prefixes.some((prefix) => key.toLowerCase().startsWith(prefix))) continue;
+        handledFeatureChoices.add(key);
+        const choice = feature.mechanics?.choices?.find((candidate: any) =>
+          key.endsWith(':' + candidate.id),
+        );
+        for (const value of selected || []) {
+          if (choice?.type === 'expertise' || /expertise|专精/i.test(key)) {
+            expertiseRequests.add(normalizeSkillId(value));
+            continue;
           }
-        });
+          const categories: Record<string, ProficiencyCategory> = {
+            skill: 'skills',
+            tool: 'tools',
+            language: 'languages',
+            weapon: 'weapons',
+            weaponMastery: 'weaponMasteries',
+            mastery: 'weaponMasteries',
+            savingThrow: 'saves',
+          };
+          if (categories[choice?.type]) {
+            addProficiency(categories[choice.type], value, label);
+            continue;
+          }
+          const option =
+            feature.options?.find(
+              (option: any) => option.name === value || option.nameEn === value,
+            ) ||
+            feature.mechanics?.choices
+              ?.flatMap((choice: any) => choice.options || [])
+              .find((option: any) => option?.name === value || option?.nameEn === value);
+          if (option?.mechanics) applyMechanics(option.mechanics, label + ' (' + option.name + ')');
+          const skill = normalizeSkillId(value);
+          if (SKILL_MAP[skill]) addProficiency('skills', skill, label);
+          else if (TOOL_MAP[value]) addProficiency('tools', value, label);
+        }
       }
+    };
+    classDef.features?.forEach((feature) => {
+      if (feature.level > cEntry.level) return;
+      if (feature.nameEn === 'Jack of All Trades' || feature.name === '万事通')
+        result.hasJackOfAllTrades = true;
+      applyFeature(feature, sourceName + ' (' + feature.name + ')');
+    });
+    if (cEntry.subclassId) {
+      const subclass = classDef.subClassInfo?.options.find((option) =>
+        [option.catalogId, option.nameEn, option.name].includes(cEntry.subclassId),
+      );
+      subclass?.traits?.forEach((feature) =>
+        applyFeature(feature, '子职: ' + subclass.name + ' (' + feature.name + ')'),
+      );
     }
   });
 
@@ -549,19 +581,30 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
   });
 
   state.selectedSkills?.forEach((skill) => addProficiency('skills', skill, 'Player Selection'));
+  for (const category of ['skills', 'saves', 'tools', 'languages'] as const) {
+    state.proficiencies?.[category]?.forEach((id) =>
+      addProficiency(category, id, 'Manual Proficiency'),
+    );
+  }
   state.selectedLanguages?.forEach((lang) => addProficiency('languages', lang, 'Player Selection'));
-  state.expertiseSkills?.forEach((skill) => addProficiency('skills', skill, 'Expertise Selection'));
 
   // 3.3 Class Selections (Feature choices like Student of War, or weapon/armor choices)
   Object.entries(state.classSelections || {}).forEach(([id, choices]) => {
+    if (handledFeatureChoices.has(id)) return;
     const lowId = id.toLowerCase();
+    // Known class trees already consumed active, unlocked features above.
+    if (
+      scopedClassChoices.some((prefix) => lowId.startsWith(prefix)) &&
+      !/expertise|专精/i.test(lowId)
+    )
+      return;
     choices.forEach((choice) => {
       if (typeof choice !== 'string') return;
       const normalized = normalizeSkillId(choice);
       const lowChoice = choice.toLowerCase();
 
-      if (SKILL_MAP[normalized] && (lowId.includes('expertise') || lowId.includes('专精'))) {
-        addProficiency('skills', normalized, 'Expertise Selection');
+      if (lowId.includes('expertise') || lowId.includes('专精')) {
+        expertiseRequests.add(normalized);
       } else if (
         SKILL_MAP[normalized] &&
         (lowId.includes('skill') || lowId.includes('proficiency'))
@@ -595,6 +638,20 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
     });
   });
 
+  // Expertise only augments independently granted proficiency; it never grants one.
+  for (const id of expertiseRequests) {
+    if (result.skills.some((skill) => skill.id === id))
+      addProficiency('skills', id, 'Expertise Selection');
+    else {
+      const toolName = (value: string) =>
+        translateProficiency(value)
+          .replace(/\s*\[.*?\]$/, '')
+          .trim();
+      const tool = result.tools.find((tool) => toolName(tool.id) === toolName(id));
+      if (tool) addProficiency('tools', tool.id, 'Expertise Selection');
+    }
+  }
+
   // Detect and record duplicates
   const categories: ProficiencyCategory[] = [
     'skills',
@@ -608,7 +665,7 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
   for (const category of categories) {
     const list = result[category] as ProficiencySource[];
     list.forEach((prof: ProficiencySource) => {
-      if (prof.sources.length > 1) {
+      if (prof.sources.filter((source) => source !== 'Expertise Selection').length > 1) {
         result.duplicates[`${category}:${prof.id}`] = prof.sources;
       }
     });
@@ -622,8 +679,19 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
  * 考虑了大类熟练（Simple/Martial）和单体熟练
  */
 export const isProficientWithWeapon = (weaponId: string, proficiencies: string[]): boolean => {
-  const lowId = weaponId.toLowerCase().trim();
-  const profs = proficiencies.map((p) => p.toLowerCase().trim());
+  const normalize = (value: string) => {
+    const base = value.split('|')[0].toLowerCase().trim();
+    return (
+      Object.keys(WEAPON_MAP).find((key) => WEAPON_MAP[key] === base) ||
+      (base === '简易' || base === '简易武器'
+        ? 'simple weapons'
+        : base === '军用' || base === '军用武器'
+          ? 'martial weapons'
+          : base)
+    );
+  };
+  const lowId = normalize(weaponId);
+  const profs = proficiencies.map(normalize);
 
   // 1. 直接匹配 (如 'longsword')
   if (profs.includes(lowId)) return true;

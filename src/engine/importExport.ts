@@ -1,3 +1,4 @@
+import { hasExpertise } from '@/engine/proficiency';
 import { CharacterState } from '../types/characterState';
 import {
   SpeciesSchema,
@@ -147,7 +148,7 @@ export function exportToMarkdown(
 
   Object.entries(skillNames).forEach(([id, name]) => {
     const prof = proficiencies.skills.find((p: any) => p.id === id);
-    const isExp = character.expertiseSkills?.includes(id);
+    const isExp = hasExpertise(proficiencies, id);
     const baseMod = ability.modifiers[skillToAbility[id] as keyof typeof ability.modifiers];
     let total = baseMod + (prof ? pb : 0) + (isExp ? pb : 0);
     md += `| ${name} | ${total >= 0 ? `+${total}` : total} | ${isExp ? '专精' : prof ? '熟练' : '--'} |\n`;

@@ -166,7 +166,23 @@ describe('5etools 职业引用与父来源完整性', () => {
       for (const child of assembled.subclasses) {
         const registered = catalog.get(child.catalogId!)!;
         expect(registered.raw.classSource).toBe(parent.source);
-        expect(child.traits).toHaveLength((registered.raw.subclassFeatures as unknown[]).length);
+        expect(child.traits.length).toBeGreaterThanOrEqual(
+          (registered.raw.subclassFeatures as unknown[]).length,
+        );
+        expect(
+          new Set(child.traits.map((trait) => `${trait.name}|${trait.level}|${trait.source}`)).size,
+        ).toBe(child.traits.length);
+        if (registered.englishName === 'Path of the Berserker') {
+          expect(
+            child.traits.some(
+              (trait) => trait.name === '狂怒' && trait.level === 3 && trait.description.length > 0,
+            ),
+          ).toBe(true);
+        }
+        if (registered.englishName === 'Path of the Totem Warrior') {
+          expect(child.traits.some((trait) => trait.name === '图腾精魄')).toBe(true);
+          expect(child.traits.some((trait) => trait.name === '熊')).toBe(false);
+        }
       }
     }
   });

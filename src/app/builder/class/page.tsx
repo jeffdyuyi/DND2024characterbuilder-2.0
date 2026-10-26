@@ -1911,9 +1911,6 @@ export default function ClassPage() {
                     className={classStyles.coreTraitValue}
                     style={{ flexDirection: 'column', alignItems: 'flex-start' }}
                   >
-                    <div style={{ marginBottom: 8 }}>
-                      自选 {classDefinition.proficiencies.skills.numToChoose} 项：
-                    </div>
                     {renderChoice(
                       `cls:${classDefinition.nameEn}:base:prof:skills`,
                       classDefinition.proficiencies.skills,
@@ -2100,7 +2097,10 @@ export default function ClassPage() {
                     {/* Choice B */}
                     <div
                       className={`${classStyles.becomingCard} ${character.equipmentChoiceMode === 'choiceB' || character.equipmentChoiceMode === 'gold' ? classStyles.becomingCardActive : ''}`}
-                      onClick={() => handleEquipmentModeChange('choiceB')}
+                      onClick={() => {
+                        if (!classDefinition.startingEquipment.goldAlternativeFormula)
+                          handleEquipmentModeChange('choiceB');
+                      }}
                       style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column' }}
                     >
                       <div className={classStyles.becomingTitle}>
@@ -2121,9 +2121,17 @@ export default function ClassPage() {
                         />
                       </div>
                       <div className={classStyles.becomingDesc} style={{ flex: 1 }}>
-                        {classDefinition.startingEquipment.choiceB.includes('，') ||
-                        classDefinition.startingEquipment.choiceB.includes(',') ||
-                        classDefinition.startingEquipment.choiceB.includes(' 及') ? (
+                        {classDefinition.startingEquipment.goldAlternativeFormula ? (
+                          <div onClick={(event) => event.stopPropagation()}>
+                            <ClassStartingGoldChoice
+                              character={character}
+                              definition={classDefinition}
+                              onChange={applyEquipmentChange}
+                            />
+                          </div>
+                        ) : classDefinition.startingEquipment.choiceB.includes('，') ||
+                          classDefinition.startingEquipment.choiceB.includes(',') ||
+                          classDefinition.startingEquipment.choiceB.includes(' 及') ? (
                           <ul
                             style={{
                               margin: '8px 0 0 0',
@@ -2219,12 +2227,6 @@ export default function ClassPage() {
                       </div>
                     )}
                   </div>
-
-                  <ClassStartingGoldChoice
-                    character={character}
-                    definition={classDefinition}
-                    onChange={applyEquipmentChange}
-                  />
 
                   {/* Nested choices for Packages */}
                   {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&

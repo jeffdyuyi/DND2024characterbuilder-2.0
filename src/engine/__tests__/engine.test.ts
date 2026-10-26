@@ -9,6 +9,9 @@ import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 import { getAttunementStatus } from '../characterData';
 import { makeEntryId } from '@/catalog/identity';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
+import { hasExpertise } from '../proficiency';
+import { buildCharacterSheetView } from '../viewAdapter';
+import { exportToFVTT } from '../fvttExport';
 
 const baseCharacterState = (): Omit<
   CharacterState,
@@ -35,6 +38,84 @@ const baseCharacterState = (): Omit<
 });
 
 describe('Engine: Class fixed tool proficiencies', () => {
+  it('孤立专精不授予熟练；已有熟练才加倍，卡面被动值与导出一致', () => {
+    const state = {
+      ...baseCharacterState(),
+      id: 'expertise-rule',
+      name: '测试',
+      playerName: '',
+      classes: [],
+      baseAbilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+      backgroundAbilityBonuses: {},
+      expertiseSkills: ['perception'],
+      classSelections: { 'manual:expertise': ['perception'] },
+    } as CharacterState;
+    expect(computeProficiencies(state).skills).not.toContainEqual(
+      expect.objectContaining({ id: 'perception' }),
+    );
+    expect(buildCharacterSheetView(state).computed.passivePerception).toBe(10);
+    expect(JSON.parse(exportToFVTT(state)).system.skills.prc.value).toBe(0);
+    state.selectedSkills = ['perception'];
+    const profs = computeProficiencies(state);
+    expect(hasExpertise(profs, 'perception')).toBe(true);
+    expect(profs.duplicates['skills:perception']).toBeUndefined();
+    expect(buildCharacterSheetView(state).computed.passivePerception).toBe(14);
+    expect(JSON.parse(exportToFVTT(state)).system.skills.prc.value).toBe(2);
+    state.selectedSkills = [];
+    expect(
+      hasExpertise(computeProficiencies(JSON.parse(JSON.stringify(state))), 'perception'),
+    ).toBe(false);
+  });
+
+  it('职业和子职业按选择类型记录熟练，不凭选项名称猜类型或把专精变成新熟练', () => {
+    const feature = {
+      name: '训练',
+      level: 1,
+      description: '',
+      mechanics: {
+        choices: [
+          { id: 'a', type: 'tool', numToChoose: 1, options: ['陌生工具|TST'] },
+          { id: 'b', type: 'language', numToChoose: 1, options: ['陌生语言'] },
+          { id: 'c', type: 'weapon', numToChoose: 1, options: ['陌生武器|TST'] },
+          { id: 'd', type: 'expertise', numToChoose: 1, options: ['stealth'] },
+        ],
+      },
+    };
+    const entry = normalizeClass({
+      name: '分类测试',
+      source: 'TST',
+      features: [feature],
+      subClassInfo: {
+        unlockLevel: 1,
+        options: [
+          { name: '子职测试', nameEn: 'ChildTest', traits: [{ ...feature, name: '子职训练' }] },
+        ],
+      },
+    });
+    defaultCatalog.register(entry);
+    for (const subclass of [false, true]) {
+      const name = subclass ? '子职训练' : '训练';
+      const state = {
+        ...baseCharacterState(),
+        classes: [
+          { classId: entry.id, level: 1, ...(subclass ? { subclassId: 'ChildTest' } : {}) },
+        ],
+        baseAbilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+        classSelections: Object.fromEntries(
+          ['a', 'b', 'c', 'd'].map((key, index) => [
+            `cls:${entry.id}:feat:${name}:${key}`,
+            [feature.mechanics.choices[index].options[0]],
+          ]),
+        ),
+      } as unknown as CharacterState;
+      const profs = computeProficiencies(state);
+      expect(profs.tools.map((item) => item.id)).toContain('陌生工具|TST');
+      expect(profs.languages.map((item) => item.id)).toContain('陌生语言');
+      expect(profs.weapons.map((item) => item.id)).toContain('陌生武器|TST');
+      expect(profs.skills.map((item) => item.id)).not.toContain('stealth');
+    }
+  });
+
   it('职业页面旧英文键与稳定ID键的工具选择都进入保存后汇总', () => {
     const entry = normalizeClass({ name: '工具选择测试', ENG_name: 'ChoiceTest', source: 'TST' });
     defaultCatalog.register(entry);

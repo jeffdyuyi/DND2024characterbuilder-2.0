@@ -16,7 +16,7 @@ describe('2024 Elf regressions and display structure', () => {
     const snapshot = JSON.stringify(originals);
     const { resolved, warnings } = resolveEntries(originals);
     expect(warnings).toEqual([]);
-    const entry = normalizeRace(resolved.find((raw: any) => raw.source === 'LFL'));
+    const entry = normalizeRace(resolved.find((raw: any) => raw.source === 'LFL')!);
     defaultCatalog.register(entry);
     const species = catalogEntryToSpecies(entry);
     const options = species.subSpecies!.options;
@@ -34,7 +34,7 @@ describe('2024 Elf regressions and display structure', () => {
       expect(getSubspeciesDefinition(saved)?.nameEn).toBe(option.nameEn);
     }
     const core = catalogEntryToSpecies(
-      normalizeRace(resolved.find((raw: any) => raw.source === 'XPHB')),
+      normalizeRace(resolved.find((raw: any) => raw.source === 'XPHB')!),
     );
     expect(core.subSpecies?.options).toHaveLength(3);
     expect(core.subSpecies?.options.every((option) => option.source === 'XPHB')).toBe(true);

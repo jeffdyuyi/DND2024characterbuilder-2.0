@@ -1,0 +1,171 @@
+import React from 'react';
+import { beforeEach, expect, it, vi } from 'vitest';
+import { defaultCatalog } from '@/catalog/catalog';
+import { normalizeClass, normalizeSubclass } from '@/source/fiveetools-cn/normalizers/class';
+import { createBuilderChoices } from '@/catalog/builderChoices';
+import type { CharacterState } from '@/types/characterState';
+import type { CatalogEntry } from '@/catalog/types';
+
+const store = vi.hoisted(() => ({ character: {} as CharacterState, update: vi.fn() }));
+vi.mock('react', async (load) => {
+  const actual = await load<typeof import('react')>();
+  return {
+    ...actual,
+    useMemo: (fn: () => unknown) => fn(),
+    useState: (value: unknown) => [value, vi.fn()],
+    useRef: () => ({ current: null }),
+    useEffect: vi.fn(),
+  };
+});
+vi.mock('next/navigation', () => ({ useSearchParams: () => new URLSearchParams('id=test') }));
+vi.mock('@/platform/useBuilderChoices', () => ({
+  useBuilderChoices: () => createBuilderChoices({}),
+}));
+vi.mock('@/store/characterStore', () => ({
+  useCharacterStore: () => ({
+    characters: { test: store.character },
+    updateActiveCharacter: store.update,
+    loadCharacter: vi.fn(),
+  }),
+}));
+import ClassDetailPage from '@/app/builder/class-detail/page';
+import SubclassChoice from '@/components/SubclassChoice';
+import ClassFeatureGuidance from '@/components/ClassFeatureGuidance';
+import MarkdownText from '@/components/MarkdownText';
+import { buildCharacterFeatSlots } from '../featSlots';
+import { getClassDefinition } from '../characterData';
+
+function nodes(node: any): any[] {
+  if (!node || typeof node !== 'object') return [];
+  if (Array.isArray(node)) return node.flatMap(nodes);
+  return [node, ...nodes(node.props?.children)];
+}
+const parent = normalizeClass({
+  name: '页面法师',
+  ENG_name: 'Page Wizard',
+  source: 'XPHB',
+  classFeatures: ['施法|Page Wizard|XPHB|1', '属性值提升|Page Wizard|XPHB|4'],
+});
+const child = normalizeSubclass({
+  name: '页面学派',
+  ENG_name: 'Page School',
+  shortName: 'Page',
+  source: 'XPHB',
+  className: 'Page Wizard',
+  classSource: 'XPHB',
+  subclassFeatures: ['学派介绍|Page Wizard|XPHB|Page|XPHB|3'],
+});
+function feature(name: string, level: number, entries: unknown[], subclass = false): CatalogEntry {
+  return {
+    ...parent,
+    id: `page-test:${name}`,
+    kind: subclass ? 'subclassFeature' : 'classFeature',
+    name,
+    englishName: name,
+    raw: {
+      name,
+      className: 'Page Wizard',
+      classSource: 'XPHB',
+      source: 'XPHB',
+      level,
+      ...(subclass ? { subclassShortName: 'Page', subclassSource: 'XPHB' } : {}),
+      entries,
+    },
+  };
+}
+beforeEach(() => {
+  defaultCatalog.registerMany([
+    parent,
+    child,
+    feature('施法', 1, ['选择初始法术。你的法术豁免DC使用智力。']),
+    feature('属性值提升', 4, ['你获得属性值提升专长或其他符合条件的专长。']),
+    feature(
+      '学派介绍',
+      3,
+      [
+        '完整学派说明。',
+        { type: 'refSubclassFeature', subclassFeature: '学派能力|Page Wizard|XPHB|Page|XPHB|3' },
+      ],
+      true,
+    ),
+    feature('学派能力', 3, ['完整同等级能力正文。'], true),
+  ]);
+  store.update.mockClear();
+  store.character = {
+    id: 'test',
+    classes: [{ classId: parent.id, level: 1 }],
+    baseAbilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+    selectedFeats: [],
+    selectedSkills: [],
+    selectedLanguages: [],
+    inventoryEntries: [],
+    equipmentIds: [],
+    classSelections: {},
+    speciesSelections: {},
+    resourceUsage: {},
+  } as unknown as CharacterState;
+});
+
+it('未解锁不显示子职业；解锁后在等级卡中选择稳定ID，重开后显示完整嵌套能力和配置引导', () => {
+  let tree = nodes(ClassDetailPage());
+  expect(tree.filter((node) => node.type === SubclassChoice)).toHaveLength(0);
+  expect(
+    tree.filter((node) => node.type === ClassFeatureGuidance).map((node) => node.props.page),
+  ).toEqual(['spells']);
+  store.character.classes[0].level = 3;
+  tree = nodes(ClassDetailPage());
+  const selector = tree.find((node) => node.type === SubclassChoice);
+  expect(selector.props.level).toBe(3);
+  expect(selector.props.options[0].source).toBe('XPHB');
+  selector.props.onSelect(child.id);
+  expect(store.update).toHaveBeenCalledWith({
+    classes: [expect.objectContaining({ subclassId: child.id })],
+  });
+  store.character = JSON.parse(
+    JSON.stringify({
+      ...store.character,
+      classes: [{ ...store.character.classes[0], level: 4, subclassId: child.id }],
+    }),
+  );
+  tree = nodes(ClassDetailPage());
+  expect(tree.filter((node) => node.type === SubclassChoice)).toHaveLength(1);
+  expect(
+    tree.filter((node) => node.type === MarkdownText).map((node) => node.props.text),
+  ).toContain('完整同等级能力正文。');
+  expect(
+    tree.filter((node) => node.type === ClassFeatureGuidance).map((node) => node.props.page),
+  ).toEqual(['spells', 'feats']);
+  expect(buildCharacterFeatSlots(store.character, { getClass: getClassDefinition })).toHaveLength(
+    1,
+  );
+});
+
+it('基础熟练移除后不再计入专精完成度，重新选择时释放失效占位', () => {
+  defaultCatalog.registerMany([
+    { ...parent, raw: { ...parent.raw, classFeatures: ['专精|Page Wizard|XPHB|2'] } },
+    feature('专精', 2, ['你获得两项由你选择的你已熟练的技能的专精。']),
+  ]);
+  store.character.classes[0].level = 2;
+  store.character.proficiencies = { skills: ['history', 'performance'] } as any;
+  const def = getClassDefinition(parent.id)!;
+  const trait = def.features.find((item) =>
+    item.mechanics?.choices?.some((choice) => choice.type === 'expertise'),
+  )!;
+  const choice = trait.mechanics!.choices!.find((item) => item.type === 'expertise')!;
+  const key = 'cls:' + parent.id + ':feat:' + trait.name + ':' + choice.id;
+  store.character.classSelections = { [key]: ['arcana', 'history'] };
+  const tree = nodes(ClassDetailPage());
+  const counts = tree.filter((item) => item.type === 'div').map((item) => item.props.children);
+  expect(counts.some((value) => Array.isArray(value) && value.join('') === '已选 1/2')).toBe(true);
+  const option = tree.find(
+    (item) =>
+      typeof item.props?.onClick === 'function' && item.props.children?.[0] === '表演（魅力）',
+  );
+  expect(option).toBeDefined();
+  option.props.onClick();
+  expect(store.update).toHaveBeenCalledWith(
+    expect.objectContaining({
+      classSelections: { [key]: ['history', 'performance'] },
+    }),
+  );
+});

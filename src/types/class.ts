@@ -98,6 +98,7 @@ export interface ClassFeature {
         | 'spell'
         | 'fightingStyle'
         | 'weaponMastery'
+        | 'weapon'
         | 'subclass'
         | 'custom'
         | 'language'

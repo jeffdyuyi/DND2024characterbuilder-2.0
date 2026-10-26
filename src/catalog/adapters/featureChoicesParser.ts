@@ -1,6 +1,6 @@
 import { CatalogEntry } from '../types';
 import type { ClassFeature } from '@/types/class';
-import { ALL_SKILLS } from '@/engine/terminology';
+import { ALL_SKILLS, normalizeSkillId } from '@/engine/terminology';
 
 type FeatureChoice = NonNullable<NonNullable<ClassFeature['mechanics']>['choices']>[number];
 
@@ -67,10 +67,23 @@ function inferChoiceType(text: string): FeatureChoice['type'] | undefined {
   if (/weapon mastery|mastery propert|武器精通|精通属性|精通词条/i.test(low))
     return 'weaponMastery';
   if (/fighting style|战斗风格/i.test(low)) return 'fightingStyle';
-  if (/language|语言/i.test(low)) return 'language';
-  if (/skill proficien|技能熟练/i.test(low)) return 'skill';
+  if (
+    /ability score improvement|属性值提升|属性提升|epic boon|传奇恩惠|feat of your choice|选择[^。.!]*专长|获得[^。.!]*专长/i.test(
+      low,
+    )
+  )
+    return 'feat';
+  if (
+    /(?:learn|choose|select)[^.!。]{0,80}languages?|languages?[^.!。]{0,40}(?:of your choice|choose)|(?:学习|学会|掌握|选择|自选|额外获得)[^。.!]{0,24}语言|语言[^。.!]{0,15}(?:选择|自选)/i.test(
+      low,
+    )
+  )
+    return 'language';
+  if (/skill proficien|proficien[^.!。]*skills?|技能(?:的)?熟练/i.test(low)) return 'skill';
   if (/tool proficien|工具熟练/i.test(low)) return 'tool';
-  if (/saving throw|豁免/i.test(low)) return 'savingThrow';
+  if (/weapon proficien|proficien[^.!。]*weapons?|武器(?:的)?熟练/i.test(low)) return 'weapon';
+  if (/saving throw proficien|proficien[^.!。]*saving throw|豁免熟练/i.test(low))
+    return 'savingThrow';
   return undefined;
 }
 
@@ -107,6 +120,14 @@ function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoi
     if (/(?:盗贼工具|thieves'?\s*tools)/i.test(entriesText)) {
       options.push('thievesTools');
     }
+  } else if (type === 'skill') {
+    const referenced = [
+      ...JSON.stringify(entry.raw.entries || []).matchAll(/\{@skill\s+([^|}]+)/g),
+    ].map((match) => normalizeSkillId(match[1]));
+    options =
+      /(?:从|from|following)/i.test(entriesText) && referenced.length
+        ? [...new Set(referenced)]
+        : [...ALL_SKILLS];
   } else if (type === 'weaponMastery') {
     filter = 'proficient-weapons';
     options = ['Any'];
@@ -114,7 +135,26 @@ function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoi
     filter = 'category:Fighting Style';
   } else if (type === 'language') {
     filter = 'type:language';
-    options = ['Any'];
+    options = ['Any Language'];
+  } else if (type === 'tool' || type === 'weapon') {
+    const referenced = [
+      ...JSON.stringify(entry.raw.entries || []).matchAll(/\{@item\s+([^}]+)/g),
+    ].map((match) => match[1].split('|').slice(0, 2).join('|'));
+    if (referenced.length && /(?:从|from|following)/i.test(entriesText))
+      options = [...new Set(referenced)];
+    else if (type === 'weapon') options = ['Any'];
+    else
+      options = [
+        /工匠|artisan/i.test(entriesText)
+          ? "Artisan's Tools"
+          : /乐器|musical instrument/i.test(entriesText)
+            ? 'Any Musical Instrument'
+            : /赌具|gaming set/i.test(entriesText)
+              ? 'Any Gaming Set'
+              : 'Any Tool',
+      ];
+  } else if (type === 'feat') {
+    options = /epic boon|传奇恩惠/i.test(fullText) ? ['Epic Boon'] : ['General Feat'];
   }
 
   return [
@@ -142,6 +182,42 @@ export function parseFeatureChoices(entry: CatalogEntry): FeatureChoiceParseResu
   const optionNodes: Record<string, unknown>[] = [];
   walkOptionNodes(raw.entries, optionNodes);
 
+  const fields: Record<string, FeatureChoice['type']> = {
+    skillProficiencies: 'skill',
+    toolProficiencies: 'tool',
+    languageProficiencies: 'language',
+    weaponProficiencies: 'weapon',
+  };
+  const structured: FeatureChoice[] = [];
+  for (const [field, type] of Object.entries(fields)) {
+    if (!Array.isArray(raw[field])) continue;
+    (raw[field] as any[]).forEach((group, index) => {
+      if (!group || typeof group !== 'object') return;
+      const categories: Record<string, string> = {
+        any: type === 'language' ? 'Any Language' : type === 'tool' ? 'Any Tool' : 'Any',
+        anyStandard: 'Any Standard Language',
+        anyArtisansTool: "Artisan's Tools",
+        anyMusicalInstrument: 'Any Musical Instrument',
+        anyGamingSet: 'Any Gaming Set',
+      };
+      const choices = group.choose
+        ? [{ count: group.choose.count ?? 1, from: group.choose.from }]
+        : Object.entries(group)
+            .filter(([key, value]) => categories[key] && typeof value === 'number')
+            .map(([key, count]) => ({ count, from: [categories[key]] }));
+      choices.forEach((choice, choiceIndex) => {
+        if (!Array.isArray(choice.from)) return;
+        structured.push({
+          id: `cls:${raw.className || 'class'}:feat:${entry.id}:${field}:${index}:${choiceIndex}`,
+          type,
+          numToChoose: Number(choice.count),
+          options: choice.from.map((value: string) => categories[value] || value),
+          name: entry.name,
+        });
+      });
+    });
+  }
+
   const choices = optionNodes.map((node, index): FeatureChoice => {
     const options = (Array.isArray(node.entries) ? node.entries : [])
       .map(optionLabel)
@@ -156,7 +232,11 @@ export function parseFeatureChoices(entry: CatalogEntry): FeatureChoiceParseResu
     };
   });
 
-  if (choices.length === 0) choices.push(...semanticFallback(entriesText, entry));
+  if (choices.length === 0) {
+    choices.push(...structured);
+    if (!Object.keys(fields).some((field) => Array.isArray(raw[field])))
+      choices.push(...semanticFallback(entriesText, entry));
+  }
 
   const diagnostics: string[] = [];
   if (choices.length === 0 && /(choose|choice|select|选择|自选|任选)/i.test(entriesText)) {

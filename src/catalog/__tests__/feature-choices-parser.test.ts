@@ -16,6 +16,27 @@ function feature(name: string, entries: unknown[]): CatalogEntry {
 
 describe('职业特性通用选项解析器', () => {
   it.each([
+    [
+      '吟游诗人激励',
+      '你可以用语言，音乐或舞蹈的形式对他人进行超自然的激励。一个生物获得一个激励骰，并将数字加到一次属性检定、攻击检定或豁免检定上。你获得使用次数。',
+    ],
+    ['施法 Spellcasting', '选择两个戏法。你的法术豁免DC使用魅力调整值。'],
+    ['攻击加护', '你获得一次额外攻击。目标进行一次豁免。'],
+  ])('%s 的施用效果不生成建卡豁免选择', (name, text) => {
+    expect(parseFeatureChoices(feature(name, [text])).choices).toEqual([]);
+  });
+
+  it.each([
+    {
+      name: '属性值提升 Ability Score Improvement',
+      text: '你获得属性值提升专长或其他你满足条件的专长。',
+      expected: { type: 'feat', numToChoose: 1 },
+    },
+    {
+      name: '附赠熟练',
+      text: '你获得三项由你选择的技能的熟练。',
+      expected: { type: 'skill', numToChoose: 3 },
+    },
     {
       name: 'Weapon Training',
       text: 'Choose three kinds of Simple or Martial weapons. You can use the Mastery property of the chosen weapons.',
@@ -78,6 +99,22 @@ describe('职业特性通用选项解析器', () => {
       options: ['Archery', 'Defense'],
     });
     expect(result.diagnostics).toEqual([]);
+  });
+
+  it('原生结构化技能、工具、语言和武器选择保留类型与数量', () => {
+    const entry = feature('结构化训练', ['按原生字段配置。']);
+    Object.assign(entry.raw, {
+      skillProficiencies: [{ any: 2 }],
+      toolProficiencies: [{ anyArtisansTool: 1 }],
+      languageProficiencies: [{ anyStandard: 1 }],
+      weaponProficiencies: [{ choose: { from: ['longsword', 'shortsword'], count: 1 } }],
+    });
+    expect(parseFeatureChoices(entry).choices).toMatchObject([
+      { type: 'skill', numToChoose: 2, options: ['Any'] },
+      { type: 'tool', numToChoose: 1, options: ["Artisan's Tools"] },
+      { type: 'language', numToChoose: 1, options: ['Any Standard Language'] },
+      { type: 'weapon', numToChoose: 1, options: ['longsword', 'shortsword'] },
+    ]);
   });
 
   it('AST options 解析 5etools 原生 refClassFeature (如牧师圣职 / 德鲁伊原初职能)', () => {

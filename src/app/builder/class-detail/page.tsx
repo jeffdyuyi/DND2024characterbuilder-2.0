@@ -1,4 +1,7 @@
 'use client';
+import { getEquipmentChoiceCandidates } from '@/catalog/equipmentChoices';
+import ClassFeatureGuidance, { featureConfigurationPage } from '@/components/ClassFeatureGuidance';
+import SubclassChoice from '@/components/SubclassChoice';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
@@ -51,7 +54,6 @@ import MarkdownText from '@/components/MarkdownText';
 import { computeSpellcasting, getInnateSpells } from '@/engine/spellcasting';
 import { computeAbilityScores } from '@/engine/ability';
 import { getSpellDefinition, getClassDefinition, getFeatDefinition } from '@/engine/characterData';
-import { Sparkles } from 'lucide-react';
 
 /**
  * Local component for collapsible sections in description
@@ -67,7 +69,7 @@ const CollapsibleSection: React.FC<{
     <div
       style={{
         margin: '16px 0',
-        border: '1px solid #e5e5e7',
+        border: '1px solid var(--color-border-dark)',
         borderRadius: '12px',
         overflow: 'hidden',
         background: 'var(--color-bg-dark)',
@@ -86,7 +88,9 @@ const CollapsibleSection: React.FC<{
           userSelect: 'none',
           transition: 'background 0.2s ease',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = '#f0f0f2')}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.background = 'var(--color-bg-surface-elevated)')
+        }
         onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--color-bg-dark)')}
       >
         <h4
@@ -104,7 +108,7 @@ const CollapsibleSection: React.FC<{
             transform: isOpen ? 'rotate(90deg)' : 'rotate(0deg)',
             transition: 'transform 0.2s ease',
             fontSize: '10px',
-            color: '#86868b',
+            color: 'var(--color-text-tertiary)',
           }}
         >
           ▶
@@ -114,7 +118,7 @@ const CollapsibleSection: React.FC<{
         <div
           style={{
             padding: '16px',
-            borderTop: '1px solid #e5e5e7',
+            borderTop: '1px solid var(--color-border-dark)',
             background: 'var(--color-bg-dark)',
           }}
         >
@@ -146,7 +150,9 @@ const OptionCardInline: React.FC<{
         padding: '16px',
         borderRadius: '14px',
         background: isChosen ? 'rgba(0, 113, 227, 0.03)' : 'var(--color-bg-dark)',
-        border: isChosen ? '2px solid #0071e3' : '1px solid #e5e5e7',
+        border: isChosen
+          ? '2px solid var(--color-gold-accent)'
+          : '1px solid var(--color-border-dark)',
         cursor: 'pointer',
         transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         display: 'flex',
@@ -158,7 +164,7 @@ const OptionCardInline: React.FC<{
       }}
       onMouseEnter={(e) => {
         if (!isChosen) {
-          e.currentTarget.style.borderColor = '#d2d2d7';
+          e.currentTarget.style.borderColor = 'var(--color-border-dark)';
           e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.05)';
         }
       }}
@@ -189,7 +195,9 @@ const OptionCardInline: React.FC<{
               width: '18px',
               height: '18px',
               borderRadius: '50%',
-              border: isChosen ? '5px solid #0071e3' : '2px solid #d2d2d7',
+              border: isChosen
+                ? '5px solid var(--color-gold-accent)'
+                : '2px solid var(--color-border-dark)',
               boxSizing: 'border-box',
               background: 'var(--color-bg-dark)',
               flexShrink: 0,
@@ -197,7 +205,9 @@ const OptionCardInline: React.FC<{
           />
           <div style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}>
             {displayObj.name}{' '}
-            <span style={{ fontSize: '11px', color: '#86868b', fontWeight: 400 }}>
+            <span
+              style={{ fontSize: '11px', color: 'var(--color-text-tertiary)', fontWeight: 400 }}
+            >
               {displayObj.nameEn}
             </span>
           </div>
@@ -215,7 +225,7 @@ const OptionCardInline: React.FC<{
             alignItems: 'center',
             justifyContent: 'center',
             background: isExpanded ? 'rgba(0,113,227,0.1)' : 'rgba(0,0,0,0.05)',
-            color: isExpanded ? 'var(--color-gold-accent)' : '#86868b',
+            color: isExpanded ? 'var(--color-gold-accent)' : 'var(--color-text-tertiary)',
             fontSize: '12px',
             transition: 'all 0.2s ease',
             cursor: 'pointer',
@@ -227,7 +237,11 @@ const OptionCardInline: React.FC<{
         </div>
       </div>
       <div style={{ display: 'flex', gap: '12px', marginLeft: '26px' }}>
-        {inv && <div style={{ fontSize: '11px', color: '#86868b' }}>等级要求: {inv.level}</div>}
+        {inv && (
+          <div style={{ fontSize: '11px', color: 'var(--color-text-tertiary)' }}>
+            等级要求: {inv.level}
+          </div>
+        )}
         {displayObj.cost !== undefined && (
           <div style={{ fontSize: '11px', color: 'var(--color-gold-accent)', fontWeight: 600 }}>
             术法点消耗: {displayObj.cost}
@@ -242,7 +256,7 @@ const OptionCardInline: React.FC<{
             paddingTop: '10px',
             borderTop: '1px solid rgba(0,0,0,0.05)',
             fontSize: '13px',
-            color: '#515154',
+            color: 'var(--color-text-secondary)',
             lineHeight: 1.6,
             whiteSpace: 'pre-wrap',
           }}
@@ -263,8 +277,6 @@ export default function ClassDetailPage() {
 
   const [selectedFeatSlot, setSelectedFeatSlot] = useState<number | null>(null);
   const [expandedSources, setExpandedSources] = useState<string[]>(['2024 核心规则 (Core)']);
-  const [featSearch, setFeatSearch] = useState('');
-  const [featSourceFilter, setFeatSourceFilter] = useState<string>('XPHB');
   const [previewMap, setPreviewMap] = useState<Record<string, string>>({});
   const [activeSourceFilter, setActiveSourceFilter] = useState<string | null>('2024 玩家手册');
 
@@ -307,21 +319,32 @@ export default function ClassDetailPage() {
       }
     }
 
-    const subclassFeature = features.find((f) =>
-      f.mechanics?.choices?.some((c: any) => c.type === 'subclass'),
-    );
+    const subclassFeature: ClassFeature | undefined = classDefinition.subClassInfo?.options.length
+      ? features.find((f) => f.mechanics?.choices?.some((c: any) => c.type === 'subclass')) || {
+          name: '子职业选择',
+          nameEn: 'Subclass Selection',
+          level: classDefinition.subClassInfo.unlockLevel,
+          description: '',
+        }
+      : undefined;
 
     return {
       subclassFeature,
-      combinedFeatures: features
+      combinedFeatures: [
+        ...features,
+        ...(subclassFeature && !features.includes(subclassFeature) ? [subclassFeature] : []),
+      ]
         .filter((f) => {
-          // Filter out the primary subclass selection feature itself (it's handled by top UI)
+          // Keep one subclass selector at its unlock level.
           const isSubclassSelector = f.mechanics?.choices?.some((c: any) => c.type === 'subclass');
           // Filter out generic placeholders
           const isGenericPlaceholder = f.name === '子职特性' && f.nameEn === 'Subclass Feature';
-          return !isSubclassSelector && !isGenericPlaceholder;
+          return (!isSubclassSelector || f === subclassFeature) && !isGenericPlaceholder;
         })
-        .sort((a, b) => a.level - b.level),
+        .sort(
+          (a, b) =>
+            a.level - b.level || (a === subclassFeature ? -1 : b === subclassFeature ? 1 : 0),
+        ),
     };
   }, [classDefinition, primaryClassEntry, choices]);
 
@@ -366,6 +389,21 @@ export default function ClassDetailPage() {
     // Normalize IDs for consistency
     const normValue =
       category === 'skill' || category === 'expertise' ? normalizeSkillId(value) : value;
+    if (category === 'expertise') {
+      const eligible = new Set(options.map(normalizeSkillId));
+      values = values.map(normalizeSkillId).filter((selected) => eligible.has(selected));
+    }
+    if (category === 'expertise' && !values.includes(normValue)) {
+      const toolName = (id: string) =>
+        translateProficiency(id)
+          .replace(/\s*\[.*?\]$/, '')
+          .trim();
+      if (
+        !allProficiencies.skills.some((skill) => normalizeSkillId(skill.id) === normValue) &&
+        !allProficiencies.tools.some((tool) => toolName(tool.id) === toolName(value))
+      )
+        return;
+    }
 
     if (values.includes(normValue)) {
       values = values.filter((v) => v !== normValue);
@@ -426,10 +464,29 @@ export default function ClassDetailPage() {
     compact: boolean = false,
     parentFeature?: ClassFeature,
   ) => {
+    if (category === 'spell' || category === 'feat') return null;
     let chosen = character?.classSelections?.[id] || [];
 
     // Expansion logic for generic keywords
     let options = [...(selection.options || [])];
+    if (category === 'expertise' && selection.filter === 'proficient-skills') {
+      const toolName = (value: string) =>
+        translateProficiency(value)
+          .replace(/\s*\[.*?\]$/, '')
+          .trim();
+      options = options.filter(
+        (option) =>
+          allProficiencies.skills.some(
+            (skill) => normalizeSkillId(skill.id) === normalizeSkillId(option),
+          ) || allProficiencies.tools.some((tool) => toolName(tool.id) === toolName(option)),
+      );
+      if (options.length === 0)
+        return (
+          <p key={id} role="status">
+            请先获得技能熟练，再选择技能专精。
+          </p>
+        );
+    }
 
     // ── 动态选项展开逻辑 (Dynamic Options Expansion) ──────────────────────────
     if (options.length === 1) {
@@ -440,13 +497,23 @@ export default function ClassDetailPage() {
         keyword === 'Any Skill Proficiency' ||
         keyword === '任何技能'
       ) {
-        if (category === 'weaponMastery') {
-          options = Object.keys(WEAPON_MAP);
+        if (category === 'weaponMastery' || category === 'weapon') {
+          options = getEquipmentChoiceCandidates(
+            { kind: 'unresolved', label: '', equipmentType: 'weapon' },
+            character || undefined,
+          ).map((entry) => (entry.englishName || entry.name) + '|' + entry.source);
         } else if (category === 'tool') {
           options = choices.getCatalogTools();
+        } else if (category === 'language') {
+          options = choices.getCatalogLanguages().map((entry) => entry.id);
         } else {
           options = ALL_SKILLS;
         }
+      } else if (keyword === 'Any Standard Language') {
+        options = choices
+          .getCatalogLanguages()
+          .filter((language) => language.type === 'Standard')
+          .map((language) => language.id);
       } else if (keyword === 'Any Tool' || keyword === '任何工具') {
         options = choices.getCatalogTools();
       } else if (
@@ -579,68 +646,15 @@ export default function ClassDetailPage() {
       );
     }
 
-    // 处理武器精通动态加载
     if (
-      category === 'weaponMastery' &&
-      resolvedOptions.length === 1 &&
-      (resolvedOptions[0].includes('Any') || resolvedOptions[0].includes('any'))
+      (category === 'weaponMastery' || category === 'weapon') &&
+      resolvedOptions.some((value) => /^any/i.test(String(value)))
     ) {
-      const isMeleeOnly = resolvedOptions[0].toLowerCase().includes('melee');
-      resolvedOptions = [
-        'club',
-        'dagger',
-        'greatclub',
-        'handaxe',
-        'javelin',
-        'light hammer',
-        'mace',
-        'quarterstaff',
-        'sickle',
-        'spear',
-        'battleaxe',
-        'flail',
-        'glaive',
-        'greataxe',
-        'greatsword',
-        'halberd',
-        'lance',
-        'longsword',
-        'maul',
-        'morningstar',
-        'pike',
-        'rapier',
-        'scimitar',
-        'shortsword',
-        'trident',
-        'war pick',
-        'warhammer',
-        'whip',
-        'blowgun',
-        'crossbow, light',
-        'dart',
-        'shortbow',
-        'sling',
-        'crossbow, hand',
-        'crossbow, heavy',
-        'longbow',
-        'musket',
-        'pistol',
-      ];
-      if (isMeleeOnly) {
-        const ranged = [
-          'blowgun',
-          'crossbow, light',
-          'dart',
-          'shortbow',
-          'sling',
-          'crossbow, hand',
-          'crossbow, heavy',
-          'longbow',
-          'musket',
-          'pistol',
-        ];
-        resolvedOptions = resolvedOptions.filter((w) => !ranged.includes(w));
-      }
+      const melee = resolvedOptions.some((value) => /melee/i.test(String(value)));
+      resolvedOptions = getEquipmentChoiceCandidates(
+        { kind: 'unresolved', label: '', equipmentType: melee ? 'weaponMelee' : 'weapon' },
+        character || undefined,
+      ).map((entry) => (entry.englishName || entry.name) + '|' + entry.source);
     }
 
     // 3. 处理语言动态加载 (基于 filter)
@@ -662,13 +676,20 @@ export default function ClassDetailPage() {
     }
 
     const finalOptions = choices.filterOptions(resolvedOptions, category);
+    if (finalOptions.length === 0) return null;
+    if (category === 'expertise') {
+      const eligible = new Set(finalOptions.map(normalizeSkillId));
+      chosen = chosen.map(normalizeSkillId).filter((selected) => eligible.has(selected));
+    }
 
     // ── 查重逻辑 (Exclusion) ──────────────────────────────────────────
     // 聚合所有来源的选择项：种族、背景、职业
     const allSelections = [
       ...Object.values(character?.speciesSelections || {}).flat(),
       ...Object.values(character?.backgroundSelections || {}).flat(),
-      ...Object.values(character?.classSelections || {}).flat(),
+      ...Object.entries(character?.classSelections || {})
+        .filter(([key]) => !/expertise|专精/i.test(key))
+        .flatMap(([, values]) => values),
       ...(character?.selectedSkills || []),
     ];
 
@@ -723,41 +744,7 @@ export default function ClassDetailPage() {
     };
 
     // Special rendering for spells/feats/custom (Card list + Description)
-    if (category === 'feat' || category === 'spell' || category === 'custom') {
-      const isSpell = category === 'spell';
-
-      if (isSpell) {
-        return (
-          <div
-            key={id}
-            style={{
-              display: 'none',
-              marginTop: 16,
-              padding: 20,
-              border: '1px solid #e5e5e7',
-              borderRadius: 14,
-              background: 'var(--color-bg-dark)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span
-                style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)' }}
-              >
-                {getTitle()}
-              </span>
-            </div>
-            <div style={{ marginTop: 12, fontSize: '14px', color: '#424245', lineHeight: 1.5 }}>
-              此职业特性的法术选择已整合至专属的{' '}
-              <strong style={{ color: 'var(--color-gold-accent)' }}>法术准备</strong> 页面。
-              <br />
-              <span style={{ fontSize: '13px', color: '#86868b' }}>
-                请在完成本页面的职业基础配置后，点击"下一步"前往配置您的法术书/祈唤/已知法术。
-              </span>
-            </div>
-          </div>
-        );
-      }
-
+    if (category === 'custom') {
       const items = finalOptions
         .map((opt) => {
           const optId = typeof opt === 'object' ? opt.id || opt.nameEn || opt.name : opt;
@@ -785,6 +772,7 @@ export default function ClassDetailPage() {
         .filter(Boolean);
 
       // 使用翻译后的名称进行唯一化去重
+      if (items.length === 0) return null;
       const translatedSources = Array.from(
         new Set(items.map((it) => getSourceDisplayName(it?.source || ''))),
       )
@@ -819,7 +807,9 @@ export default function ClassDetailPage() {
           style={{
             marginTop: 16,
             padding: 20,
-            border: isComplete ? '2px solid #0071e3' : '1px solid #e5e5e7',
+            border: isComplete
+              ? '2px solid var(--color-gold-accent)'
+              : '1px solid var(--color-border-dark)',
             borderRadius: 14,
             background: isComplete ? 'rgba(0, 113, 227, 0.03)' : 'var(--color-bg-dark)',
             boxShadow: isComplete
@@ -871,7 +861,7 @@ export default function ClassDetailPage() {
                 padding: '2px 8px',
                 borderRadius: 10,
                 background: isComplete ? 'rgba(0, 113, 227, 0.1)' : 'rgba(0,0,0,0.05)',
-                color: isComplete ? 'var(--color-gold-accent)' : '#86868b',
+                color: isComplete ? 'var(--color-gold-accent)' : 'var(--color-text-tertiary)',
               }}
             >
               已选 {chosen.length}/{selection.numToChoose || 1}
@@ -1025,7 +1015,7 @@ export default function ClassDetailPage() {
                     <div
                       style={{
                         fontSize: '12px',
-                        color: '#86868b',
+                        color: 'var(--color-text-tertiary)',
                         marginBottom: '8px',
                         padding: '4px 8px',
                         background: 'var(--color-bg-dark)',
@@ -1055,7 +1045,9 @@ export default function ClassDetailPage() {
         style={{
           marginTop: 16,
           padding: compact ? '12px 16px' : 20,
-          border: isComplete ? '2px solid #0071e3' : '1px solid #e5e5e7',
+          border: isComplete
+            ? '2px solid var(--color-gold-accent)'
+            : '1px solid var(--color-border-dark)',
           borderRadius: 14,
           background: isComplete ? 'rgba(0, 113, 227, 0.03)' : 'var(--color-bg-dark)',
           boxShadow: isComplete
@@ -1107,7 +1099,7 @@ export default function ClassDetailPage() {
               padding: '2px 8px',
               borderRadius: 10,
               background: isComplete ? 'rgba(0, 113, 227, 0.1)' : 'rgba(0,0,0,0.05)',
-              color: isComplete ? 'var(--color-gold-accent)' : '#86868b',
+              color: isComplete ? 'var(--color-gold-accent)' : 'var(--color-text-tertiary)',
             }}
           >
             已选 {chosen.length}/{selection.numToChoose || 1}
@@ -1136,7 +1128,7 @@ export default function ClassDetailPage() {
               }
             }
 
-            const isDisabled = isAlreadySelected && !id.includes('expertise');
+            const isDisabled = isAlreadySelected && category !== 'expertise';
             // 统一使用规范化后的 ID 进行比对
             const normalizedOptId =
               category === 'skill' || category === 'expertise' ? normalizeSkillId(optId) : optId;
@@ -1160,7 +1152,12 @@ export default function ClassDetailPage() {
               >
                 {category === 'skill' || category === 'expertise'
                   ? translateSkill(optId)
-                  : translateLabel(optId)}
+                  : category === 'tool' || category === 'weapon' || category === 'weaponMastery'
+                    ? translateProficiency(optId)
+                    : category === 'language'
+                      ? choices.getCatalogLanguages().find((entry) => entry.id === optId)?.name ||
+                        translateLabel(optId)
+                      : translateLabel(optId)}
                 {isDisabled && <span style={{ fontSize: '10px', marginLeft: 4 }}>(已选)</span>}
               </PillButton>
             );
@@ -1179,7 +1176,12 @@ export default function ClassDetailPage() {
           <h2 className={styles.title}>
             职业进阶{' '}
             <span
-              style={{ fontWeight: 400, color: '#86868b', fontSize: '18px', marginLeft: '8px' }}
+              style={{
+                fontWeight: 400,
+                color: 'var(--color-text-tertiary)',
+                fontSize: '18px',
+                marginLeft: '8px',
+              }}
             >
               Class Growth & Progression
             </span>
@@ -1201,7 +1203,7 @@ export default function ClassDetailPage() {
                   background: 'var(--color-bg-dark)',
                   padding: '24px',
                   borderRadius: '16px',
-                  border: '1px solid #e5e5e7',
+                  border: '1px solid var(--color-border-dark)',
                   marginBottom: '32px',
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -1254,7 +1256,13 @@ export default function ClassDetailPage() {
                     gap: '16px',
                   }}
                 >
-                  <span style={{ fontSize: '13px', fontWeight: 600, color: '#86868b' }}>
+                  <span
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: 600,
+                      color: 'var(--color-text-tertiary)',
+                    }}
+                  >
                     职业等级
                   </span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1265,7 +1273,7 @@ export default function ClassDetailPage() {
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
-                        border: '1px solid #d2d2d7',
+                        border: '1px solid var(--color-border-dark)',
                         background: 'var(--color-bg-dark)',
                         cursor: 'pointer',
                         fontSize: '18px',
@@ -1293,7 +1301,7 @@ export default function ClassDetailPage() {
                         width: 32,
                         height: 32,
                         borderRadius: '50%',
-                        border: '1px solid #d2d2d7',
+                        border: '1px solid var(--color-border-dark)',
                         background: 'var(--color-bg-dark)',
                         cursor: 'pointer',
                         fontSize: '18px',
@@ -1308,147 +1316,17 @@ export default function ClassDetailPage() {
                 </div>
               </div>
 
-              {/* Subclass Selection */}
-              {classDefinition.subClassInfo &&
-                primaryClassEntry.level >= classDefinition.subClassInfo.unlockLevel && (
-                  <div className={styles.traitsSection} style={{ marginBottom: '40px' }}>
-                    <h4 className={styles.sectionTitle}>
-                      选择子职业{' '}
-                      <span style={{ fontWeight: 400, color: '#86868b', fontSize: '14px' }}>
-                        Subclass Selection
-                      </span>
-                    </h4>
-
-                    {/* Dynamic Subclass Description moved from the feature card */}
-                    {subclassFeature?.description && (
-                      <div
-                        style={{
-                          fontSize: '14px',
-                          color: '#515154',
-                          lineHeight: 1.6,
-                          marginBottom: '20px',
-                          padding: '16px',
-                          background: '#f8f8fa',
-                          borderRadius: '12px',
-                          borderLeft: '4px solid #0071e3',
-                        }}
-                      >
-                        <MarkdownText text={subclassFeature.description} />
-                      </div>
-                    )}
-
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                        gap: '20px',
-                      }}
-                    >
-                      {choices
-                        .filterNested(
-                          classDefinition.subClassInfo.options,
-                          primaryClassEntry?.classId,
-                        )
-                        .map((sub: SubClass) => {
-                          const subclassId = sub.catalogId || sub.nameEn || sub.name;
-                          const isSelected =
-                            primaryClassEntry.subclassId === subclassId ||
-                            primaryClassEntry.subclassId === sub.nameEn;
-                          return (
-                            <div
-                              key={subclassId}
-                              onClick={() => handleSelectSubclass(subclassId)}
-                              style={{
-                                padding: '24px',
-                                borderRadius: '16px',
-                                background: isSelected ? 'rgba(197, 160, 89, 0.1)' : '#fff',
-                                border: isSelected ? '2px solid #0071e3' : '1px solid #e5e5e7',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                boxShadow: isSelected ? '0 8px 24px rgba(0,113,227,0.12)' : 'none',
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '12px',
-                                  marginBottom: '12px',
-                                }}
-                              >
-                                <div
-                                  style={{
-                                    width: '22px',
-                                    height: '22px',
-                                    borderRadius: '50%',
-                                    border: isSelected ? '7px solid #0071e3' : '2px solid #d2d2d7',
-                                    boxSizing: 'border-box',
-                                  }}
-                                />
-                                <div style={{ fontSize: '18px', fontWeight: 700 }}>{sub.name}</div>
-                              </div>
-                              <div style={{ fontSize: '14px', color: '#515154', lineHeight: 1.6 }}>
-                                <MarkdownText text={sub.description} variant="clean" />
-                              </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
-              {/* Caster Guidance Banner */}
-              {(classDefinition.spellcastingAbility ||
-                subclassFeature?.mechanics?.spellcastingType) && (
-                <div
-                  style={{
-                    margin: '0 0 32px 0',
-                    padding: '20px 24px',
-                    background: 'rgba(0, 113, 227, 0.04)',
-                    border: '1px solid rgba(0, 113, 227, 0.15)',
-                    borderRadius: '16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      borderRadius: '12px',
-                      background: 'var(--color-gold-accent)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#fff',
-                    }}
-                  >
-                    <Sparkles size={20} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div
-                      style={{
-                        fontSize: '15px',
-                        fontWeight: 700,
-                        color: 'var(--color-text-primary)',
-                        marginBottom: '2px',
-                      }}
-                    >
-                      已开启施法能力
-                    </div>
-                    <div style={{ fontSize: '13px', color: '#424245' }}>
-                      该职业/子职业具备施法特性。请在完成基础配置后，点击“下一步”前往专用页面准备您的法术。
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Progression Features */}
               <div className={styles.traitsSection}>
                 <h4 className={styles.sectionTitle}>
                   解锁特性与选择{' '}
-                  <span style={{ fontWeight: 400, color: '#86868b', fontSize: '14px' }}>
+                  <span
+                    style={{
+                      fontWeight: 400,
+                      color: 'var(--color-text-tertiary)',
+                      fontSize: '14px',
+                    }}
+                  >
                     Unlocked Features & Choices
                   </span>
                 </h4>
@@ -1456,6 +1334,20 @@ export default function ClassDetailPage() {
                   {combinedFeatures.map((feature: ClassFeature, idx: number) => {
                     const isUnlocked = feature.level <= primaryClassEntry.level;
                     if (!isUnlocked) return null;
+                    if (feature === subclassFeature && classDefinition.subClassInfo)
+                      return (
+                        <SubclassChoice
+                          key={primaryClassEntry.classId}
+                          options={choices.filterNested(
+                            classDefinition.subClassInfo.options,
+                            primaryClassEntry.classId,
+                          )}
+                          selectedId={primaryClassEntry.subclassId}
+                          level={feature.level}
+                          description={feature.description}
+                          onSelect={handleSelectSubclass}
+                        />
+                      );
 
                     return (
                       <div
@@ -1463,7 +1355,8 @@ export default function ClassDetailPage() {
                         className={styles.traitCard}
                         style={{
                           borderLeft: '4px solid var(--color-primary)',
-                          background: feature.name.includes('子职') ? '#fcf9ff' : '#fff',
+                          background: 'var(--color-bg-card)',
+                          color: 'var(--color-text-primary)',
                           padding: '24px',
                           marginBottom: '16px',
                         }}
@@ -1476,6 +1369,13 @@ export default function ClassDetailPage() {
                         <div className={styles.traitPara}>
                           <MarkdownText text={feature.description} />
                         </div>
+
+                        {featureConfigurationPage(feature) && (
+                          <ClassFeatureGuidance
+                            page={featureConfigurationPage(feature)!}
+                            characterId={character.id}
+                          />
+                        )}
 
                         {/* Subclass Spells Table (Oath Spells, Domain Spells, etc.) */}
                         {feature.mechanics?.spells && feature.mechanics.spells.length > 1 && (
@@ -1509,15 +1409,19 @@ export default function ClassDetailPage() {
                         )}
 
                         {/* Feature Choices */}
-                        {feature.mechanics?.choices?.map((choice: any) =>
-                          renderChoice(
-                            `cls:${selectedClassId}:feat:${feature.name}:${choice.id}`,
-                            choice,
-                            choice.type,
-                            false,
-                            feature,
-                          ),
-                        )}
+                        {feature.mechanics?.choices
+                          ?.filter(
+                            (choice: any) => !['subclass', 'spell', 'feat'].includes(choice.type),
+                          )
+                          .map((choice: any) =>
+                            renderChoice(
+                              `cls:${selectedClassId}:feat:${feature.name}:${choice.id}`,
+                              choice,
+                              choice.type,
+                              false,
+                              feature,
+                            ),
+                          )}
                       </div>
                     );
                   })}
