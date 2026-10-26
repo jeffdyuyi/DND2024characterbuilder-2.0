@@ -1,24 +1,75 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
 import { CharacterState } from '@/types/characterState';
+import { getBackgroundDefinition } from '@/engine/characterData';
+import { useBuilderChoices } from '@/platform/useBuilderChoices';
+import {
+  rollBackgroundCharacteristic,
+  type CharacteristicField,
+} from '@/engine/backgroundCharacteristics';
 import PillButton from '@/components/PillButton';
 import styles from './page.module.css';
 
 export default function DetailsPage() {
+  useBuilderChoices();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const router = useRouter();
   const { characters, updateActiveCharacter, loadCharacter } = useCharacterStore();
   const character = (id ? characters[id] : null) as CharacterState | null;
+  const [avatarView, setAvatarView] = useState({ x: 0, y: 0, scale: 1 });
+  const avatarViewRef = useRef(avatarView);
+  const drag = useRef<{ x: number; y: number; startX: number; startY: number } | null>(null);
 
   useEffect(() => {
     if (id) loadCharacter(id);
   }, [id, loadCharacter]);
+  useEffect(() => {
+    const view = character?.avatarView || { x: 0, y: 0, scale: 1 };
+    avatarViewRef.current = view;
+    setAvatarView(view);
+  }, [
+    character?.id,
+    character?.avatarView?.x,
+    character?.avatarView?.y,
+    character?.avatarView?.scale,
+  ]);
 
   if (!character) return <div className="page-container">加载中...</div>;
+
+  const background = getBackgroundDefinition(character);
+  const previewAvatarView = (view: typeof avatarView) => {
+    avatarViewRef.current = view;
+    setAvatarView(view);
+  };
+  const saveAvatarView = () => updateActiveCharacter({ avatarView: avatarViewRef.current });
+  const roll = (field: CharacteristicField) => {
+    const result = rollBackgroundCharacteristic(background, field);
+    if (result) handleChange(field, result);
+  };
+  const rollButton = (field: CharacteristicField) =>
+    background && rollBackgroundCharacteristic(background, field, () => 0) ? (
+      <PillButton size="sm" onClick={() => roll(field)}>
+        掷骰
+      </PillButton>
+    ) : null;
+  const characteristicField = (field: CharacteristicField, label: string) => (
+    <div className={styles.label}>
+      <div className={styles.labelText} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <label htmlFor={field}>{label}</label>
+        {rollButton(field)}
+      </div>
+      <textarea
+        id={field}
+        className={`${styles.input} ${styles.textarea}`}
+        value={character[field] || ''}
+        onChange={(event) => handleChange(field, event.target.value)}
+      />
+    </div>
+  );
 
   const handleChange = (field: string, value: string) => {
     updateActiveCharacter({ [field]: value });
@@ -45,16 +96,90 @@ export default function DetailsPage() {
               <div className={styles.avatarSection}>
                 <div
                   className={styles.avatarPreview}
-                  onClick={() => document.getElementById('avatar-input')?.click()}
-                  style={{
-                    backgroundImage: character.avatarUrl ? `url(${character.avatarUrl})` : 'none',
+                  onPointerDown={(event) => {
+                    if (!character.avatarUrl) return;
+                    drag.current = {
+                      x: event.clientX,
+                      y: event.clientY,
+                      startX: avatarView.x,
+                      startY: avatarView.y,
+                    };
+                    event.currentTarget.setPointerCapture(event.pointerId);
                   }}
+                  onPointerMove={(event) => {
+                    if (!drag.current) return;
+                    previewAvatarView({
+                      ...avatarViewRef.current,
+                      x: Math.max(
+                        -50,
+                        Math.min(
+                          50,
+                          drag.current!.startX + (event.clientX - drag.current!.x) / 1.4,
+                        ),
+                      ),
+                      y: Math.max(
+                        -50,
+                        Math.min(
+                          50,
+                          drag.current!.startY + (event.clientY - drag.current!.y) / 1.4,
+                        ),
+                      ),
+                    });
+                  }}
+                  onPointerUp={() => {
+                    drag.current = null;
+                    saveAvatarView();
+                  }}
+                  onPointerCancel={() => {
+                    drag.current = null;
+                    saveAvatarView();
+                  }}
+                  style={{ touchAction: 'none', cursor: character.avatarUrl ? 'grab' : 'default' }}
                 >
+                  {character.avatarUrl && (
+                    <img
+                      src={character.avatarUrl}
+                      alt="头像剪裁预览"
+                      draggable={false}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transform: `translate(${avatarView.x}%, ${avatarView.y}%) scale(${avatarView.scale})`,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
                   {!character.avatarUrl && (
                     <span style={{ fontSize: 40, color: 'var(--color-text-tertiary)' }}>+</span>
                   )}
-                  <div className={styles.avatarOverlay}>点击上传头像</div>
                 </div>
+                <label>
+                  缩放
+                  <input
+                    aria-label="头像缩放"
+                    type="range"
+                    min="1"
+                    max="2.5"
+                    step="0.05"
+                    value={avatarView.scale}
+                    onChange={(event) =>
+                      previewAvatarView({
+                        ...avatarViewRef.current,
+                        scale: Number(event.target.value),
+                      })
+                    }
+                    onPointerUp={saveAvatarView}
+                    onKeyUp={saveAvatarView}
+                    onBlur={saveAvatarView}
+                  />
+                </label>
+                <PillButton
+                  size="sm"
+                  onClick={() => document.getElementById('avatar-input')?.click()}
+                >
+                  上传或更换头像
+                </PillButton>
                 <input
                   id="avatar-input"
                   type="file"
@@ -65,7 +190,10 @@ export default function DetailsPage() {
                     if (file) {
                       const reader = new FileReader();
                       reader.onloadend = () => {
-                        handleChange('avatarUrl', reader.result as string);
+                        updateActiveCharacter({
+                          avatarUrl: reader.result as string,
+                          avatarView: { x: 0, y: 0, scale: 1 },
+                        });
                       };
                       reader.readAsDataURL(file);
                     }
@@ -248,41 +376,13 @@ export default function DetailsPage() {
             </label>
 
             <div className={`${styles.grid} ${styles.grid2}`}>
-              <label className={styles.label}>
-                <div className={styles.labelText}>人格特质</div>
-                <textarea
-                  className={`${styles.input} ${styles.textarea}`}
-                  value={character.personalityTraits || ''}
-                  onChange={(e) => handleChange('personalityTraits', e.target.value)}
-                />
-              </label>
-              <label className={styles.label}>
-                <div className={styles.labelText}>理想</div>
-                <textarea
-                  className={`${styles.input} ${styles.textarea}`}
-                  value={character.ideals || ''}
-                  onChange={(e) => handleChange('ideals', e.target.value)}
-                />
-              </label>
+              {characteristicField('personalityTraits', '人格特质')}
+              {characteristicField('ideals', '理想')}
             </div>
 
             <div className={`${styles.grid} ${styles.grid2}`}>
-              <label className={styles.label}>
-                <div className={styles.labelText}>牵绊</div>
-                <textarea
-                  className={`${styles.input} ${styles.textarea}`}
-                  value={character.bonds || ''}
-                  onChange={(e) => handleChange('bonds', e.target.value)}
-                />
-              </label>
-              <label className={styles.label}>
-                <div className={styles.labelText}>缺点</div>
-                <textarea
-                  className={`${styles.input} ${styles.textarea}`}
-                  value={character.flaws || ''}
-                  onChange={(e) => handleChange('flaws', e.target.value)}
-                />
-              </label>
+              {characteristicField('bonds', '牵绊')}
+              {characteristicField('flaws', '缺点')}
             </div>
           </div>
 

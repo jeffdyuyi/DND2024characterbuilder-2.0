@@ -121,13 +121,24 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
                 height: 100,
                 borderRadius: 20,
                 backgroundColor: 'var(--color-bg-light)',
-                backgroundImage: character.avatarUrl ? `url(${character.avatarUrl})` : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
+                overflow: 'hidden',
                 border: '1px solid var(--color-border-subtle)',
                 flexShrink: 0,
               }}
-            />
+            >
+              {character.avatarUrl && (
+                <img
+                  src={character.avatarUrl}
+                  alt="角色头像"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    transform: `translate(${character.avatarView?.x || 0}%, ${character.avatarView?.y || 0}%) scale(${character.avatarView?.scale || 1})`,
+                  }}
+                />
+              )}
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 {renderDetailItem('代词', character.pronouns)}

@@ -133,6 +133,7 @@ export interface CharacterState {
   name: string;
   playerName: string;
   avatarUrl?: string;
+  avatarView?: { x: number; y: number; scale: number };
   allowHomebrew?: boolean; // 【第三方扩展 / Homebrew 开关】
   sourceSelection?: SourceSelection; // 角色级书籍范围；缺省兼容旧存档，不改变规则版本。
 

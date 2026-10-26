@@ -450,7 +450,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 `https://api.dicebear.com/7.x/avataaars/svg?seed=${character.name}`
               }
               alt="Avatar"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: `translate(${character.avatarView?.x || 0}%, ${character.avatarView?.y || 0}%) scale(${character.avatarView?.scale || 1})`,
+              }}
             />
           </div>
           <div style={{ minWidth: 0 }}>
