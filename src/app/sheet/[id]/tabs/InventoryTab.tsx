@@ -901,20 +901,23 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
     );
   };
 
-  const filteredCatalogItems = catalogItems.filter((item) => {
+  const filteredCatalogItems = useMemo(() => {
+    if (!isSearchOpen) return [];
     const query = searchQuery.trim().toLowerCase();
-    if (query && !`${item.name} ${(item as any).nameEn || ''}`.toLowerCase().includes(query))
-      return false;
-    if (searchSource !== 'all' && item.source !== searchSource) return false;
-    const category =
-      (item as any).category ||
-      ((item as any).weaponCategory ? 'weapon' : (item as any).armorCategory ? 'armor' : 'gear');
-    if (isMagicOnly && !isMagicItemDefinition(item)) return false;
-    return (
-      searchCategory === 'all' ||
-      (searchCategory === 'magic' ? isMagicItemDefinition(item) : category === searchCategory)
-    );
-  });
+    return catalogItems.filter((item) => {
+      if (query && !`${item.name} ${(item as any).nameEn || ''}`.toLowerCase().includes(query))
+        return false;
+      if (searchSource !== 'all' && item.source !== searchSource) return false;
+      const category =
+        (item as any).category ||
+        ((item as any).weaponCategory ? 'weapon' : (item as any).armorCategory ? 'armor' : 'gear');
+      if (isMagicOnly && !isMagicItemDefinition(item)) return false;
+      return (
+        searchCategory === 'all' ||
+        (searchCategory === 'magic' ? isMagicItemDefinition(item) : category === searchCategory)
+      );
+    });
+  }, [catalogItems, isSearchOpen, searchQuery, searchSource, searchCategory, isMagicOnly]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
