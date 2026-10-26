@@ -10,6 +10,7 @@ import { normalizeBackground } from '@/source/fiveetools-cn/normalizers/backgrou
 import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
 import { normalizeClass } from '@/source/fiveetools-cn/normalizers/class';
 import { getSpellDefinition } from '@/engine/characterData';
+import { exportToJSON, importFromJSON } from '@/engine/importExport';
 import { computeSpellProgression, deriveCharacterSpellSelection } from '@/engine/spellcasting';
 import { resolveBackgroundSpellList } from '../backgroundSpellList';
 import { createBuilderChoices } from '@/catalog/builderChoices';
@@ -240,6 +241,62 @@ it('法师的法术书选择也包含背景扩展；存档重开后可显示在�
   );
   expect(html).toContain('命令术');
   expect(html).toContain('交友术');
+});
+it('法师扩展候选经抄录、准备、切换背景和 JSON 重开后保留已选记录', async () => {
+  const wizard = caster('Wizard');
+  const borosEntry = normalizeBackground(
+    fixture.background.find((raw: any) => raw.ENG_name === 'Boros Legionnaire'),
+  );
+  defaultCatalog.register(borosEntry);
+  const guidingBolt = spell('光导箭');
+  control.activeClassId = wizard.id;
+  control.state.classes = [{ classId: wizard.id, level: 1 }];
+
+  const azorius = renderBuilder();
+  expect(azorius).toContain('命令术');
+  expect(azorius).not.toContain('>光导箭<');
+  const bookChoice = computeSpellProgression(control.state, wizard.id)[0].extraChoices.find(
+    (choice) => choice.id.startsWith('wizard_spellbook'),
+  )!;
+  control.state.spellsByLevel = {
+    [wizard.id]: {
+      1: { cantrips: [], spells: [command.id], extra: { [bookChoice.id]: [command.id] } },
+    },
+  };
+  expect(deriveCharacterSpellSelection(control.state)).toEqual({
+    cantripIds: [],
+    preparedSpellIds: [command.id],
+    spellbookIds: [command.id],
+  });
+
+  control.state.backgroundId = borosEntry.id;
+  control.state.backgroundSource = borosEntry.source;
+  const switched = renderBuilder();
+  expect(switched).toContain('光导箭');
+  expect(switched).not.toMatch(/<button[^>]*>命令术<\/button>/);
+  const reopened = await importFromJSON(exportToJSON(control.state));
+  const derived = deriveCharacterSpellSelection(reopened);
+  expect(reopened.backgroundId).toBe(borosEntry.id);
+  expect(derived.preparedSpellIds).toEqual([command.id]);
+  expect(derived.spellbookIds).toEqual([command.id]);
+  expect(derived.preparedSpellIds).not.toContain(guidingBolt.id);
+  const html = renderToStaticMarkup(
+    <SpellsTab
+      character={{ ...reopened, ...derived }}
+      spellcasting={{ spellSlots: { 1: 2 }, cantripsKnown: 2, spellsPrepared: 2 }}
+      primaryClass={{ nameEn: 'Wizard' }}
+      cantripDetails={[]}
+      spellDetails={derived.preparedSpellIds.map(getSpellDefinition)}
+      spellbookDetails={derived.spellbookIds.map(getSpellDefinition)}
+      spellSourceMap={{ [command.id]: wizard.name }}
+      spellSlotUsage={{}}
+      updateActiveCharacter={() => {}}
+      router={{ push() {} }}
+      id={reopened.id}
+    />,
+  );
+  expect(html).toContain('命令术');
+  expect(html).not.toContain('光导箭');
 });
 it('来源白名单保持生效，缺失引用有诊断而不是静态补入', () => {
   control.state.sourceSelection = {
