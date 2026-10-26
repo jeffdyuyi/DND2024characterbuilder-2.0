@@ -13,6 +13,19 @@ import { CatalogEntry } from '../types';
 import { defaultCatalog } from '../catalog';
 import { Feat } from '@/types/feat';
 
+const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+
+function inferAbilityImprovement(
+  description: string,
+): NonNullable<Feat['mechanics']>['abilityScoreImprovement'] {
+  const text = description.replace(/\s+/g, '');
+  const splitChoice =
+    /一项属性(?:值)?(?:提升|提高|增加)2(?:点)?.{0,12}两项属性(?:值)?各(?:提升|提高|增加)1/.test(
+      text,
+    ) || /increaseoneabilityscoreby2,?oryoucanincreasetwoabilityscoresby1/i.test(text);
+  return splitChoice ? [{ points: 2, options: ABILITIES, allowSplit: true }] : undefined;
+}
+
 /**
  * 推导专长分类类别
  */
@@ -71,6 +84,10 @@ export function catalogEntryToFeat(entry: CatalogEntry): Feat {
     }
   }
 
+  const inferredAsi = raw.mechanics?.abilityScoreImprovement
+    ? undefined
+    : inferAbilityImprovement(entry.description || '');
+
   return {
     id: entry.id,
     source: entry.source,
@@ -80,7 +97,10 @@ export function catalogEntryToFeat(entry: CatalogEntry): Feat {
     description: entry.description || '',
     prerequisite: prerequisiteStr,
     repeatable: Boolean(raw.repeatable),
-    mechanics: raw.mechanics || {},
+    mechanics: {
+      ...(raw.mechanics || {}),
+      ...(inferredAsi ? { abilityScoreImprovement: inferredAsi } : {}),
+    },
   } as Feat;
 }
 

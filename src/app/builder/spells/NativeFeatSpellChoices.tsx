@@ -141,6 +141,7 @@ export default function NativeFeatSpellChoices({
   return (
     <section aria-label="原生专长法术" style={{ marginBottom: 24 }}>
       <h3>专长额外法术</h3>
+      <p>这里按专长原文的环阶、职业列表和学派限制选择；结果会同步到法术准备与角色卡。</p>
       {plans.map(({ slot, characterLevel, grants }) => {
         const saved = character.featSelections?.[slot.id]?.nativeSpellGrants;
         const current = saved?.originId === grants.origin.id ? saved : undefined;
@@ -216,7 +217,13 @@ export default function NativeFeatSpellChoices({
                     if (resolved.diagnostics.length)
                       return (
                         <p key={rule.id} role="status">
-                          法术候选尚未就绪
+                          {resolved.diagnostics.some(
+                            (entry) =>
+                              entry.code === 'no-loaded-spell-candidates' ||
+                              entry.code === 'unresolved-spell-reference',
+                          )
+                            ? '当前启用来源中没有满足此项原文限制的法术候选；请检查来源设置。'
+                            : '此项法术限制暂无法可靠解析，请依据上方专长原文手动核对。'}
                         </p>
                       );
                     if (rule.selection.kind === 'fixed')

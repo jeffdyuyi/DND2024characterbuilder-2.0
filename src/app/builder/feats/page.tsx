@@ -552,18 +552,6 @@ export default function FeatsPage() {
                               }}
                             >
                               {feat.name}
-                              {filteredFeats.filter((f) => f.name === feat.name).length > 1 && (
-                                <span
-                                  style={{
-                                    fontSize: '9px',
-                                    color: 'var(--color-gold-accent)',
-                                    marginLeft: 3,
-                                    fontWeight: 500,
-                                  }}
-                                >
-                                  [{translateSource(feat.source)}]
-                                </span>
-                              )}
                               {isOccupied && (
                                 <span
                                   style={{
