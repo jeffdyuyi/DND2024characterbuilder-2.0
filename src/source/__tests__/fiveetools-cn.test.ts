@@ -7,6 +7,41 @@ import { FiveEToolsCnLoader } from '../fiveetools-cn/loader';
 import { InMemoryCatalogService } from '@/catalog/catalog';
 
 describe('5etools Resolver & Normalizer Tests', () => {
+  it('preserves explicit structural overrides across copy chains and still applies both modifiers', () => {
+    const base = {
+      name: 'Base',
+      source: 'BASE',
+      _versions: [{ name: 'Base branch' }],
+      _metadata: { origin: 'base' },
+      entries: ['base'],
+    };
+    const derived = {
+      name: 'Derived',
+      source: 'EXT',
+      _versions: [{ name: 'Derived branch' }],
+      _metadata: { origin: 'derived' },
+      _copy: {
+        name: 'Base',
+        source: 'BASE',
+        _mod: { entries: { mode: 'appendArr', items: 'copy' } },
+      },
+      _mod: { entries: { mode: 'appendArr', items: 'own' } },
+    };
+    const { resolved, warnings } = resolveEntries<any>([
+      base,
+      derived,
+      { name: 'Inherited', source: 'EXT', _copy: { name: 'Derived', source: 'EXT' } },
+      { name: 'Empty', source: 'EXT', _copy: { name: 'Base', source: 'BASE' }, _versions: [] },
+    ]);
+    expect(warnings).toEqual([]);
+    expect(resolved[1]._versions).toEqual(derived._versions);
+    expect(resolved[1]._metadata).toEqual(derived._metadata);
+    expect(resolved[1].entries).toEqual(['base', 'copy', 'own']);
+    expect(resolved[2]._versions).toEqual(derived._versions);
+    expect(resolved[3]._versions).toEqual([]);
+    expect(base._versions).toEqual([{ name: 'Base branch' }]);
+  });
+
   it('should clean 5etools markup tags cleanly', () => {
     const raw1 = 'Deals {@damage 2d6} fire damage or {@dice 1d20+5}.';
     expect(clean5eTags(raw1)).toBe('Deals 2d6 fire damage or 1d20+5.');

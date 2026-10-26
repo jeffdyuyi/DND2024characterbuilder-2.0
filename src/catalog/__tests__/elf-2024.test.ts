@@ -4,8 +4,56 @@ import { normalizeRace } from '@/source/fiveetools-cn/normalizers/race';
 import { defaultCatalog } from '../catalog';
 import { getSpeciesDefinition, getSubspeciesDefinition } from '@/engine/characterData';
 import { CharacterState } from '@/types/characterState';
+import { resolveEntries } from '@/source/resolver/copy';
+import { catalogEntryToSpecies } from '../adapters/species';
 
 describe('2024 Elf regressions and display structure', () => {
+  it('preserves Lorwyn lineages through copy resolution, selection and saved lookup', () => {
+    const { race } = JSON.parse(readFileSync('tests/fixtures/races.json', 'utf8'));
+    const originals = race.filter(
+      (raw: any) => raw.ENG_name === 'Elf' && ['XPHB', 'LFL'].includes(raw.source),
+    );
+    const snapshot = JSON.stringify(originals);
+    const { resolved, warnings } = resolveEntries(originals);
+    expect(warnings).toEqual([]);
+    const entry = normalizeRace(resolved.find((raw: any) => raw.source === 'LFL'));
+    defaultCatalog.register(entry);
+    const species = catalogEntryToSpecies(entry);
+    const options = species.subSpecies!.options;
+    expect(options.map((option) => option.nameEn)).toEqual([
+      'Lorwyn Lineage',
+      'Shadowmoor Lineage',
+    ]);
+    expect(options.every((option) => option.source === 'LFL')).toBe(true);
+    expect(options[0].features?.spells).toEqual(
+      expect.arrayContaining([expect.objectContaining({ spellName: '命令术', level: 3 })]),
+    );
+    expect(options[1].features?.senseUpgrade?.darkvision).toBe(120);
+    for (const option of options) {
+      const saved = JSON.parse(JSON.stringify({ speciesId: entry.id, subspeciesId: option.id }));
+      expect(getSubspeciesDefinition(saved)?.nameEn).toBe(option.nameEn);
+    }
+    const core = catalogEntryToSpecies(
+      normalizeRace(resolved.find((raw: any) => raw.source === 'XPHB')),
+    );
+    expect(core.subSpecies?.options).toHaveLength(3);
+    expect(core.subSpecies?.options.every((option) => option.source === 'XPHB')).toBe(true);
+    expect(JSON.stringify(originals)).toBe(snapshot);
+  });
+
+  it('keeps authored versions for every copied race in the upstream fixture', () => {
+    const { race } = JSON.parse(readFileSync('tests/fixtures/races.json', 'utf8'));
+    const { resolved } = resolveEntries(race);
+    const copied = race.filter((raw: any) => raw._copy && raw._versions);
+    expect(copied.length).toBeGreaterThan(0);
+    for (const raw of copied) {
+      const result = resolved.find(
+        (entry: any) => entry.name === raw.name && entry.source === raw.source,
+      );
+      expect(result?._versions, `${raw.name}|${raw.source}`).toEqual(raw._versions);
+    }
+  });
+
   it('correctly assigns Elven Lineage as representsSubSpecies host instead of darkvision', () => {
     const rawRaces = JSON.parse(readFileSync('tests/fixtures/races.json', 'utf8'));
     const elfRaw = rawRaces.race.find(

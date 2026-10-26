@@ -413,8 +413,10 @@ function resolveSingleEntryNode(
       delete baseCopy._copy;
       delete baseCopy._mod;
 
+      // Authored structural fields (e.g. _versions) override the template too.
+      // Only resolver instructions are handled separately below.
       const ownProps = Object.fromEntries(
-        Object.entries(cloned).filter(([k]) => !k.startsWith('_')),
+        Object.entries(cloned).filter(([key]) => key !== '_copy' && key !== '_mod'),
       );
 
       const mergedInherits = {
