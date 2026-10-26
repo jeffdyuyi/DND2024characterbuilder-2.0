@@ -12,6 +12,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
 import { computeProficiencies, isProficientWithWeapon } from '@/engine/proficiency';
+import { isActiveClassSelection, isClassSelectionForOwner } from '@/engine/classSelectionScope';
 import styles from '../species/page.module.css'; // Reuse species layout styles
 import classStyles from './class.module.css';
 import {
@@ -279,6 +280,24 @@ export default function ClassPage() {
     [primaryClassEntry?.classId, choices],
   );
   const selectedClassId = primaryClassEntry?.classId;
+  const activeClassOwners = useMemo(
+    () =>
+      currentClasses.flatMap(({ classId }) =>
+        [classId, getClassDefinition(classId)?.nameEn].filter((owner): owner is string =>
+          Boolean(owner),
+        ),
+      ),
+    [character?.classes, choices],
+  );
+  const activeClassSelections = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(character?.classSelections || {}).filter(([key]) =>
+          isActiveClassSelection(key, activeClassOwners),
+        ),
+      ),
+    [character?.classSelections, activeClassOwners],
+  );
 
   const spellcastingSummary = useMemo(() => {
     if (!character)
@@ -366,14 +385,20 @@ export default function ClassPage() {
 
   const handleSetPrimaryClass = (classId: string) => {
     const prevClassId = currentClasses[0]?.classId;
+    const selectedDefinition = getClassDefinition(classId);
     let nextSelections = { ...(character?.classSelections || {}) };
 
     // 如果职业发生变化，清理旧职业的选择记录
     if (prevClassId && prevClassId !== classId) {
+      const resetOwners = [
+        prevClassId,
+        getClassDefinition(prevClassId)?.nameEn,
+        classId,
+        selectedDefinition?.nameEn,
+      ].filter((owner): owner is string => Boolean(owner));
       Object.keys(nextSelections).forEach((key) => {
-        // 清理旧职业特有的 ID (符合 'cls:prevClassId:' 模式的)
         if (
-          key.startsWith(`cls:${prevClassId}:`) ||
+          isClassSelectionForOwner(key, resetOwners) ||
           key === 'primary_class_skills' ||
           key === 'primary_class_tools'
         ) {
@@ -383,7 +408,6 @@ export default function ClassPage() {
     }
 
     // For single class flow, just set class at level 1
-    const selectedDefinition = getClassDefinition(classId);
     applyEquipmentChange({
       classes: [
         { classId, level: 1, isMulticlass: false, source: selectedDefinition?.source || 'PHB2024' },
@@ -598,7 +622,7 @@ export default function ClassPage() {
   }, [character]);
 
   const allWeaponMasterySelections = useMemo(() => {
-    const selections = character?.classSelections || {};
+    const selections = activeClassSelections;
     return Object.entries(selections)
       .filter(([id]) => id.includes('weapon_mastery'))
       .reduce((acc, [id, vals]) => ({ ...acc, [id]: vals }), {} as Record<string, string[]>);
@@ -864,7 +888,7 @@ export default function ClassPage() {
     let resolvedOptions = [...options];
 
     // 提取当前所有已掌握熟练的技能集合 (用于专精置灰等逻辑)
-    const allCurrentSkillsInClass = Object.entries(character?.classSelections || {})
+    const allCurrentSkillsInClass = Object.entries(activeClassSelections)
       .filter(
         ([cid]) =>
           cid.includes(':base:prof:skills') ||
@@ -1078,7 +1102,7 @@ export default function ClassPage() {
       // 1. 全局已选技能（背景/种族等）
       ...(character?.selectedSkills || []),
       // 2. 职业内部的其他选择
-      ...Object.entries(character?.classSelections || {})
+      ...Object.entries(activeClassSelections)
         .filter(([cid]) => {
           // 排除当前正在操作的槽位，防止自冲突
           if (cid === id) return false;

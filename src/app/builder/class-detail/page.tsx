@@ -8,6 +8,7 @@ import { useBuilderChoices } from '@/platform/useBuilderChoices';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
+import { isActiveClassSelection } from '@/engine/classSelectionScope';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
 import {
@@ -304,6 +305,24 @@ export default function ClassDetailPage() {
     [primaryClassEntry?.classId, choices],
   );
   const selectedClassId = primaryClassEntry?.classId;
+  const activeClassOwners = useMemo(
+    () =>
+      currentClasses.flatMap(({ classId }) =>
+        [classId, getClassDefinition(classId)?.nameEn].filter((owner): owner is string =>
+          Boolean(owner),
+        ),
+      ),
+    [character?.classes, choices],
+  );
+  const activeClassSelections = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(character?.classSelections || {}).filter(([key]) =>
+          isActiveClassSelection(key, activeClassOwners),
+        ),
+      ),
+    [character?.classSelections, activeClassOwners],
+  );
 
   // Compute feat slots and features
   const { combinedFeatures, subclassFeature } = useMemo(() => {
@@ -637,7 +656,7 @@ export default function ClassDetailPage() {
       const allAvailableProficiencies = allProficiencies.skills.map((s: ProficiencySource) =>
         normalizeSkillId(s.id),
       );
-      const allCurrentSkillsInClass = Object.entries(character?.classSelections || {})
+      const allCurrentSkillsInClass = Object.entries(activeClassSelections)
         .filter(
           ([cid]) =>
             cid.includes(':base:prof:skills') ||
@@ -645,7 +664,7 @@ export default function ClassDetailPage() {
             cid === 'primary_class_skills',
         )
         .flatMap(([_, v]) => v);
-      const otherExpertiseSelections = Object.entries(character?.classSelections || {})
+      const otherExpertiseSelections = Object.entries(activeClassSelections)
         .filter(([cid]) => cid !== id && cid.includes('expertise'))
         .flatMap(([_, vals]) => vals);
 
@@ -703,7 +722,7 @@ export default function ClassDetailPage() {
     const allSelections = [
       ...Object.values(character?.speciesSelections || {}).flat(),
       ...Object.values(character?.backgroundSelections || {}).flat(),
-      ...Object.entries(character?.classSelections || {})
+      ...Object.entries(activeClassSelections)
         .filter(([key]) => !/expertise|专精/i.test(key))
         .flatMap(([, values]) => values),
       ...(character?.selectedSkills || []),
