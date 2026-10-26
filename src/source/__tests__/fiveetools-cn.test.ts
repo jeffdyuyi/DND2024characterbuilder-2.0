@@ -7,6 +7,62 @@ import { FiveEToolsCnLoader } from '../fiveetools-cn/loader';
 import { InMemoryCatalogService } from '@/catalog/catalog';
 
 describe('5etools Resolver & Normalizer Tests', () => {
+  it.each([false, true])('按来源加载职业概览，风味请求失败仍保留职业（失败=%s）', async (fail) => {
+    const catalog = new InMemoryCatalogService();
+    const client = {
+      id: '5etools-cn',
+      kind: '5etools-cn',
+      listIndexedFiles: async (path: string) => [
+        path.includes('fluff') ? 'fluff-class-wizard.json' : 'class-wizard.json',
+      ],
+      fetchJson: async (path: string) => {
+        if (path === 'data/class/class-wizard.json')
+          return {
+            body: {
+              class: ['PHB', 'XPHB'].map((source) => ({
+                name: '法师',
+                ENG_name: 'Wizard',
+                source,
+                hasFluff: true,
+              })),
+            },
+          };
+        if (path === 'data/class/fluff-class-wizard.json') {
+          if (fail) throw new Error('fluff offline');
+          return {
+            revision: 'fluff-test',
+            body: {
+              classFluff: ['PHB', 'XPHB'].map((source) => ({
+                name: '法师',
+                ENG_name: 'Wizard',
+                source,
+                entries: [`${source}职业概览原文`],
+              })),
+            },
+          };
+        }
+        return { body: {} };
+      },
+    } as any;
+    const summary = await new FiveEToolsCnLoader(client, catalog).loadClasses();
+    expect(catalog.list('class')).toHaveLength(2);
+    for (const entry of catalog.list('class')) {
+      expect(entry.description).toBe(fail ? '' : `${entry.source}职业概览原文`);
+      if (!fail)
+        expect(entry.raw._fluffProvenance).toEqual({
+          path: 'data/class/fluff-class-wizard.json',
+          revision: 'fluff-test',
+        });
+    }
+    expect(summary.expectedFiles).toBe(2);
+    expect(summary.failedFiles).toBe(fail ? 1 : 0);
+    expect(summary.loadedFiles).toBe(fail ? 1 : 2);
+    if (fail)
+      expect(summary.warnings.some((warning) => warning.message.includes('fluff offline'))).toBe(
+        true,
+      );
+  });
+
   it('preserves explicit structural overrides across copy chains and still applies both modifiers', () => {
     const base = {
       name: 'Base',

@@ -11,6 +11,47 @@ import { translateProficiency } from '@/engine/terminology';
 import { clean5eTags } from '@/source/fiveetools-cn/utils';
 
 describe('Catalog Class & Subclass Adapter Tests', () => {
+  it('原生任意技能与工具分类自选保留数量，固定工具与自选并存', () => {
+    for (const source of ['PHB', 'XPHB']) {
+      const raw = {
+        name: '吟游诗人',
+        ENG_name: 'Bard',
+        source,
+        startingProficiencies: {
+          skills: [{ any: 3 }],
+          tools: [`自选三种{@item 乐器|${source}|乐器}`],
+          toolProficiencies: [{ anyMusicalInstrument: 3 }],
+        },
+      };
+      const before = JSON.stringify(raw);
+      const definition = catalogEntryToClass(normalizeClass(raw));
+      expect(definition.proficiencies.skills).toEqual({ numToChoose: 3, options: ['Any'] });
+      expect(definition.proficiencies.tools).toEqual([]);
+      expect(definition.proficiencies.toolChoices).toEqual([
+        { numToChoose: 3, options: ['musical instrument'] },
+      ]);
+      expect(JSON.stringify(raw)).toBe(before);
+    }
+    const mixed = catalogEntryToClass(
+      normalizeClass({
+        name: '工具混合测试',
+        source: 'TST',
+        startingProficiencies: {
+          toolProficiencies: [
+            { "thieves' tools": true, anyArtisansTool: 1 },
+            { choose: { from: ['flute', 'lute'], count: 1 } },
+          ],
+        },
+      }),
+    );
+    expect(mixed.proficiencies.tools).toEqual(["thieves' tools"]);
+    expect(mixed.proficiencies.toolChoices).toEqual([
+      { numToChoose: 1, options: ["artisan's tools"] },
+      { numToChoose: 1, options: ['flute', 'lute'] },
+    ]);
+    expect(mixed.proficiencies.skills).toEqual({ numToChoose: 0, options: [] });
+  });
+
   it('保留职业武器原生引用并从独立施法属性生成摘要', () => {
     const raw = {
       name: '德鲁伊',

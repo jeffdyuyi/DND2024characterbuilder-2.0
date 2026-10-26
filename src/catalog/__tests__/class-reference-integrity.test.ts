@@ -142,8 +142,13 @@ describe('5etools 职业引用与父来源完整性', () => {
       id: '5etools-cn',
       kind: 'official',
       subscribeRefresh: vi.fn(),
-      listIndexedFiles: vi.fn().mockResolvedValue(['class-barbarian.json']),
-      fetchJson: vi.fn().mockResolvedValue({ body: sample, revision: sample._provenance.revision }),
+      listIndexedFiles: vi.fn(async (path: string) => [
+        path.includes('fluff') ? 'fluff-class-barbarian.json' : 'class-barbarian.json',
+      ]),
+      fetchJson: vi.fn(async (path: string) => ({
+        body: path.includes('fluff-class-') ? { classFluff: [] } : sample,
+        revision: sample._provenance.revision,
+      })),
     };
     const summary = await new FiveEToolsCnLoader(client as any, catalog).loadClasses();
     expect(summary.failedFiles).toBe(0);

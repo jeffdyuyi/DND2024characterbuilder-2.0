@@ -35,6 +35,25 @@ const baseCharacterState = (): Omit<
 });
 
 describe('Engine: Class fixed tool proficiencies', () => {
+  it('职业页面旧英文键与稳定ID键的工具选择都进入保存后汇总', () => {
+    const entry = normalizeClass({ name: '工具选择测试', ENG_name: 'ChoiceTest', source: 'TST' });
+    defaultCatalog.register(entry);
+    for (const key of [entry.id, 'ChoiceTest']) {
+      const state = JSON.parse(
+        JSON.stringify({
+          ...baseCharacterState(),
+          classes: [{ classId: entry.id, level: 1 }],
+          baseAbilityScores: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+          classSelections: { [`cls:${key}:base:prof:tools`]: ['测试乐器|TST'] },
+        }),
+      ) as CharacterState;
+      expect(computeProficiencies(state).tools).toContainEqual({
+        id: '测试乐器|TST',
+        sources: ['职业: 工具选择测试'],
+      });
+    }
+  });
+
   it('首职固定工具进入汇总，兼职不误获首职工具，更换职业不残留且保留手动工具', () => {
     const toolClass = normalizeClass({
       name: '工具测试职业',

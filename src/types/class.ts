@@ -207,6 +207,7 @@ export interface ClassData {
     };
     weapons: string[];
     armor: string[];
+    toolChoices?: { numToChoose: number; options: string[] }[];
     tools?:
       | string[]
       | {

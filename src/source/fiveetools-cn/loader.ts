@@ -283,6 +283,7 @@ export class FiveEToolsCnLoader {
     try {
       const fileNames = await this.client.listIndexedFiles('data/class/index.json', options);
       expectedFiles = fileNames.length;
+      let fluffFiles: Promise<string[]> | undefined;
 
       for (const fileName of fileNames) {
         try {
@@ -294,11 +295,43 @@ export class FiveEToolsCnLoader {
           }>(`data/class/${fileName}`, options);
 
           if (res.body.class && Array.isArray(res.body.class)) {
+            let fluff = new Map<string, any>();
+            let fluffRevision: string | undefined;
+            const fluffPath = `data/class/fluff-${fileName}`;
+            if (res.body.class.some((raw) => raw.hasFluff && !raw.fluff)) {
+              expectedFiles++;
+              try {
+                fluffFiles ??= this.client.listIndexedFiles('data/class/fluff-index.json', options);
+                if (!(await fluffFiles).includes(`fluff-${fileName}`))
+                  throw new Error('职业风味索引未列出对应文件');
+                const fluffResult = await this.client.fetchJson<{ classFluff?: any[] }>(
+                  fluffPath,
+                  options,
+                );
+                const rawFluff = fluffResult.body.classFluff || [];
+                const resolvedFluff = resolveEntries(rawFluff);
+                warnings.push(...resolvedFluff.warnings);
+                fluff = indexFluff(resolvedFluff.resolved, rawFluff);
+                fluffRevision = fluffResult.revision;
+                loadedFiles++;
+              } catch (err) {
+                failedFiles++;
+                warnings.push({
+                  code: 'RESOLVE_ERROR',
+                  message: `加载职业风味文本 ${fluffPath} 失败: ${(err as Error).message}`,
+                });
+              }
+            }
             const { resolved, warnings: modWarnings } = resolveEntries(res.body.class);
             warnings.push(...modWarnings);
 
             for (const raw of resolved) {
-              const entry = normalizeClass(raw, this.client.id);
+              const entry = normalizeClass(
+                raw.fluff
+                  ? raw
+                  : attachFluff(raw, fluff, { path: fluffPath, revision: fluffRevision }),
+                this.client.id,
+              );
               this.registerEntry(entry, `data/class/${fileName}`, res.revision);
               count++;
             }

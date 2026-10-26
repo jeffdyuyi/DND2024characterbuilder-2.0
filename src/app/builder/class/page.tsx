@@ -1873,11 +1873,13 @@ export default function ClassPage() {
                 </div>
               </div>
 
-              <CollapsibleSection title="职业概览 Class Overview" defaultOpen={true}>
-                <div className={classStyles.descriptionBox}>
-                  <MarkdownText text={classDefinition.description} />
-                </div>
-              </CollapsibleSection>
+              {classDefinition.description && (
+                <CollapsibleSection title="职业概览 Class Overview" defaultOpen={true}>
+                  <div className={classStyles.descriptionBox}>
+                    <MarkdownText text={classDefinition.description} />
+                  </div>
+                </CollapsibleSection>
+              )}
 
               {/* Core Traits Grid */}
               <div className={classStyles.coreTraitsGrid}>
@@ -1947,16 +1949,32 @@ export default function ClassPage() {
                       {Array.isArray(classDefinition.proficiencies.tools)
                         ? classDefinition.proficiencies.tools.length > 0
                           ? classDefinition.proficiencies.tools
-                              .map((t: string) => translateProficiency(t))
+                              .map((t: string) => translateProficiency(clean5eTags(t)))
                               .filter(Boolean)
                               .join(', ')
-                          : '无'
+                          : classDefinition.proficiencies.toolChoices?.length
+                            ? null
+                            : '无'
                         : renderChoice(
                             `cls:${classDefinition.nameEn}:base:prof:tools`,
                             classDefinition.proficiencies.tools,
                             'tool',
                             false,
                           )}
+                      {classDefinition.proficiencies.toolChoices?.map(
+                        (choice: { numToChoose: number; options: string[] }, index: number) => (
+                          <div key={index}>
+                            {renderChoice(
+                              index === 0
+                                ? `cls:${classDefinition.nameEn}:base:prof:tools`
+                                : `cls:${classDefinition.nameEn}:base:prof:${index}:tools`,
+                              choice,
+                              'tool',
+                              false,
+                            )}
+                          </div>
+                        ),
+                      )}
                     </div>
                   </div>
                 )}

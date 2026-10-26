@@ -261,6 +261,8 @@ function normalizeProficiencyList(items: unknown, itemReferences = false): strin
 
 function normalizeProficiencyChoice(value: unknown, fallbackCount = 0) {
   const entries = Array.isArray(value) ? value : [];
+  const any = entries.find((entry) => typeof entry?.any === 'number')?.any;
+  if (any > 0) return { numToChoose: any, options: ['Any'] };
   const choice = entries.find(
     (entry) => entry && typeof entry === 'object' && (entry as any).choose,
   )?.choose;
@@ -270,6 +272,33 @@ function normalizeProficiencyChoice(value: unknown, fallbackCount = 0) {
       ? choice.from.filter((item: unknown): item is string => typeof item === 'string')
       : [],
   };
+}
+
+function normalizeToolProficiencies(value: unknown) {
+  if (!Array.isArray(value)) return undefined;
+  const tools: string[] = [];
+  const toolChoices: { numToChoose: number; options: string[] }[] = [];
+  const categories: Record<string, string> = {
+    any: 'Any Tool',
+    anyArtisansTool: "artisan's tools",
+    anyMusicalInstrument: 'musical instrument',
+    anyGamingSet: 'gaming set',
+  };
+  for (const group of value) {
+    if (!group || typeof group !== 'object') continue;
+    if (Array.isArray(group.choose?.from)) {
+      toolChoices.push({
+        numToChoose: group.choose.count ?? 1,
+        options: group.choose.from.map((key: string) => categories[key] || key),
+      });
+    }
+    for (const [key, amount] of Object.entries(group)) {
+      if (categories[key] && typeof amount === 'number' && amount > 0)
+        toolChoices.push({ numToChoose: amount, options: [categories[key]] });
+      else if (amount === true) tools.push(key);
+    }
+  }
+  return { tools, toolChoices };
 }
 
 /**
@@ -287,6 +316,7 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
   const hdFaces = raw.hd?.faces || raw.hitPointDie || 8;
   const savingThrows = Array.isArray(raw.proficiency) ? raw.proficiency : [];
   const startProf = raw.startingProficiencies || {};
+  const structuredTools = normalizeToolProficiencies(startProf.toolProficiencies);
   const primaryAbility = normalizePrimaryAbilities(raw.primaryAbility);
   const multiclassAbilityRequirements = parseMulticlassRequirements(
     raw.multiclassing?.requirements,
@@ -338,12 +368,15 @@ export function catalogEntryToClass(entry: CatalogEntry): ClassData {
     hitPointDie: hdFaces,
     proficiencies: {
       savingThrows,
-      skills: normalizeProficiencyChoice(startProf.skills, 2),
+      skills: normalizeProficiencyChoice(startProf.skills),
       weapons: normalizeProficiencyList(startProf.weapons),
       armor: normalizeProficiencyList(startProf.armor),
-      tools: Array.isArray(startProf.tools)
-        ? normalizeProficiencyList(startProf.tools, true)
-        : startProf.tools || [],
+      ...(structuredTools ? { toolChoices: structuredTools.toolChoices } : {}),
+      tools:
+        structuredTools?.tools ??
+        (Array.isArray(startProf.tools)
+          ? normalizeProficiencyList(startProf.tools, true)
+          : startProf.tools || []),
     },
     startingEquipment: normalizeStartingEquipment(
       raw.startingEquipment,

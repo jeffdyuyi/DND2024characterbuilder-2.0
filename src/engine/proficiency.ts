@@ -366,7 +366,7 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
 
     // 3.1 处理职业基础熟练 (cls:[ID]:base:prof:[TYPE])
     Object.entries(state.classSelections || {}).forEach(([key, chosen]) => {
-      if (key.startsWith(`cls:${cEntry.classId}:base:prof:`)) {
+      if ([cEntry.classId, classDef.nameEn].some((id) => key.startsWith(`cls:${id}:base:prof:`))) {
         const type = key.split(':').pop();
         const categoryMap: Record<string, ProficiencyCategory> = {
           skills: 'skills',
