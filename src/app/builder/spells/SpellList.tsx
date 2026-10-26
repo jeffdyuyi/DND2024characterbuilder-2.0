@@ -91,9 +91,7 @@ export const SpellPoolSection: React.FC<SpellPoolSectionProps> = ({
   const isDone = limit > 0 && current >= limit;
 
   // 获取已选法术的名称列表，用于标题下方的摘要展示
-  const selectedSpellNames = useMemo(() => {
-    return currentSelections.map((id) => getSpellDefinition(id)?.name || id);
-  }, [currentSelections]);
+  const selectedSpellNames = currentSelections.map((id) => getSpellDefinition(id)?.name || id);
 
   return (
     <div style={{ marginBottom: 32 }}>
