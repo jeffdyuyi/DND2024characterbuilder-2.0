@@ -4,6 +4,12 @@
 
 通过 Catalog 加载与解析 5etools-cn 和 Homebrew 数据的角色创建与角色卡工具。
 
+## 数据来源与许可
+
+本站在线读取 [5etools-cn（cn2.0）](https://github.com/tjliqy/5etools-cn/tree/cn2.0) 的数据，并在浏览器中缓存、解析、筛选和展示。中文本地化 `data/` 由 Kiwee 和贡献者署名，译文来自民间汉化组及独立译者，由「DND Common Library」整理排版；依据 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) 使用。本站对数据作结构化适配与页面呈现，不修改上游仓库的原始文件；基于这些中文内容形成的改编内容同样按 CC BY-NC-SA 4.0 提供。再利用须保留署名、协议链接、改动说明，并遵守非商业及相同方式共享条件。
+
+上游源码与 `data-bak/` 英文数据适用 MIT 许可。许可的完整文本与适用范围见 [5etools-cn LICENSE.md](https://github.com/tjliqy/5etools-cn/blob/cn2.0/LICENSE.md)。本站与 5etools-cn、Kiwee 及其贡献者无从属或背书关系；这些许可不代表其他原作或商标权利人的授权。第三方扩展内容以其自身来源的许可为准。站内「数据来源与许可」页面提供相同说明。
+
 ## 本地开发
 
 ```sh

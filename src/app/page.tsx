@@ -2,6 +2,7 @@
 
 import SourceBookPicker, { SourceBookSettings } from '@/components/SourceBookPicker';
 import React, { useState, useRef } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Plus, Upload, Scroll, Copy, Trash2 } from 'lucide-react';
 import { useCharacterStore } from '@/store/characterStore';
@@ -309,6 +310,9 @@ export default function CharacterLibrary() {
         <Plus size={20} />
         <span>新建角色</span>
       </button>
+      <footer className={styles.sourceCredit}>
+        使用 5etools-cn 中文数据 · <Link href="/data-license">数据来源与许可</Link>
+      </footer>
     </div>
   );
 }

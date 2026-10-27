@@ -171,6 +171,7 @@
   cursor: pointer;
   transition: all var(--transition-fast, 150ms ease);
   white-space: nowrap;
+  text-decoration: none;
 }
 
 .footerBtn:hover {

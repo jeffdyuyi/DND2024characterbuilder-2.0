@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   User,
@@ -13,6 +14,7 @@ import {
   ChevronRight,
   ExternalLink,
   MessageCircle,
+  Scale,
 } from 'lucide-react';
 import CatalogStatus from '@/platform/CatalogStatus';
 import styles from './AppSidebar.module.css';
@@ -148,6 +150,12 @@ export default function AppSidebar() {
                 </div>
                 <span>{theme === 'dark' ? '浅色模式' : '深色模式'}</span>
               </button>
+              <Link className={styles.footerBtn} href="/data-license">
+                <div className={styles.itemIcon}>
+                  <Scale size={17} />
+                </div>
+                <span>数据来源与许可</span>
+              </Link>
               <button className={styles.footerBtn} onClick={() => setShowInfo(true)}>
                 <div className={styles.itemIcon}>
                   <Info size={17} />
@@ -171,6 +179,15 @@ export default function AppSidebar() {
               >
                 {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
               </button>
+              <Link
+                className={styles.footerBtn}
+                href="/data-license"
+                aria-label="数据来源与许可"
+                title="数据来源与许可"
+                style={{ justifyContent: 'center' }}
+              >
+                <Scale size={17} />
+              </Link>
               <button
                 className={styles.footerBtn}
                 onClick={() => setShowInfo(true)}

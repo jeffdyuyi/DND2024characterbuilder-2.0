@@ -329,3 +329,14 @@
 .library__importInput {
   display: none;
 }
+
+.sourceCredit {
+  padding: 24px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.sourceCredit a {
+  color: var(--color-apple-blue);
+}

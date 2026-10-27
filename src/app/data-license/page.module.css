@@ -1,0 +1,38 @@
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 32px 80px;
+  color: var(--color-text-primary);
+  line-height: 1.8;
+}
+
+.page h1 {
+  margin: 0 0 24px;
+  font-size: 2rem;
+}
+
+.page h2 {
+  margin: 32px 0 8px;
+  font-size: 1.25rem;
+}
+
+.page p {
+  margin: 0 0 16px;
+}
+
+.page a {
+  color: var(--color-apple-blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.page code {
+  color: var(--color-text-primary);
+}
+
+.note {
+  padding: 16px;
+  border: 1px solid var(--color-border-dark);
+  border-radius: 8px;
+  color: var(--color-text-secondary);
+}
