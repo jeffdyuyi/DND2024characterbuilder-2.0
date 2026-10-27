@@ -322,6 +322,7 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
     const assembled = assembleCatalogClass(classEntry, catalog);
     expect(assembled.unresolvedReferences).toEqual([]);
     expect(assembled.features.map((feature) => feature.level)).toEqual([1, 2]);
+    expect(assembled.features[1].isSubclassSelection).toBe(true);
     expect(assembled.progression[0].featuresUnlocked).toEqual(['星象施法']);
     expect(assembled.progression[1].spellcasting?.spellSlots.level1).toBe(3);
     expect(assembled.subclassUnlockLevel).toBe(2);

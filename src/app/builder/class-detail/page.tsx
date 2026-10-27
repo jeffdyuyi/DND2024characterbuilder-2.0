@@ -345,7 +345,8 @@ export default function ClassDetailPage() {
     }
 
     const subclassFeature: ClassFeature | undefined = classDefinition.subClassInfo?.options.length
-      ? features.find((f) => f.mechanics?.choices?.some((c: any) => c.type === 'subclass')) || {
+      ? features.find((f) => f.isSubclassSelection) ||
+        features.find((f) => f.mechanics?.choices?.some((c: any) => c.type === 'subclass')) || {
           name: '子职业选择',
           nameEn: 'Subclass Selection',
           level: classDefinition.subClassInfo.unlockLevel,
@@ -361,7 +362,8 @@ export default function ClassDetailPage() {
       ]
         .filter((f) => {
           // Keep one subclass selector at its unlock level.
-          const isSubclassSelector = f.mechanics?.choices?.some((c: any) => c.type === 'subclass');
+          const isSubclassSelector =
+            f.isSubclassSelection || f.mechanics?.choices?.some((c: any) => c.type === 'subclass');
           // Filter out generic placeholders
           const isGenericPlaceholder = f.name === '子职特性' && f.nameEn === 'Subclass Feature';
           return (!isSubclassSelector || f === subclassFeature) && !isGenericPlaceholder;

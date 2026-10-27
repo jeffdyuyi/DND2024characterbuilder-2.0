@@ -3,6 +3,7 @@ export interface ClassFeature {
   nameEn?: string;
   level: number;
   description: string;
+  isSubclassSelection?: boolean;
   source?: string;
   mechanics?: {
     passiveEffects?: (string | { text: string; condition?: string })[];

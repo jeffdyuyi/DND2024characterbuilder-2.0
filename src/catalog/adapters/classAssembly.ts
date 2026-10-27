@@ -181,7 +181,11 @@ export function assembleCatalogClass(
   const classSeen = new Set<string>();
   const features = featureRefs.flatMap((ref, referenceIndex) => {
     const text = refText(ref, 'classFeature');
-    return expandFeature(text, entry, 'classFeature', referenceIndex, classSeen);
+    const expanded = expandFeature(text, entry, 'classFeature', referenceIndex, classSeen);
+    if (typeof ref === 'object' && ref.gainSubclassFeature && expanded[0]) {
+      expanded[0] = { ...expanded[0], isSubclassSelection: true };
+    }
+    return expanded;
   });
 
   const subclassCatalogEntries = catalog

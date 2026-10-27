@@ -142,6 +142,32 @@ it('未解锁不显示子职业；解锁后在等级卡中选择稳定ID，重�
   );
 });
 
+it('原生子职业解锁说明与选项同框且说明只显示一次', () => {
+  defaultCatalog.registerMany([
+    {
+      ...parent,
+      raw: {
+        ...parent.raw,
+        classFeatures: [
+          '施法|Page Wizard|XPHB|1',
+          { classFeature: '法师学派|Page Wizard|XPHB|3', gainSubclassFeature: true },
+        ],
+      },
+    },
+    feature('法师学派', 3, ['原生子职业解锁说明。']),
+  ]);
+  store.character.classes[0].level = 3;
+  const tree = nodes(ClassDetailPage());
+  const selector = tree.find((node) => node.type === SubclassChoice);
+  expect(selector.props.description).toContain('原生子职业解锁说明。');
+  expect(tree.filter((node) => node.type === SubclassChoice)).toHaveLength(1);
+  expect(
+    tree.filter(
+      (node) => node.type === MarkdownText && node.props.text === selector.props.description,
+    ),
+  ).toHaveLength(0);
+});
+
 it('基础熟练移除后不再计入专精完成度，重新选择时释放失效占位', () => {
   defaultCatalog.registerMany([
     { ...parent, raw: { ...parent.raw, classFeatures: ['专精|Page Wizard|XPHB|2'] } },
