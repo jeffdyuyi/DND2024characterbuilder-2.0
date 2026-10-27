@@ -83,7 +83,12 @@ describe('职业特性通用选项解析器', () => {
     {
       name: 'Style Training',
       text: 'You gain a Fighting Style feat of your choice.',
-      expected: { type: 'fightingStyle', numToChoose: 1, filter: 'category:Fighting Style' },
+      expected: { type: 'feat', numToChoose: 1, options: ['Fighting Style'] },
+    },
+    {
+      name: '2024 战士战斗风格',
+      text: '不断磨练你的武艺。你获得一项你选择的{@filter 战斗风格专长|feats|category=FS}。推荐选择{@feat 防御|XPHB}。',
+      expected: { type: 'feat', numToChoose: 1, options: ['Fighting Style'] },
     },
     {
       name: 'Languages',

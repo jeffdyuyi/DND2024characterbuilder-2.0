@@ -222,6 +222,41 @@ it.each([
   expect(slots[0].allowedCategories).toEqual(expected);
 });
 
+it('5etools 战斗风格专长法条生成专长页专属槽位', () => {
+  const parent = normalizeClass({
+    name: '测试战士',
+    ENG_name: 'Fixture Fighter',
+    source: 'XPHB',
+    classFeatures: ['战斗风格|Fixture Fighter|XPHB|1'],
+  });
+  defaultCatalog.registerMany([
+    parent,
+    {
+      ...parent,
+      id: 'fixture:fighting-style-feature',
+      kind: 'classFeature',
+      name: '战斗风格',
+      englishName: 'Fighting Style',
+      raw: {
+        name: '战斗风格',
+        ENG_name: 'Fighting Style',
+        className: 'Fixture Fighter',
+        classSource: 'XPHB',
+        source: 'XPHB',
+        level: 1,
+        entries: ['你获得一项你选择的{@filter 战斗风格专长|feats|category=FS}。'],
+      },
+    },
+  ]);
+  const character = state({
+    classes: [{ classId: parent.id, source: 'XPHB', level: 1, isMulticlass: false }],
+  });
+  const slots = buildCharacterFeatSlots(character, { getClass: getClassDefinition });
+  expect(slots).toMatchObject([
+    { classId: parent.id, allowedCategories: ['Fighting Style'], level: 1 },
+  ]);
+});
+
 it('非专长选择不变成专长槽位，兼职按各自职业等级，旧职业选择仍可读回', () => {
   const character = state({
     classes: [

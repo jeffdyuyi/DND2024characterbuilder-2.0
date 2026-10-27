@@ -11,9 +11,8 @@ export interface FeatureChoiceParseResult {
 }
 
 function stripTags(value: string): string {
-  return value.replace(
-    /\{@\w+\s+([^}]+)\}/g,
-    (_, body: string) => body.split('|')[2] || body.split('|')[0],
+  return value.replace(/\{@(\w+)\s+([^}]+)\}/g, (_, tag: string, body: string) =>
+    tag.toLowerCase() === 'filter' ? body.split('|')[0] : body.split('|')[2] || body.split('|')[0],
   );
 }
 
@@ -70,6 +69,7 @@ function inferChoiceType(text: string): FeatureChoice['type'] | undefined {
   if (/expertise|专精|双倍.*熟练|double (?:its|your) proficiency/i.test(low)) return 'expertise';
   if (/weapon mastery|mastery propert|武器精通|精通属性|精通词条/i.test(low))
     return 'weaponMastery';
+  if (/fighting style feat|战斗风格专长/i.test(low)) return 'feat';
   if (/fighting style|战斗风格/i.test(low)) return 'fightingStyle';
   if (
     /ability score improvement|属性值提升|属性提升|epic boon|传奇恩惠|feat of your choice|选择[^。.!]*专长|获得[^。.!]*专长/i.test(
@@ -178,7 +178,11 @@ function semanticFallback(entriesText: string, entry: CatalogEntry): FeatureChoi
               : 'Any Tool',
       ];
   } else if (type === 'feat') {
-    options = /epic boon|传奇恩惠/i.test(fullText) ? ['Epic Boon'] : ['General Feat'];
+    options = /fighting style feat|战斗风格专长/i.test(fullText)
+      ? ['Fighting Style']
+      : /epic boon|传奇恩惠/i.test(fullText)
+        ? ['Epic Boon']
+        : ['General Feat'];
   }
 
   return [
