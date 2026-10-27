@@ -285,6 +285,7 @@ export default function ClassDetailPage() {
   const [expandedSources, setExpandedSources] = useState<string[]>(['2024 核心规则 (Core)']);
   const [previewMap, setPreviewMap] = useState<Record<string, string>>({});
   const [activeSourceFilter, setActiveSourceFilter] = useState<string | null>('2024 玩家手册');
+  const [masterySource, setMasterySource] = useState('');
 
   // Language filtering state
   const [langCategory, setLangCategory] = useState<string>('Standard');
@@ -712,6 +713,19 @@ export default function ClassDetailPage() {
     }
     const finalOptions = choices.filterOptions(resolvedOptions, category);
     if (finalOptions.length === 0) return null;
+    const isWeaponMastery =
+      category === 'weaponMastery' || category === 'mastery' || id.includes('weapon_mastery');
+    const sourceOfWeapon = (option: string | { nameEn?: string; source?: string }) => {
+      if (typeof option !== 'string') return option.source || '';
+      return findItemById(option)?.source || option.split('|')[1] || '';
+    };
+    const masterySources = isWeaponMastery
+      ? [...new Set(finalOptions.map(sourceOfWeapon).filter(Boolean))]
+      : [];
+    const effectiveMasterySource = masterySources.includes(masterySource) ? masterySource : '';
+    const displayedOptions = effectiveMasterySource
+      ? finalOptions.filter((option) => sourceOfWeapon(option) === effectiveMasterySource)
+      : finalOptions;
     if (category === 'expertise') {
       const eligible = new Set(finalOptions.map(normalizeSkillId));
       chosen = chosen.map(normalizeSkillId).filter((selected) => eligible.has(selected));
@@ -1140,8 +1154,23 @@ export default function ClassDetailPage() {
             已选 {chosen.length}/{selection.numToChoose || 1}
           </div>
         </div>
+        {masterySources.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+            {['', ...masterySources].map((source) => (
+              <PillButton
+                key={source}
+                size="sm"
+                variant={effectiveMasterySource === source ? 'primary' : 'outline'}
+                aria-pressed={effectiveMasterySource === source}
+                onClick={() => setMasterySource(source)}
+              >
+                {source ? getSourceDisplayName(source) : '全部来源'}
+              </PillButton>
+            ))}
+          </div>
+        )}
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {finalOptions.map((opt) => {
+          {displayedOptions.map((opt) => {
             const optId = typeof opt === 'object' ? opt.nameEn : opt;
             const isAlreadySelected = alreadySelectedInOtherSlots.includes(normalizeSkillId(optId));
 
@@ -1169,9 +1198,7 @@ export default function ClassDetailPage() {
               category === 'skill' || category === 'expertise' ? normalizeSkillId(optId) : optId;
             const isChosen = chosen.includes(normalizedOptId);
             const weapon =
-              category === 'weapon' || category === 'weaponMastery'
-                ? findItemById(optId)
-                : undefined;
+              category === 'weapon' || isWeaponMastery ? findItemById(optId) : undefined;
 
             return (
               <PillButton
@@ -1193,7 +1220,7 @@ export default function ClassDetailPage() {
                   ? translateSkill(optId)
                   : weapon
                     ? `${weapon.name} [${getSourceDisplayName(weapon.source || '')}]`
-                    : category === 'tool' || category === 'weapon' || category === 'weaponMastery'
+                    : category === 'tool' || category === 'weapon' || isWeaponMastery
                       ? translateProficiency(optId)
                       : category === 'language'
                         ? choices.getCatalogLanguages().find((entry) => entry.id === optId)?.name ||

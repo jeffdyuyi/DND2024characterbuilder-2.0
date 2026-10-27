@@ -209,6 +209,32 @@ it('武器精通按原生武器身份限制已有熟练，呈现原文名称和�
   ]);
 });
 
+it('武器精通提供来源筛选且仍保存完整来源身份', () => {
+  defaultCatalog.registerMany([
+    {
+      ...parent,
+      raw: {
+        ...parent.raw,
+        startingProficiencies: { weapons: ['测试细刃|TST', '第二细刃|ALT'] },
+        classFeatures: ['武器精通|Page Wizard|XPHB|1'],
+      },
+    },
+    feature('武器精通', 1, ['你可以运用一种你熟练武器的精通词条。']),
+    normalizeItem({ name: '测试细刃', ENG_name: 'Fixture Blade', source: 'TST', type: 'M' }),
+    normalizeItem({ name: '第二细刃', ENG_name: 'Other Blade', source: 'ALT', type: 'M' }),
+  ]);
+  const tree = nodes(ClassDetailPage());
+  const sources = tree.filter((node) => node.props?.['aria-pressed'] !== undefined);
+  expect(sources.some((node) => node.props.children === '全部来源')).toBe(true);
+  expect(sources.some((node) => node.props.children === 'TST')).toBe(true);
+  expect(sources.some((node) => node.props.children === 'ALT')).toBe(true);
+  const weapon = tree.find((node) => node.props?.children?.[0] === '第二细刃 [ALT]');
+  weapon.props.onClick();
+  expect(Object.values(store.update.mock.calls.at(-1)![0].classSelections)).toContainEqual([
+    'Other Blade|ALT',
+  ]);
+});
+
 it('职业技能表自选使用父职业原生技能池，不引入其他段落的技能', () => {
   defaultCatalog.registerMany([
     {
