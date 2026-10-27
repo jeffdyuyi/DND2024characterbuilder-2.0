@@ -800,6 +800,11 @@ export function computeSpellProgression(
 
     let newCantrips = Math.max(0, currentCantrips - prevCantrips);
     let newSpells = Math.max(0, currentSpells - prevSpells);
+    const fixedCantrips =
+      subclassDef?.spellcasting?.fixedCantrips?.filter(
+        (entry: { level: number; reference: string }) => entry.level === lvl,
+      ) || [];
+    newCantrips = Math.max(0, newCantrips - fixedCantrips.length);
 
     let allowedClasses = [...baseAllowedClasses];
     for (const source of lvl >= (classDef.subClassInfo?.unlockLevel || 20)
@@ -967,6 +972,14 @@ export function computeSpellProgression(
     }
 
     const nativeAlwaysPreparedSpells: string[] = [];
+    for (const fixed of fixedCantrips) {
+      const [name, source = 'PHB'] = fixed.reference.split('|');
+      nativeSpellPool ??= getCatalogSpells();
+      const spell =
+        getSpellDefinition(fixed.reference) ||
+        nativeSpellPool.find((candidate) => candidate.name === name && candidate.source === source);
+      if (spell?.level === 0) nativeAlwaysPreparedSpells.push(spell.id);
+    }
     for (const plan of nativePlans)
       for (const entry of plan.rules) {
         if (entry.level !== lvl) continue;

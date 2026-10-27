@@ -1,7 +1,12 @@
 import { expect, it } from 'vitest';
 import { defaultCatalog } from '@/catalog/catalog';
 import { normalizeClass, normalizeSubclass } from '@/source/fiveetools-cn/normalizers/class';
-import { computeSpellcasting, computeSpellProgression } from '../spellcasting';
+import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
+import {
+  computeSpellcasting,
+  computeSpellProgression,
+  deriveCharacterSpellSelection,
+} from '../spellcasting';
 import { getClassDefinition } from '../characterData';
 import type { CharacterState } from '@/types/characterState';
 
@@ -23,11 +28,16 @@ it.each([
     cantripProgression: [0, 0, 2, 2, 2, 2, 2, 2],
     [countField]: [0, 0, 3, 4, 4, 4, 5, 6],
     subclassTableGroups: [{ rowsSpellProgression: [[0], [0], [2], [3], [3], [3], [4, 2], [4, 2]] }],
-    additionalSpells: { expanded: { 3: [{ all: 'level=0|class=法师' }] } },
+    additionalSpells: {
+      expanded: { 3: [{ all: 'level=0|class=法师' }] },
+      ...(source === 'PHB' ? { known: { 3: ['法师之手|PHB#c'] } } : {}),
+    },
   });
+  const mageHand = normalizeSpell({ name: '法师之手', source: 'PHB', level: 0, classes: ['法师'] });
   defaultCatalog.registerMany([
     parent,
     child,
+    mageHand,
     {
       ...parent,
       id: `fixture:subclass-feature:${source}`,
@@ -91,7 +101,7 @@ it.each([
   expect(
     computeSpellProgression(character(3), parent.id).find((step) => step.level === 3),
   ).toMatchObject({
-    newCantrips: 2,
+    newCantrips: source === 'PHB' ? 1 : 2,
     newSpells: source === 'PHB' ? 2 : 3,
     maxSpellLevel: 1,
     allowedClasses: expect.arrayContaining(['法师']),
@@ -102,6 +112,8 @@ it.each([
     expect(level3.extraChoices).toMatchObject([
       { numToChoose: 1, ignoreStepFilter: true, filter: 'class:法师;level:1-1' },
     ]);
+    expect(level3.nativeAlwaysPreparedSpells).toEqual([mageHand.id]);
+    expect(deriveCharacterSpellSelection(character(3)).cantripIds).toContain(mageHand.id);
     expect(
       computeSpellProgression(character(8), parent.id).find((step) => step.level === 8),
     ).toMatchObject({ newSpells: 0, extraChoices: [{ numToChoose: 1, ignoreStepFilter: true }] });

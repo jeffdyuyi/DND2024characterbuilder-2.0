@@ -164,6 +164,7 @@ export interface SubClass {
     listClasses: string[];
     progression: Record<number, NonNullable<ClassLevelProgression['spellcasting']>>;
     choiceRules?: { schools: string[]; openLevels: number[]; openAtUnlock: number };
+    fixedCantrips?: { level: number; reference: string }[];
   };
 }
 

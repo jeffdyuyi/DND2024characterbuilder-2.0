@@ -222,6 +222,21 @@ export function assembleCatalogClass(
       subRaw.spellsKnownProgression ||
       subRaw.spellsKnownProgressionFixed;
     const expandedSpells = Object.values(subRaw.additionalSpells?.expanded || {}).flat(Infinity);
+    const fixedCantrips = Object.entries(subRaw.additionalSpells?.known || {})
+      .flatMap(([level, references]) =>
+        Array.isArray(references)
+          ? references
+              .filter(
+                (reference): reference is string =>
+                  typeof reference === 'string' && /#c$/i.test(reference),
+              )
+              .map((reference) => ({
+                level: Number(level),
+                reference: reference.replace(/#c$/i, ''),
+              }))
+          : [],
+      )
+      .filter((entry) => Number.isInteger(entry.level));
     const spellText = traits.map((trait) => trait.description).join(' ');
     const listClasses = [
       ...new Set([
@@ -282,6 +297,7 @@ export function assembleCatalogClass(
               ability: subRaw.spellcastingAbility,
               listClasses,
               progression,
+              ...(fixedCantrips.length ? { fixedCantrips } : {}),
               ...(restrictedSchools && listClasses.length
                 ? {
                     choiceRules: {
