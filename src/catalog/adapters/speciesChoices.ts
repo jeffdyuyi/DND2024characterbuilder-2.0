@@ -593,15 +593,12 @@ function resolveLanguageChoices(
 
         const baseZh = translateProficiency(c).replace(/语$/, '');
         if (!baseZh) return c;
-        // 核心约束：特化语言必须真实存在于合法游戏语言库中且不含谓词/连词，严禁将文本中的动作/状语句子片段（如“学习精灵语”、“虽然半身人语”）误当作特化语言
+        // 方言可只出现在此种族原文中；须匹配已给的基础语言并排除谓词片段。
         const specialized = textLangs.find(
           (tl) =>
             tl !== baseZh + '语' &&
             tl.includes(baseZh) &&
-            !/[虽但是由于因为学习研究探讨考教授练通晓借用模仿各其该可以能够会懂]/.test(tl) &&
-            ALL_GAME_LANGUAGES.some(
-              (l) => l.name === tl || l.id.toLowerCase() === tl.toLowerCase(),
-            ),
+            !/[虽但是由于因为学习研究探讨考教授练通晓借用模仿各其该可以能够会懂]/.test(tl),
         );
         return specialized || c;
       });

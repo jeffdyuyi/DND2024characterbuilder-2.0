@@ -104,7 +104,7 @@ class CatalogLoaderService {
   private completeLoaded = false;
 
   private sources: CatalogStats['sources'] = {
-    fiveetoolsCn: { state: 'idle', expectedFiles: 6, loadedFiles: 0, failedFiles: 0, entries: 0 },
+    fiveetoolsCn: { state: 'idle', expectedFiles: 7, loadedFiles: 0, failedFiles: 0, entries: 0 },
     homebrew: { state: 'idle', expectedFiles: 0, loadedFiles: 0, failedFiles: 0, entries: 0 },
   };
   constructor(
@@ -220,16 +220,18 @@ class CatalogLoaderService {
 
   /**
    * 首批核心数据加载（阻塞首屏渲染）
-   * 包括：种族、背景、专长、职业
+   * 先加载语言词表，再装配可能引用语言名称的种族、背景、专长和职业。
    */
   public async loadCoreData(options?: { signal?: AbortSignal; refresh?: boolean }): Promise<void> {
     this.sources.fiveetoolsCn.state = 'loading';
-    const results = await Promise.allSettled([
+    const languages = await Promise.allSettled([this.loader.loadLanguages(options)]);
+    const core = await Promise.allSettled([
       this.loader.loadRaces(options),
       this.loader.loadBackgrounds(options),
       this.loader.loadFeats(options),
       this.loader.loadClasses(options),
     ]);
+    const results = [...languages, ...core];
 
     let loaded = 0;
     let entries = 0;
@@ -446,7 +448,7 @@ class CatalogLoaderService {
       this.sources = {
         fiveetoolsCn: {
           state: 'idle',
-          expectedFiles: 6,
+          expectedFiles: 7,
           loadedFiles: 0,
           failedFiles: 0,
           entries: 0,

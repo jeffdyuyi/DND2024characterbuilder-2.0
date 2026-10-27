@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { InMemoryCatalogService, defaultCatalog } from '@/catalog/catalog';
+import { defaultCatalog } from '@/catalog/catalog';
 import { normalizeLanguage } from '@/source/fiveetools-cn/normalizers/language';
 import { catalogEntryToLanguage, getCatalogLanguages } from '@/catalog/adapters/languages';
 import { ALL_GAME_LANGUAGES } from '@/rules/languages';
@@ -33,12 +33,9 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
     expect(language.origin).toBe('深渊的恶魔');
   });
 
-  it('未加载外部数据时平滑回退到本地权威兜底列表', () => {
-    const fallbackList = getCatalogLanguages();
-    expect(fallbackList.length).toBeGreaterThan(30);
-    expect(fallbackList.some((l) => l.name === '通用语')).toBe(true);
-    expect(ALL_GAME_LANGUAGES.length).toBeGreaterThan(30);
-    expect(ALL_GAME_LANGUAGES.some((l) => l.name === '精灵语')).toBe(true);
+  it('目录未加载时不把本地静态语言伪装成来源候选', () => {
+    expect(getCatalogLanguages()).toEqual([]);
+    expect(ALL_GAME_LANGUAGES.length).toBe(0);
   });
 
   it('translateProficiency 确保所有 5etools 语言键均正确转换为中文', () => {
@@ -53,8 +50,7 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
     expect(translateProficiency('风族语')).toBe('风族语');
   });
 
-  it('当 Catalog 中有部分 5etools 动态语言时，本地完备语言库不被冲掉', () => {
-    // 模拟 5etools 仅加载了一份残缺的语言数据 (例如只有 A 开头的条目)
+  it('只展示已加载的来源条目，并保留同名语言的书源区分', () => {
     defaultCatalog.register({
       id: '5etools-cn:language:xphb:abyssal',
       kind: 'language',
@@ -63,15 +59,23 @@ describe('Language Catalog Adapter & 5etools Normalizer', () => {
       source: 'XPHB',
       edition: '2024',
       sourcePackId: '5etools-cn',
-      raw: {},
+      raw: { type: 'rare' },
     });
-
-    const mergedList = getCatalogLanguages();
-    // 依然包含 80+ 种语言
-    expect(mergedList.length).toBeGreaterThan(30);
-    expect(mergedList.some((l) => l.id === 'auran')).toBe(true);
-    expect(mergedList.some((l) => l.id === 'elvish')).toBe(true);
-    expect(mergedList.some((l) => l.id === 'dwarvish')).toBe(true);
+    defaultCatalog.register({
+      id: '5etools-cn:language:phb:abyssal',
+      kind: 'language',
+      name: '深渊语',
+      englishName: 'Abyssal',
+      source: 'PHB',
+      edition: '2014',
+      sourcePackId: '5etools-cn',
+      raw: { type: 'exotic' },
+    });
+    expect(getCatalogLanguages().map((language) => language.source)).toEqual(['XPHB', 'PHB']);
+    expect(getCatalogLanguages({ source: 'XPHB' })).toMatchObject([
+      { id: 'abyssal', name: '深渊语', source: 'XPHB', type: 'Rare' },
+    ]);
+    expect(ALL_GAME_LANGUAGES.length).toBe(2);
   });
 
   it('Kenku（天狗）5etools 语料解析后掌握语言正确转换为中文', () => {

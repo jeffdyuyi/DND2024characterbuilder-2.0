@@ -832,7 +832,7 @@ export class FiveEToolsCnLoader {
     };
   }
 
-  /** 加载角色可选特性、角色创建选项、祝福/恩惠等奖励、语言及异常状态。 */
+  /** 加载角色可选特性、角色创建选项、祝福/恩惠等奖励及异常状态。 */
   public async loadCharacterOptions(options?: {
     signal?: AbortSignal;
     refresh?: boolean;
@@ -854,7 +854,6 @@ export class FiveEToolsCnLoader {
           ['boon', 'boon'],
         ],
       },
-      { path: 'data/languages.json', collections: [['language', 'language']] },
       { path: 'data/conditionsdiseases.json', collections: [['condition', 'condition']] },
     ] as const;
 
@@ -870,9 +869,7 @@ export class FiveEToolsCnLoader {
           for (const raw of resolved) {
             try {
               let entry: import('@/catalog/types').CatalogEntry;
-              if (kind === 'language') {
-                entry = normalizeLanguage(raw, this.client.id);
-              } else if (kind === 'condition') {
+              if (kind === 'condition') {
                 entry = normalizeCondition(raw, this.client.id);
               } else {
                 entry = normalizeCharacterOption(raw, kind, this.client.id);
@@ -1182,14 +1179,18 @@ export class FiveEToolsCnLoader {
     signal?: AbortSignal;
     refresh?: boolean;
   }): Promise<LoadSummary[]> {
-    return Promise.all([
-      this.loadSpells(options),
-      this.loadClasses(options),
-      this.loadFeats(options),
-      this.loadRaces(options),
-      this.loadBackgrounds(options),
-      this.loadItems(options),
-      this.loadCharacterOptions(options),
-    ]);
+    const languages = await this.loadLanguages(options);
+    return [
+      languages,
+      ...(await Promise.all([
+        this.loadSpells(options),
+        this.loadClasses(options),
+        this.loadFeats(options),
+        this.loadRaces(options),
+        this.loadBackgrounds(options),
+        this.loadItems(options),
+        this.loadCharacterOptions(options),
+      ])),
+    ];
   }
 }

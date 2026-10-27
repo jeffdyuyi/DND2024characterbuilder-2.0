@@ -55,6 +55,7 @@ describe('Phase A-2: catalogLoader (数据加载服务与状态机)', () => {
   it('init 能驱动生命周期流转 (idle -> loading -> ready -> complete)', async () => {
     const testCatalog = new InMemoryCatalogService();
     const mockLoader: any = {
+      loadLanguages: vi.fn().mockResolvedValue({ count: 15 }),
       loadRaces: vi.fn().mockResolvedValue({ count: 10 }),
       loadBackgrounds: vi.fn().mockResolvedValue({ count: 5 }),
       loadFeats: vi.fn().mockResolvedValue({ count: 8 }),
@@ -76,6 +77,10 @@ describe('Phase A-2: catalogLoader (数据加载服务与状态机)', () => {
     expect(statuses).toContain('ready');
     expect(service.getStats().status).toBe('complete');
     expect(mockLoader.loadRaces).toHaveBeenCalled();
+    expect(mockLoader.loadLanguages).toHaveBeenCalled();
+    expect(mockLoader.loadLanguages.mock.invocationCallOrder[0]).toBeLessThan(
+      mockLoader.loadRaces.mock.invocationCallOrder[0],
+    );
     expect(mockLoader.loadSpells).toHaveBeenCalled();
     expect(mockLoader.loadItems).toHaveBeenCalled();
 
@@ -85,6 +90,7 @@ describe('Phase A-2: catalogLoader (数据加载服务与状态机)', () => {
   it('当网络与缓存都不可用时，如实标记 partial 且不注入旧语料', async () => {
     const testCatalog = new InMemoryCatalogService();
     const failingLoader: any = {
+      loadLanguages: vi.fn().mockRejectedValue(new Error('Network Offline')),
       loadRaces: vi.fn().mockRejectedValue(new Error('Network Offline')),
       loadBackgrounds: vi.fn().mockRejectedValue(new Error('Network Offline')),
       loadFeats: vi.fn().mockRejectedValue(new Error('Network Offline')),
@@ -106,6 +112,7 @@ describe('Phase A-2: catalogLoader (数据加载服务与状态机)', () => {
   it('任一主源阶段返回零条目时不会误报 complete', async () => {
     const testCatalog = new InMemoryCatalogService();
     const mockLoader: any = {
+      loadLanguages: vi.fn().mockResolvedValue({ count: 15 }),
       loadRaces: vi.fn().mockResolvedValue({ count: 10 }),
       loadBackgrounds: vi.fn().mockResolvedValue({ count: 5 }),
       loadFeats: vi.fn().mockResolvedValue({ count: 8 }),
