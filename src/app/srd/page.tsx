@@ -206,10 +206,10 @@ export default function SrdPage() {
           <div className={styles.titleGroup}>
             <h1 className={styles.title}>
               <Library size={28} />
-              官方资源查阅库
+              资料查阅
             </h1>
             <p className={styles.subtitle}>
-              全面接入 5etools 镜像数据 · 覆盖 2024 Core 与 2014 经典规则 · 客户端高速持久缓存
+              按 5etools-cn 来源展示 2024 与 2014 资料；此页并非仅收录 SRD 条目
             </p>
           </div>
 
@@ -232,7 +232,7 @@ export default function SrdPage() {
             <button
               className={`${styles.editionBtn} ${edition === 'all' ? styles.editionBtnActiveAll : ''}`}
               onClick={() => setEdition('all')}
-              title="查看全部官方条目"
+              title="查看全部已加载条目"
             >
               🌐 全部规则
             </button>

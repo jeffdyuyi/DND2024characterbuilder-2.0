@@ -85,7 +85,7 @@ export default function AppSidebar() {
   const navItems = [
     { label: '角色库', path: '/', icon: <User size={18} /> },
     {
-      label: '官方资源库',
+      label: '资料查阅',
       path: '/srd',
       icon: <BookOpen size={18} style={{ color: 'var(--color-apple-blue, #3b82f6)' }} />,
     },

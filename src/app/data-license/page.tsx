@@ -49,7 +49,8 @@ export default function DataLicensePage() {
       </section>
 
       <p className={styles.note}>
-        上述许可说明不代表其他原作或商标权利人已授权本站。第三方扩展内容各自遵循其来源的许可或使用条件。
+        本工具不是 Wizards of the Coast 的官方产品，也未获其批准或背书。5etools-cn
+        的数据许可不自动授予其他原作或商标的使用权；第三方扩展内容各自遵循其来源的许可或使用条件。
       </p>
     </main>
   );
