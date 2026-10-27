@@ -158,6 +158,13 @@ export interface SubClass {
   nameEn?: string;
   description: string;
   traits: ClassFeature[];
+  spellcasting?: {
+    casterProgression: string;
+    ability?: string;
+    listClasses: string[];
+    progression: Record<number, NonNullable<ClassLevelProgression['spellcasting']>>;
+    choiceRules?: { schools: string[]; openLevels: number[]; openAtUnlock: number };
+  };
 }
 
 export interface EquipmentRecord {

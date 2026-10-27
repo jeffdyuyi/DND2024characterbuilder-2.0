@@ -214,6 +214,60 @@ export function assembleCatalogClass(
     });
     const firstLevel = traits.reduce((min, trait) => Math.min(min, trait.level), 20);
     subclassUnlockLevel = Math.min(subclassUnlockLevel, firstLevel);
+    const slotRows = (subRaw.subclassTableGroups || []).find((group: any) =>
+      Array.isArray(group.rowsSpellProgression),
+    )?.rowsSpellProgression;
+    const spellCounts =
+      subRaw.preparedSpellsProgression ||
+      subRaw.spellsKnownProgression ||
+      subRaw.spellsKnownProgressionFixed;
+    const expandedSpells = Object.values(subRaw.additionalSpells?.expanded || {}).flat(Infinity);
+    const spellText = traits.map((trait) => trait.description).join(' ');
+    const listClasses = [
+      ...new Set([
+        ...expandedSpells.flatMap((rule: any) =>
+          typeof rule?.all === 'string'
+            ? [...rule.all.matchAll(/(?:^|[|;])class=([^|;]+)/g)].map((match) => match[1])
+            : [],
+        ),
+        ...[...spellText.matchAll(/(?:\||;)class=([^|;}]+)/g)].map((match) => match[1]),
+      ]),
+    ];
+    const progression: NonNullable<SubClass['spellcasting']>['progression'] = {};
+    if (Array.isArray(slotRows)) {
+      slotRows.forEach((row: unknown, index: number) => {
+        if (!Array.isArray(row)) return;
+        progression[index + 1] = {
+          cantripsKnown: Number(subRaw.cantripProgression?.[index] || 0),
+          spellsPrepared: Number(spellCounts?.[index] || 0),
+          spellSlots: Object.fromEntries(
+            row.map((count: number, slot: number) => [`level${slot + 1}`, Number(count) || 0]),
+          ),
+        };
+      });
+    }
+    const restrictedSchools = spellText.match(
+      /你只能选择([^、，。或]{1,10}系)或([^、，。]{1,10}系)法术/,
+    );
+    const openLevelText = spellText.match(/在第([^。]{1,35})级时[^。]{0,30}任何学派/);
+    const restrictedAtUnlock = spellText.match(/其中([一二两三四五六七八九十\d]+)个必须从/);
+    const numberWords: Record<string, number> = {
+      一: 1,
+      二: 2,
+      两: 2,
+      三: 3,
+      四: 4,
+      五: 5,
+      六: 6,
+      七: 7,
+      八: 8,
+      九: 9,
+      十: 10,
+    };
+    const restrictedCount = restrictedAtUnlock
+      ? Number(restrictedAtUnlock[1]) || numberWords[restrictedAtUnlock[1]] || 0
+      : 0;
+    const openAtUnlock = Math.max(0, Number(spellCounts?.[firstLevel - 1] || 0) - restrictedCount);
     return {
       name: subclass.name,
       nameEn: subclass.englishName || subRaw.shortName || subclass.name,
@@ -221,6 +275,27 @@ export function assembleCatalogClass(
       traits,
       source: subclass.source,
       catalogId: subclass.id,
+      ...(subRaw.casterProgression && Object.keys(progression).length
+        ? {
+            spellcasting: {
+              casterProgression: subRaw.casterProgression,
+              ability: subRaw.spellcastingAbility,
+              listClasses,
+              progression,
+              ...(restrictedSchools && listClasses.length
+                ? {
+                    choiceRules: {
+                      schools: [restrictedSchools[1], restrictedSchools[2]],
+                      openLevels: openLevelText
+                        ? [...openLevelText[1].matchAll(/\d+/g)].map((match) => Number(match[0]))
+                        : [],
+                      openAtUnlock,
+                    },
+                  }
+                : {}),
+            },
+          }
+        : {}),
     };
   });
 

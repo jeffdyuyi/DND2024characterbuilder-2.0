@@ -46,6 +46,7 @@ export interface SpellChoiceSlot {
   filter: string; // 筛选规则
   source: string; // 来源描述
   isOptional: boolean; // 是否依赖玩家的前置选择
+  ignoreStepFilter?: boolean;
   nativeRule?: { origin: ParsedSpellGrants['origin']; rule: SpellGrantRule };
 }
 
@@ -266,17 +267,19 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
     if (!classDef) return;
 
     const progression = getClassProgression(classDef, cEntry.level);
-    let sc = progression?.spellcasting;
     const subclassDef = classDef.subClassInfo?.options.find(
       (option) =>
         option.catalogId === cEntry.subclassId ||
         option.nameEn === cEntry.subclassId ||
         option.name === cEntry.subclassId,
     );
+    const activeSubclass =
+      cEntry.level >= (classDef.subClassInfo?.unlockLevel || 20) ? subclassDef : undefined;
+    let sc = progression?.spellcasting || activeSubclass?.spellcasting?.progression[cEntry.level];
 
     // Fallback: 如果 progression 中没有定义施法数据，尝试寻找子职定义的施法类型并使用标准表
     if (!sc) {
-      const scTrait = subclassDef?.traits.find((t) => t.mechanics?.spellcastingType);
+      const scTrait = activeSubclass?.traits.find((t) => t.mechanics?.spellcastingType);
       const scType = scTrait?.mechanics?.spellcastingType;
 
       if (scType === '1/3') {
@@ -290,6 +293,9 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
     const nameLow = normalizedName(classDef.nameEn || classDef.name);
     const casterProgression =
       classDef.casterProgression ||
+      activeSubclass?.spellcasting?.casterProgression
+        ?.replace('1/3', 'third')
+        .replace('1/2', 'half') ||
       (['bard', 'cleric', 'druid', 'sorcerer', 'wizard'].includes(nameLow)
         ? 'full'
         : ['paladin', 'ranger'].includes(nameLow)
@@ -315,7 +321,8 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
       if (index === 0)
         primaryAbility =
           classDef.spellcastingAbility ||
-          subclassDef?.traits.find((t) => t.mechanics?.spellcastingAbility)?.mechanics
+          activeSubclass?.spellcasting?.ability ||
+          activeSubclass?.traits.find((t) => t.mechanics?.spellcastingAbility)?.mechanics
             ?.spellcastingAbility;
 
       // Pact Magic handling
@@ -768,10 +775,14 @@ export function computeSpellProgression(
     const prog = classDef.progression.find((p) => p.level === lvl);
     if (!prog) continue;
 
-    let sc = prog.spellcasting;
+    let sc =
+      prog.spellcasting ||
+      (lvl >= (classDef.subClassInfo?.unlockLevel || 20)
+        ? subclassDef?.spellcasting?.progression[lvl]
+        : undefined);
 
     // Fallback: 如果职业进度中没有施法数据，尝试寻找子职定义的施法类型并使用标准表
-    if (!sc && subclassDef) {
+    if (!sc && subclassDef && lvl >= (classDef.subClassInfo?.unlockLevel || 20)) {
       const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellcastingType);
       const scType = scTrait?.mechanics?.spellcastingType;
       if (scType === '1/3') {
@@ -791,6 +802,13 @@ export function computeSpellProgression(
     let newSpells = Math.max(0, currentSpells - prevSpells);
 
     let allowedClasses = [...baseAllowedClasses];
+    for (const source of lvl >= (classDef.subClassInfo?.unlockLevel || 20)
+      ? subclassDef?.spellcasting?.listClasses || []
+      : []) {
+      for (const name of [source, translateClass(source)]) {
+        if (name && !allowedClasses.includes(name)) allowedClasses.push(name);
+      }
+    }
 
     // 如果有子职提供的法术列表来源，则优先加入
     if (subclassDef) {
@@ -805,7 +823,7 @@ export function computeSpellProgression(
       }
     }
     let specialFeatures: string[] = [];
-    let canReplace = lvl > 1;
+    let canReplace = lvl > 1 && Boolean(sc);
 
     const features = classDef.features.filter((f) => f.level === lvl);
     for (const f of features) {
@@ -828,6 +846,10 @@ export function computeSpellProgression(
     }
 
     let stepFilter: string | undefined = undefined;
+    const subclassChoiceRules = subclassDef?.spellcasting?.choiceRules;
+    if (subclassChoiceRules && sc) {
+      stepFilter = `school:${subclassChoiceRules.schools.join(',')}`;
+    }
     if (subclassDef) {
       const scTrait = subclassDef.traits.find((t: any) => t.mechanics?.spellcastingType);
       if (scTrait?.mechanics?.spellFilter) {
@@ -844,6 +866,28 @@ export function computeSpellProgression(
     }
 
     const extraChoices: SpellChoiceSlot[] = [];
+    if (subclassChoiceRules && sc && newSpells > 0) {
+      const unlocked = classDef.subClassInfo?.unlockLevel || 20;
+      const openCount =
+        lvl === unlocked
+          ? subclassChoiceRules.openAtUnlock
+          : subclassChoiceRules.openLevels.includes(lvl)
+            ? 1
+            : 0;
+      if (openCount > 0) {
+        const count = Math.min(openCount, newSpells);
+        newSpells -= count;
+        extraChoices.push({
+          id: `subclass:${subclassDef.catalogId || subclassDef.nameEn}:open-school:${lvl}`,
+          label: `${subclassDef.name}：不限学派法术`,
+          numToChoose: count,
+          filter: `class:${subclassDef.spellcasting?.listClasses[0] || ''};level:1-${maxSpellLevel}`,
+          source: `子职业: ${subclassDef.name}`,
+          isOptional: false,
+          ignoreStepFilter: true,
+        });
+      }
+    }
     const alwaysPreparedSpells: string[] = [];
 
     const scanFeaturesForSpells = (featureList: any[], sourcePrefix: string) => {

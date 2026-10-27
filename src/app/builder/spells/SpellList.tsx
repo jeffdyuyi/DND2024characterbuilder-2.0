@@ -654,7 +654,7 @@ export default function SpellList({ character }: SpellListProps) {
       if (!levelMatch || !classMatch) return false;
 
       // 扩展匹配：如果 Step 定义了额外 filter (用于处理 2014 版子职学派限制等)
-      if (currentStep.filter) {
+      if (currentStep.filter && s.level > 0) {
         const parts = currentStep.filter.split(';').map((p) => p.trim());
         const targetSchool = parts
           .find((p) => p.startsWith('school:'))
@@ -1608,7 +1608,14 @@ export default function SpellList({ character }: SpellListProps) {
           {/* 额外选择槽 */}
           {currentStep.extraChoices.map((choice) => {
             const ec = choice;
-            let filteredPool = filteredSpells;
+            let filteredPool = ec.ignoreStepFilter
+              ? allSpells.filter(
+                  (spell) =>
+                    !sourceFilter ||
+                    !availableSources.includes(sourceFilter) ||
+                    translateSource(spell.source) === sourceFilter,
+                )
+              : filteredSpells;
             if (ec.nativeRule) {
               const ids = new Set(
                 resolveSpellGrantCandidates(ec.nativeRule.origin, ec.nativeRule.rule, allSpells)
