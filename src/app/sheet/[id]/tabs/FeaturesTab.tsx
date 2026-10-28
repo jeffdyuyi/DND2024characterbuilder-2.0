@@ -581,7 +581,20 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
           }
         });
       }
-      list.push(mainSubFeature);
+      const normalizeDescription = (value: string) =>
+        value
+          .replace(/^【[^】]+】\s*/, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+      const repeatsTrait = subspeciesDef.traits?.some(
+        (trait) =>
+          trait.description &&
+          normalizeDescription(trait.description) ===
+            normalizeDescription(subspeciesDef.description || ''),
+      );
+      if (!repeatsTrait || mainSubFeature.combinedTraits.length > 0) {
+        list.push(mainSubFeature);
+      }
     }
 
     return list.filter(
