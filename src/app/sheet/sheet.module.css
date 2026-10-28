@@ -191,6 +191,42 @@
   animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.overviewHeaderGrid,
+.overviewStatusGrid,
+.overviewAbilityGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.overviewHeaderGrid {
+  grid-template-columns: 260px minmax(0, 1fr);
+}
+
+.overviewStatusGrid {
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.overviewAbilityGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .overviewHeaderGrid,
+  .overviewStatusGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .overviewAbilityGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .overviewAbilityGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Card Styles */
 .card {
   background: var(--color-bg-surface);

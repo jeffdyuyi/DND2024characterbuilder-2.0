@@ -425,7 +425,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingBottom: 40 }}>
       {/* 1. 紧凑型顶部面板 (Header + Combat Stats) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 16 }}>
+      <div className={styles.overviewHeaderGrid}>
         {/* 左侧：角色身份卡 */}
         <div
           className={styles.card}
@@ -730,7 +730,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* 2. 状态记录栏 (HP, Resources, Conditions) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
+      <div className={styles.overviewStatusGrid}>
         {/* 生命值面板 */}
         <div
           className={styles.card}
@@ -1122,7 +1122,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {/* 3. 核心属性与技能矩阵 (三列两行结构) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+      <div className={styles.overviewAbilityGrid}>
         {['str', 'dex', 'con', 'int', 'wis', 'cha'].map((key) => renderAbilityBlock(key))}
       </div>
 
