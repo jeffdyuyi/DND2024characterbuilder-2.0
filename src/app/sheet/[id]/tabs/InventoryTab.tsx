@@ -921,9 +921,9 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 16 }}>
+      <div className={styles.inventoryLayout}>
         {/* 左侧：分类清单 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+        <div className={styles.inventoryList}>
           {/* 容器 Tabs */}
           {inventoryContainers.length > 1 && (
             <div
@@ -991,59 +991,39 @@ const InventoryTab: React.FC<InventoryTabProps> = ({
           )}
 
           <div className={styles.card} style={{ padding: 0, overflow: 'hidden' }}>
-            <div
-              style={{
-                padding: '16px 24px',
-                borderBottom: '1px solid var(--color-border-subtle)',
-                background: 'rgba(0,0,0,0.01)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  fontSize: 16,
-                  fontWeight: 700,
-                  color: 'var(--color-text-primary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                }}
-              >
+            <div className={styles.inventoryPanelHeader}>
+              <h3 className={styles.inventoryPanelTitle}>
                 {inventoryContainers.find((c) => c.id === activeContainerId)?.name || '物品清单'}
-                {isEditMode && (
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <PillButton
-                      size="xs"
-                      onClick={() => {
-                        setIsMagicOnly(false);
-                        setSearchCategory('all');
-                        setIsSearchOpen(true);
-                      }}
-                    >
-                      <Plus size={12} style={{ marginRight: 4 }} /> 添加物品
-                    </PillButton>
-                    <PillButton
-                      size="xs"
-                      variant="outline"
-                      style={{ color: '#9333ea', borderColor: '#9333ea' }}
-                      onClick={() => {
-                        setIsMagicOnly(true);
-                        setSearchCategory('magic');
-                        setIsSearchOpen(true);
-                      }}
-                    >
-                      <Wand2 size={12} style={{ marginRight: 4 }} /> 魔法物品
-                    </PillButton>
-                    <PillButton size="xs" variant="outline" onClick={() => setIsCustomOpen(true)}>
-                      <Plus size={12} style={{ marginRight: 4 }} /> 自定义物品
-                    </PillButton>
-                  </div>
-                )}
               </h3>
-              {!isEditMode && (
+              {isEditMode ? (
+                <div className={styles.inventoryHeaderActions}>
+                  <PillButton
+                    size="xs"
+                    onClick={() => {
+                      setIsMagicOnly(false);
+                      setSearchCategory('all');
+                      setIsSearchOpen(true);
+                    }}
+                  >
+                    <Plus size={12} style={{ marginRight: 4 }} /> 添加物品
+                  </PillButton>
+                  <PillButton
+                    size="xs"
+                    variant="outline"
+                    style={{ color: '#9333ea', borderColor: '#9333ea' }}
+                    onClick={() => {
+                      setIsMagicOnly(true);
+                      setSearchCategory('magic');
+                      setIsSearchOpen(true);
+                    }}
+                  >
+                    <Wand2 size={12} style={{ marginRight: 4 }} /> 魔法物品
+                  </PillButton>
+                  <PillButton size="xs" variant="outline" onClick={() => setIsCustomOpen(true)}>
+                    <Plus size={12} style={{ marginRight: 4 }} /> 自定义物品
+                  </PillButton>
+                </div>
+              ) : (
                 <PillButton size="xs" onClick={onEnableEdit}>
                   编辑物品与钱币
                 </PillButton>
