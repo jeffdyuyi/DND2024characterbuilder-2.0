@@ -251,11 +251,17 @@ function LoadedCharacterSheet({
               >
                 {isEditMode ? '⚠ 编辑中' : '查看模式'}
               </span>
-              <div
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isEditMode}
+                aria-label={isEditMode ? '关闭编辑模式' : '开启编辑模式'}
                 onClick={() => setIsEditMode(!isEditMode)}
                 style={{
                   width: 40,
                   height: 20,
+                  padding: 0,
+                  border: 0,
                   borderRadius: 10,
                   background: isEditMode ? 'var(--color-warning, #f59e0b)' : '#d2d2d7',
                   position: 'relative',
@@ -277,7 +283,7 @@ function LoadedCharacterSheet({
                     boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                   }}
                 />
-              </div>
+              </button>
             </div>
             <PillButton
               size="sm"

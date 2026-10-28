@@ -281,6 +281,11 @@
   .profileIdentityRow {
     flex-direction: column;
   }
+
+  .profileIdentityRow > :last-child {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 /* Card Styles */
