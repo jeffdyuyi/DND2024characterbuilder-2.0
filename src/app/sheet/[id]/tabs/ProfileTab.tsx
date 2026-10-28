@@ -73,7 +73,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
     onChange: (val: string) => void,
     height: number = 100,
   ) => (
-    <div style={{ flex: 1 }}>
+    <div className={styles.profileNoteField}>
       <div
         style={{
           fontWeight: 600,
@@ -111,10 +111,10 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 32, paddingBottom: 40 }}>
       {/* 1. 身份与生理特征 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 32 }}>
+      <div className={styles.profileColumnGrid}>
         <div className={styles.card} style={{ padding: 24 }}>
           <SectionHeader title="核心身份" />
-          <div style={{ display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+          <div className={styles.profileIdentityRow}>
             <div
               style={{
                 width: 100,
@@ -140,7 +140,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               )}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className={styles.profileIdentityDetails}>
                 {renderDetailItem('代词', character.pronouns)}
                 {renderDetailItem('阵营', character.alignment)}
                 {renderDetailItem('信仰', character.faith)}
@@ -153,7 +153,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
 
         <div className={styles.card} style={{ padding: 24 }}>
           <SectionHeader title="物理特征" />
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          <div className={styles.profilePhysicalGrid}>
             {renderDetailItem('性别', character.gender)}
             {renderDetailItem('年龄', character.age)}
             {renderDetailItem('身高', character.height)}
@@ -188,7 +188,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
       </div>
 
       {/* 2. 背景故事与性格 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 32 }}>
+      <div className={styles.profileColumnGrid}>
         <div className={styles.card} style={{ padding: 24 }}>
           <SectionHeader title="个性特征" />
           {renderLongItem('人格特质', character.personalityTraits)}
@@ -219,7 +219,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
       <div className={styles.card} style={{ padding: 24 }}>
         <SectionHeader title="社交与组织" />
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          <div style={{ display: 'flex', gap: 24 }}>
+          <div className={styles.profileNotesRow}>
             {renderTextarea(
               '所属组织',
               '记录角色所属的阵营、工会或教派...',
@@ -242,7 +242,7 @@ const ProfileTab: React.FC<ProfileTabProps> = ({
               80,
             )}
           </div>
-          <div style={{ display: 'flex', gap: 24 }}>
+          <div className={styles.profileNotesRow}>
             {renderTextarea(
               '队友笔记',
               '记录与当前冒险伙伴的相关信息...',
