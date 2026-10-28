@@ -3,9 +3,11 @@
   border-radius: var(--radius-md);
   padding: 12px 16px;
   cursor: pointer;
-  transition: var(--transition-smooth);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
   position: relative;
-  border: 1px solid var(--color-border-dark);
+  border: 2px solid var(--color-border-dark);
 }
 
 .card:hover {
@@ -15,9 +17,25 @@
 }
 
 .card--selected {
-  background: rgba(197, 160, 89, 0.12) !important;
-  border: 2px solid var(--color-gold-bright) !important;
-  box-shadow: var(--shadow-gold-glow) !important;
+  background: var(--color-bg-surface-elevated);
+  border-color: var(--color-gold-bright);
+  box-shadow: var(--shadow-gold-glow);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-apple-blue);
+  outline-offset: 2px;
+}
+
+.card--disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.card--disabled:hover {
+  border-color: var(--color-border-dark);
+  background: var(--color-bg-dark);
+  transform: none;
 }
 
 .card--compact {
@@ -50,18 +68,16 @@
 
 :global(:root:not([data-theme='light'])) .card {
   border-radius: 0;
-  border-width: 2px;
   box-shadow: 3px 3px 0 #10111e;
   transition: none;
 }
 
-:global(:root:not([data-theme='light'])) .card:hover {
+:global(:root:not([data-theme='light'])) .card:not(.card--disabled):not(.card--selected):hover {
   border-color: var(--color-apple-blue);
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 var(--color-apple-blue);
 }
 
 :global(:root:not([data-theme='light'])) .card--selected {
-  background: var(--color-bg-surface-elevated) !important;
-  box-shadow: 3px 3px 0 var(--color-gold-accent) !important;
+  box-shadow: 3px 3px 0 var(--color-gold-accent);
 }

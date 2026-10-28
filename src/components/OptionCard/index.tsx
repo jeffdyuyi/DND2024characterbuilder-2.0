@@ -35,13 +35,15 @@ export default function OptionCard({
     <div
       className={classes}
       onClick={disabled ? undefined : onClick}
-      role="button"
-      tabIndex={disabled ? -1 : 0}
-      style={{
-        opacity: disabled ? 0.6 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        ...(!disabled && !selected ? {} : {}),
+      onKeyDown={(event) => {
+        if (disabled || !onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        onClick();
       }}
+      role="button"
+      aria-pressed={selected}
+      aria-disabled={disabled}
+      tabIndex={disabled ? -1 : 0}
     >
       <div className={styles.card__title}>{title}</div>
       {subtitle && <div className={styles.card__subtitle}>{subtitle}</div>}
