@@ -683,6 +683,40 @@
   list-style: none;
 }
 
+.exportDropdownTrigger {
+  padding: 5px 12px;
+  border: 1px solid var(--color-border-gold);
+  border-radius: var(--radius-pill);
+  background: rgba(197, 160, 89, 0.08);
+  color: var(--color-gold-bright);
+  font-size: var(--font-size-secondary, 13px);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.exportDropdownTrigger:hover {
+  background: var(--color-border-gold);
+}
+
+.exportDropdownTrigger:focus-visible {
+  outline: 2px solid var(--color-apple-blue);
+  outline-offset: 2px;
+}
+
+:global(:root:not([data-theme='light'])) .exportDropdownTrigger {
+  border-width: 2px;
+  border-radius: 0;
+  background: var(--color-bg-dark);
+  box-shadow: 3px 3px 0 #10111e;
+}
+
+@media (max-width: 560px) {
+  .editModeLabel {
+    display: none;
+  }
+}
+
 .exportDropdown summary::-webkit-details-marker {
   display: none;
 }

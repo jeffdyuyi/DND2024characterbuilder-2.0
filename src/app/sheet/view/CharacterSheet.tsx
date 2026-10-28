@@ -224,6 +224,7 @@ function LoadedCharacterSheet({
         backLabel="角色库"
         backHref="/"
         title="角色卡"
+        compactMobile
         actions={
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             {/* 全局编辑开关 */}
@@ -237,6 +238,7 @@ function LoadedCharacterSheet({
               }}
             >
               <span
+                className={styles.editModeLabel}
                 style={{
                   fontSize: 11,
                   fontWeight: 600,
@@ -286,11 +288,7 @@ function LoadedCharacterSheet({
             </PillButton>
             <div className={styles.exportDropdown}>
               <details style={{ position: 'relative' }}>
-                <summary style={{ listStyle: 'none', cursor: 'pointer' }}>
-                  <PillButton size="sm" variant="outline">
-                    导出 / 导入 ▾
-                  </PillButton>
-                </summary>
+                <summary className={styles.exportDropdownTrigger}>导出 / 导入 ▾</summary>
                 <div
                   style={{
                     position: 'absolute',

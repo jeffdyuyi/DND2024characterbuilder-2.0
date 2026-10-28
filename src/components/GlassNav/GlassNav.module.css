@@ -293,6 +293,13 @@
   .glassNav__inner {
     gap: 6px;
   }
+  .glassNavCompactMobile .glassNav__title,
+  .glassNavCompactMobile .glassNav__back span {
+    display: none;
+  }
+  .glassNavCompactMobile .glassNav__back {
+    padding: 6px 8px;
+  }
 }
 
 @keyframes slideUp {

@@ -11,9 +11,16 @@ interface GlassNavProps {
   backLabel?: string;
   backHref?: string;
   actions?: React.ReactNode;
+  compactMobile?: boolean;
 }
 
-export default function GlassNav({ title, backLabel, backHref, actions }: GlassNavProps) {
+export default function GlassNav({
+  title,
+  backLabel,
+  backHref,
+  actions,
+  compactMobile = false,
+}: GlassNavProps) {
   const router = useRouter();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -38,7 +45,7 @@ export default function GlassNav({ title, backLabel, backHref, actions }: GlassN
 
   return (
     <>
-      <nav className={styles.glassNav}>
+      <nav className={`${styles.glassNav} ${compactMobile ? styles.glassNavCompactMobile : ''}`}>
         <div className={styles.glassNav__inner}>
           {/* 左侧：返回上级与页面标题 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
