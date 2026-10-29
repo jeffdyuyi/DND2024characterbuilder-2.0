@@ -66,7 +66,7 @@ function numberWord(value: string): number | undefined {
 
 function inferChoiceType(text: string): FeatureChoice['type'] | undefined {
   const low = text.toLowerCase();
-  if (/expertise|专精|双倍.*熟练|double (?:its|your) proficiency/i.test(low)) return 'expertise';
+  if (/expertise|专精|双倍.*熟练|熟练加值.{0,10}(?:双倍|两倍)|double (?:its|your) proficiency/i.test(low)) return 'expertise';
   if (/weapon mastery|mastery propert|武器精通|精通属性|精通词条/i.test(low))
     return 'weaponMastery';
   if (/fighting style feat|战斗风格专长/i.test(low)) return 'feat';
@@ -262,8 +262,25 @@ export function parseFeatureChoices(entry: CatalogEntry): FeatureChoiceParseResu
 
   if (choices.length === 0) {
     choices.push(...structured);
-    if (!Object.keys(fields).some((field) => Array.isArray(raw[field])))
-      choices.push(...semanticFallback(entriesText, entry));
+    if (!Object.keys(fields).some((field) => Array.isArray(raw[field]))) {
+      const clauses = entriesText
+        .split(/[。.!！？?]/)
+        .map((text) => text.trim())
+        .filter(
+          (text) => inferChoiceType(text) && /choose|choice|select|选择|自选|任选/i.test(text),
+        );
+      const distinctTypes = new Set(clauses.map(inferChoiceType));
+      const parsed =
+        distinctTypes.size > 1
+          ? clauses.flatMap((clause) => semanticFallback(clause, entry))
+          : semanticFallback(entriesText, entry);
+      choices.push(
+        ...parsed.map((choice, index) => ({
+          ...choice,
+          id: `cls:${raw.className || 'class'}:feat:${entry.id}:choice:${index}`,
+        })),
+      );
+    }
   }
 
   const diagnostics: string[] = [];

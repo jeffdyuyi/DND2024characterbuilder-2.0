@@ -195,4 +195,22 @@ describe('职业特性通用选项解析器', () => {
       'feature-choice-unresolved:test:classFeature:Strange Choice',
     ]);
   });
+
+  it('同一特性的不同法条分别保留专精与语言数量', () => {
+    const entry = feature('熟练探险家', [
+      '{@i 1级游侠可选特性，替代自然探索者特性}',
+      {
+        name: '精明',
+        type: 'entries',
+        entries: [
+          '你选择一项你拥有熟练的技能，你在使用该技能时所做的任何属性检定中的熟练加值变为两倍。',
+          '你还可以额外说、读、写两门额外的自选语言。',
+        ],
+      },
+    ]);
+    expect(parseFeatureChoices(entry).choices).toMatchObject([
+      { type: 'expertise', numToChoose: 1, filter: 'proficient-skills' },
+      { type: 'language', numToChoose: 2, filter: 'type:language' },
+    ]);
+  });
 });
