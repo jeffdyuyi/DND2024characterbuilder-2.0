@@ -607,7 +607,8 @@ export const translateSpellSchool = (school: string): string => {
 
   // 查找映射表，忽略大小写
   for (const [key, value] of Object.entries(SPELL_SCHOOL_MAP)) {
-    if (key.toLowerCase() === lowSchool) return value;
+    if (key.toLowerCase() === lowSchool || value === school || value.replace(/系$/, '') === school)
+      return value;
   }
 
   return school;

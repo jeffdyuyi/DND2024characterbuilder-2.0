@@ -84,9 +84,21 @@ export function catalogEntryToFeat(entry: CatalogEntry): Feat {
     }
   }
 
+  const nativeChoice =
+    Array.isArray(raw.ability) && raw.ability.length === 1 ? raw.ability[0]?.choose : undefined;
+  const nativeAsi =
+    nativeChoice &&
+    Array.isArray(nativeChoice.from) &&
+    nativeChoice.from.length > 0 &&
+    nativeChoice.from.every((key: string) => ABILITIES.includes(key)) &&
+    (nativeChoice.count === undefined || nativeChoice.count === 1) &&
+    Number.isInteger(nativeChoice.amount ?? 1) &&
+    (nativeChoice.amount ?? 1) > 0
+      ? [{ points: nativeChoice.amount ?? 1, options: [...new Set<string>(nativeChoice.from)] }]
+      : undefined;
   const inferredAsi = raw.mechanics?.abilityScoreImprovement
     ? undefined
-    : inferAbilityImprovement(entry.description || '');
+    : nativeAsi || inferAbilityImprovement(entry.description || '');
 
   return {
     id: entry.id,

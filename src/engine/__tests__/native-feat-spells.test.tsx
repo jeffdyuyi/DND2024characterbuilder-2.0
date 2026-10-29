@@ -18,7 +18,7 @@ import {
   deriveCharacterSpellSelection,
   buildSpellSourceMap,
 } from '../spellcasting';
-import { getSpellDefinition } from '../characterData';
+import { getSpellDefinition, getFeatDefinition } from '../characterData';
 import { exportToJSON, importFromJSON } from '../importExport';
 import NativeFeatSpellChoices from '@/app/builder/spells/NativeFeatSpellChoices';
 import SpellsTab from '@/app/sheet/[id]/tabs/SpellsTab';
@@ -120,6 +120,71 @@ function state(): CharacterState {
     selectedLanguages: [],
   };
 }
+
+it('继承专长提升属性的固定和受限自选法术重载后保留，非法候选不生效', () => {
+  const inherited = normalizeFeat({
+    name: '继承施法测试',
+    source: 'XPHB',
+    ability: [{ choose: { from: ['int', 'wis', 'cha'] } }],
+    additionalSpells: [
+      {
+        ability: 'inherit',
+        innate: { _: { daily: { '1e': ['测试一环|XPHB', { choose: 'level=1|school=E;D' }] } } },
+      },
+    ],
+  });
+  const valid = normalizeSpell({ name: '合法惑控', source: 'XPHB', level: 1, school: 'E' });
+  const wrongSchool = normalizeSpell({ name: '错误学派', source: 'XPHB', level: 1, school: 'V' });
+  const wrongLevel = normalizeSpell({ name: '错误环阶', source: 'XPHB', level: 2, school: 'E' });
+  defaultCatalog.registerMany([inherited, background, ...spells, valid, wrongSchool, wrongLevel]);
+  const character = state();
+  character.originFeatId = inherited.id;
+  expect(getFeatDefinition(inherited.id)?.mechanics?.abilityScoreImprovement).toEqual([
+    { points: 1, options: ['int', 'wis', 'cha'] },
+  ]);
+  const plan = getNativeFeatSpellPlans(character)[0];
+  expect(plan).toBeDefined();
+  const block = plan.grants.blocks[0];
+  const choice = block.rules.find((rule) => rule.selection.kind === 'choose')!;
+  character.featSelections = { 'background-feat': { featId: inherited.id, ability: 'wis' } };
+  expect(getNativeFeatSpellGrants(character).map((grant) => grant.spellId)).toEqual([spells[2].id]);
+  character.featSelections = {
+    'background-feat': {
+      featId: inherited.id,
+      ability: 'wis',
+      nativeSpellGrants: { originId: inherited.id, selections: { [choice.id]: [valid.id] } },
+    },
+  };
+  const reopened = JSON.parse(JSON.stringify(character));
+  expect(getNativeFeatSpellGrants(reopened).map((grant) => grant.spellId)).toEqual([
+    spells[2].id,
+    valid.id,
+  ]);
+  expect(getNativeFeatSpellGrants(reopened)[0].source).toContain('感知');
+  expect(getInnateSpells(reopened).map((grant) => grant.spellId)).toEqual(
+    expect.arrayContaining([spells[2].id, valid.id]),
+  );
+  const html = renderToStaticMarkup(
+    <NativeFeatSpellChoices
+      character={reopened}
+      candidates={[...spells, valid, wrongSchool, wrongLevel].map((entry) =>
+        getSpellDefinition(entry.id)!,
+      )}
+      onChange={() => {}}
+    />,
+  );
+  expect(html).toContain('感知');
+  for (const invalid of [wrongSchool, wrongLevel]) {
+    reopened.featSelections['background-feat'].nativeSpellGrants.selections[choice.id] = [
+      invalid.id,
+    ];
+    expect(getNativeFeatSpellGrants(reopened).map((grant) => grant.spellId)).toEqual([
+      spells[2].id,
+    ]);
+  }
+  reopened.featSelections['background-feat'].ability = 'str';
+  expect(getNativeFeatSpellGrants(reopened)).toEqual([]);
+});
 
 it('原生专长在两个页面共用槽位记录，重开后派生三道且移除来源退出', async () => {
   defaultCatalog.registerMany([feat, background, ...spells]);

@@ -6,6 +6,7 @@ import {
   canRecordNativeFeatLevelReplacement,
   getActiveNativeFeatRuleSelections,
   getNativeFeatSpellPlans,
+  getInheritedFeatSpellAbility,
   requiresDistinctNativeFeatBlocks,
 } from '@/engine/nativeFeatSpells';
 import { resolveSpellGrantCandidates } from '@/engine/spellGrantCandidates';
@@ -203,6 +204,16 @@ export default function NativeFeatSpellChoices({
                 )}
                 {block.ability?.kind === 'fixed' && (
                   <p>施法属性：{translateAbilityKey(block.ability.value)}</p>
+                )}
+                {block.ability?.kind === 'inherit' && (
+                  <p>
+                    施法属性：
+                    {getInheritedFeatSpellAbility(character, slot.id, grants.origin.id)
+                      ? translateAbilityKey(
+                          getInheritedFeatSpellAbility(character, slot.id, grants.origin.id)!,
+                        )
+                      : '请先在专长页面确定本专长提升的属性'}
+                  </p>
                 )}
                 <label>
                   查找法术{' '}

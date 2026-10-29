@@ -87,8 +87,6 @@ export function getNativeFeatSpellPlans(character: CharacterState) {
         grants.blockRelationship === 'unspecified' ||
         grants.blocks.some(
           (block) =>
-            !block.rules.some((rule) => rule.selection.kind === 'choose') ||
-            block.ability?.kind === 'inherit' ||
             block.requiresReview ||
             block.resourceName ||
             block.rules.some(
@@ -106,9 +104,25 @@ export function getNativeFeatSpellPlans(character: CharacterState) {
   );
 }
 
+/** inherit 关联同一专长槽位的属性提升，不借用职业施法属性。 */
+export function getInheritedFeatSpellAbility(
+  character: CharacterState,
+  slotId: string,
+  originId: string,
+) {
+  const choices = character.featSelections?.[slotId];
+  if (choices?.featId !== originId || !choices.ability) return undefined;
+  const improvements = defaultCatalog.get(originId)?.raw.ability;
+  if (!Array.isArray(improvements)) return undefined;
+  return improvements.some(
+    (entry: any) =>
+      entry?.choose?.from?.includes(choices.ability) || Number(entry?.[choices.ability!]) > 0,
+  )
+    ? choices.ability
+    : undefined;
+}
+
 export function getNativeFeatSpellGrants(character: CharacterState, candidates?: Spell[]) {
-  if (!Object.values(character.featSelections || {}).some((choice) => choice.nativeSpellGrants))
-    return [];
   const plans = getNativeFeatSpellPlans(character);
   if (!plans.length) return [];
   // 来源范围只限制新候选；已保存的选择仍须按完整目录验证并派生。
@@ -124,8 +138,11 @@ export function getNativeFeatSpellGrants(character: CharacterState, candidates?:
   }[] = [];
   const usedBlocks = new Set<string>();
   for (const { slot, characterLevel, grants } of plans) {
-    const saved = character.featSelections?.[slot.id]?.nativeSpellGrants;
-    if (!saved || saved.originId !== grants.origin.id) continue;
+    const recorded = character.featSelections?.[slot.id]?.nativeSpellGrants;
+    const saved =
+      recorded?.originId === grants.origin.id
+        ? recorded
+        : { originId: grants.origin.id, selections: {} };
     const block =
       grants.blockRelationship === 'single'
         ? grants.blocks[0]
@@ -138,7 +155,13 @@ export function getNativeFeatSpellGrants(character: CharacterState, candidates?:
     }
     if (block.ability?.kind === 'choose' && !block.ability.from.includes(saved.ability || ''))
       continue;
-    const ability = block.ability?.kind === 'fixed' ? block.ability.value : saved.ability;
+    const ability =
+      block.ability?.kind === 'inherit'
+        ? getInheritedFeatSpellAbility(character, slot.id, grants.origin.id)
+        : block.ability?.kind === 'fixed'
+          ? block.ability.value
+          : saved.ability;
+    if (block.ability?.kind === 'inherit' && !ability) continue;
     const modifier = ability
       ? computeAbilityScores(character).modifiers[
           ability as keyof ReturnType<typeof computeAbilityScores>['modifiers']
