@@ -29,6 +29,7 @@ vi.mock('@/store/characterStore', () => ({
   }),
 }));
 import ClassDetailPage from '@/app/builder/class-detail/page';
+import ChoiceFilterList from '@/components/ChoiceFilterList';
 import SubclassChoice from '@/components/SubclassChoice';
 import { normalizeItem } from '@/source/fiveetools-cn/normalizers/item';
 import ClassFeatureGuidance from '@/components/ClassFeatureGuidance';
@@ -40,6 +41,7 @@ import { computeProficiencies } from '../proficiency';
 function nodes(node: any): any[] {
   if (!node || typeof node !== 'object') return [];
   if (Array.isArray(node)) return node.flatMap(nodes);
+  if (node.type === ChoiceFilterList) return [node, ...nodes(ChoiceFilterList(node.props))];
   return [node, ...nodes(node.props?.children)];
 }
 const parent = normalizeClass({

@@ -11,6 +11,8 @@ import { useCharacterStore } from '@/store/characterStore';
 import { isActiveClassSelection } from '@/engine/classSelectionScope';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
+import ChoiceFilterList, { ChoiceFacets } from '@/components/ChoiceFilterList';
+import { findCatalogTool, getToolCategory } from '@/catalog/tools';
 import {
   computeProficiencies,
   isProficientWithWeapon,
@@ -285,7 +287,6 @@ export default function ClassDetailPage() {
   const [expandedSources, setExpandedSources] = useState<string[]>(['2024 核心规则 (Core)']);
   const [previewMap, setPreviewMap] = useState<Record<string, string>>({});
   const [activeSourceFilter, setActiveSourceFilter] = useState<string | null>('2024 玩家手册');
-  const [masterySource, setMasterySource] = useState('');
 
   // Language filtering state
   const [langCategory, setLangCategory] = useState<string>('Standard');
@@ -713,7 +714,7 @@ export default function ClassDetailPage() {
         ),
       );
     }
-    const finalOptions = choices.filterOptions(resolvedOptions, category);
+    const finalOptions = [...new Set(choices.filterOptions(resolvedOptions, category))];
     if (finalOptions.length === 0) return null;
     const isWeaponMastery =
       category === 'weaponMastery' || category === 'mastery' || id.includes('weapon_mastery');
@@ -721,13 +722,46 @@ export default function ClassDetailPage() {
       if (typeof option !== 'string') return option.source || '';
       return findItemById(option)?.source || option.split('|')[1] || '';
     };
-    const masterySources = isWeaponMastery
-      ? [...new Set(finalOptions.map(sourceOfWeapon).filter(Boolean))]
-      : [];
-    const effectiveMasterySource = masterySources.includes(masterySource) ? masterySource : '';
-    const displayedOptions = effectiveMasterySource
-      ? finalOptions.filter((option) => sourceOfWeapon(option) === effectiveMasterySource)
-      : finalOptions;
+    const languageEntries = category === 'language' ? choices.getCatalogLanguages() : [];
+    const languagesById = new Map<string, typeof languageEntries>();
+    languageEntries.forEach((entry) => {
+      const matching = languagesById.get(entry.id) || [];
+      matching.push(entry);
+      languagesById.set(entry.id, matching);
+    });
+    const getFacets = (
+      option: string | { name?: string; nameEn?: string; source?: string },
+    ): ChoiceFacets => {
+      const optionId = typeof option === 'string' ? option : option.nameEn || option.name || '';
+      if (category === 'language') {
+        const matches = languagesById.get(optionId) || [];
+        return {
+          sources: [
+            ...new Set(
+              matches.map((entry) => entry.source).filter((value): value is string => !!value),
+            ),
+          ],
+          types: [...new Set(matches.map((entry) => entry.type))],
+        };
+      }
+      if (category === 'tool') {
+        const tool = findCatalogTool(optionId);
+        const type = getToolCategory(optionId);
+        return {
+          sources: tool?.source ? [tool.source] : [],
+          types: type !== 'Unknown' ? [type] : [],
+        };
+      }
+      if (category === 'spell') {
+        const spell = getSpellDefinition(optionId);
+        return {
+          sources: spell?.source ? [spell.source] : [],
+          types: spell?.school ? [spell.school] : [],
+        };
+      }
+      const source = isWeaponMastery || category === 'weapon' ? sourceOfWeapon(option) : '';
+      return { sources: source ? [source] : [] };
+    };
     if (category === 'expertise') {
       const eligible = new Set(finalOptions.map(normalizeSkillId));
       chosen = chosen.map(normalizeSkillId).filter((selected) => eligible.has(selected));
@@ -1156,83 +1190,87 @@ export default function ClassDetailPage() {
             已选 {chosen.length}/{selection.numToChoose || 1}
           </div>
         </div>
-        {masterySources.length > 0 && (
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
-            {['', ...masterySources].map((source) => (
-              <PillButton
-                key={source}
-                size="sm"
-                variant={effectiveMasterySource === source ? 'primary' : 'outline'}
-                aria-pressed={effectiveMasterySource === source}
-                onClick={() => setMasterySource(source)}
-              >
-                {source ? getSourceDisplayName(source) : '全部来源'}
-              </PillButton>
-            ))}
-          </div>
-        )}
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          {displayedOptions.map((opt) => {
-            const optId = typeof opt === 'object' ? opt.nameEn : opt;
-            const isAlreadySelected = alreadySelectedInOtherSlots.includes(normalizeSkillId(optId));
+        <ChoiceFilterList
+          options={finalOptions}
+          getFacets={getFacets}
+          typeLabels={{
+            Standard: '标准',
+            Rare: '稀有',
+            Exotic: '特殊',
+            Artisan: '工匠工具',
+            Gaming: '赌具',
+            Musical: '乐器',
+            Other: '其他工具',
+            Vehicle: '载具',
+          }}
+          render={(displayedOptions) => (
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {displayedOptions.map((opt) => {
+                const optId = typeof opt === 'object' ? opt.nameEn || opt.name || '' : opt;
+                const isAlreadySelected = alreadySelectedInOtherSlots.includes(
+                  normalizeSkillId(optId),
+                );
 
-            if (
-              category === 'skill' &&
-              (id.includes(':base:prof:skills') || id.includes(':prof:skills'))
-            ) {
-              const classSpecificChosen = character?.classSelections?.[id] || [];
-              if (classSpecificChosen.length > 0) {
-                chosen = classSpecificChosen;
-              } else {
-                chosen = (character?.selectedSkills || []).filter((s) => {
-                  const nid = normalizeSkillId(s);
-                  return (
-                    finalOptions.some((opt) => normalizeSkillId(opt) === nid) &&
-                    !preSelectedProficiencies.includes(nid)
-                  );
-                });
-              }
-            }
-
-            const isDisabled = isAlreadySelected && category !== 'expertise';
-            // 统一使用规范化后的 ID 进行比对
-            const normalizedOptId =
-              category === 'skill' || category === 'expertise' ? normalizeSkillId(optId) : optId;
-            const isChosen = chosen.includes(normalizedOptId);
-            const weapon =
-              category === 'weapon' || isWeaponMastery ? findItemById(optId) : undefined;
-
-            return (
-              <PillButton
-                key={optId}
-                size="sm"
-                variant={isChosen ? 'primary' : 'outline'}
-                disabled={isDisabled}
-                onClick={() =>
-                  handleClassSelection(id, optId, selection.numToChoose, category, finalOptions)
+                if (
+                  category === 'skill' &&
+                  (id.includes(':base:prof:skills') || id.includes(':prof:skills'))
+                ) {
+                  const classSpecificChosen = character?.classSelections?.[id] || [];
+                  if (classSpecificChosen.length > 0) {
+                    chosen = classSpecificChosen;
+                  } else {
+                    chosen = (character?.selectedSkills || []).filter((s) => {
+                      const nid = normalizeSkillId(s);
+                      return (
+                        finalOptions.some((opt) => normalizeSkillId(opt) === nid) &&
+                        !preSelectedProficiencies.includes(nid)
+                      );
+                    });
+                  }
                 }
-                style={{
-                  opacity: isDisabled ? 0.4 : 1,
-                  transform: isChosen ? 'scale(1.02)' : 'scale(1)',
-                  boxShadow: isChosen ? '0 4px 10px var(--color-border-gold)' : 'none',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                {category === 'skill' || category === 'expertise'
-                  ? translateSkill(optId)
-                  : weapon
-                    ? `${weapon.name} [${getSourceDisplayName(weapon.source || '')}]`
-                    : category === 'tool' || category === 'weapon' || isWeaponMastery
-                      ? translateProficiency(optId)
-                      : category === 'language'
-                        ? choices.getCatalogLanguages().find((entry) => entry.id === optId)?.name ||
-                          translateLabel(optId)
-                        : translateLabel(optId)}
-                {isDisabled && <span style={{ fontSize: '10px', marginLeft: 4 }}>(已选)</span>}
-              </PillButton>
-            );
-          })}
-        </div>
+
+                const isDisabled = isAlreadySelected && category !== 'expertise';
+                // 统一使用规范化后的 ID 进行比对
+                const normalizedOptId =
+                  category === 'skill' || category === 'expertise'
+                    ? normalizeSkillId(optId)
+                    : optId;
+                const isChosen = chosen.includes(normalizedOptId);
+                const weapon =
+                  category === 'weapon' || isWeaponMastery ? findItemById(optId) : undefined;
+
+                return (
+                  <PillButton
+                    key={optId}
+                    size="sm"
+                    variant={isChosen ? 'primary' : 'outline'}
+                    disabled={isDisabled}
+                    onClick={() =>
+                      handleClassSelection(id, optId, selection.numToChoose, category, finalOptions)
+                    }
+                    style={{
+                      opacity: isDisabled ? 0.4 : 1,
+                      transform: isChosen ? 'scale(1.02)' : 'scale(1)',
+                      boxShadow: isChosen ? '0 4px 10px var(--color-border-gold)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {category === 'skill' || category === 'expertise'
+                      ? translateSkill(optId)
+                      : weapon
+                        ? `${weapon.name} [${getSourceDisplayName(weapon.source || '')}]`
+                        : category === 'tool' || category === 'weapon' || isWeaponMastery
+                          ? translateProficiency(optId)
+                          : category === 'language'
+                            ? languagesById.get(optId)?.[0]?.name || translateLabel(optId)
+                            : translateLabel(optId)}
+                    {isDisabled && <span style={{ fontSize: '10px', marginLeft: 4 }}>(已选)</span>}
+                  </PillButton>
+                );
+              })}
+            </div>
+          )}
+        />
       </div>
     );
   };
