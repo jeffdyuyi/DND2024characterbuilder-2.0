@@ -259,7 +259,11 @@ export function catalogEntryToSpecies(entry: CatalogEntry): Species {
     creatureType: raw.creatureType || raw.creatureTypes?.[0] || '类人',
     size,
     speed,
-    senses: raw.senses || { darkvision: raw.darkvision },
+    senses: Object.fromEntries(
+      Object.entries(raw.senses || { darkvision: raw.darkvision }).filter(
+        ([, distance]) => typeof distance === 'number' && Number.isFinite(distance) && distance > 0,
+      ),
+    ),
     abilityScoreIncrease: abilityScoreIncrease || raw.abilityScoreIncrease,
     abilityChoices,
     traits: traits.length > 0 ? traits : raw.traits || [],

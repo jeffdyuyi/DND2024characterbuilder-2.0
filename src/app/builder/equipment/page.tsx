@@ -11,8 +11,6 @@ import {
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
-import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
-import ClassStartingGoldChoice from '@/components/ClassStartingGoldChoice';
 import PillButton from '@/components/PillButton';
 import OptionCard from '@/components/OptionCard';
 import styles from '../species/page.module.css';
@@ -1251,149 +1249,11 @@ export default function EquipmentPage() {
           {!character.startingEquipmentGrant?.currency && (
             <p role="status">旧角色首次同步按当前方案重算起始金币，后续切换只调整差额。</p>
           )}
-          {/* 职业选择区块 */}
           <section>
-            <h4 style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ opacity: 0.5 }}>02</span> 职业起始装备
-            </h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <EquipmentOptionCard
-                title="方案 A：职业套组"
-                description={
-                  Array.isArray(primaryClass?.startingEquipment.choiceA)
-                    ? primaryClass.startingEquipment.choiceA
-                        .map((i) => (typeof i === 'string' ? i : i.options.join(' 或 ')))
-                        .join(', ')
-                    : undefined
-                }
-                selected={normalizeEquipmentMode(character.equipmentChoiceMode) === 'package'}
-                onClick={() => applyEquipmentState({ classMode: 'package' })}
-              />
-              <EquipmentOptionCard
-                title={
-                  primaryClass?.startingEquipment.goldAlternativeFormula ||
-                  (primaryClass?.startingEquipment.choiceB?.includes('GP') &&
-                    !primaryClass?.startingEquipment.choiceB?.includes('，'))
-                    ? '方案 B：起始金币'
-                    : '方案 B：职业套组'
-                }
-                description={primaryClass?.startingEquipment.choiceB}
-                selected={normalizeEquipmentMode(character.equipmentChoiceMode) === 'gold'}
-                onClick={() => applyEquipmentState({ classMode: 'gold' })}
-              />
-              {primaryClass?.startingEquipment.choiceC && (
-                <EquipmentOptionCard
-                  title={
-                    primaryClass.startingEquipment.choiceC.endsWith('GP')
-                      ? '方案 C：起始金币'
-                      : '方案 C：特选方案'
-                  }
-                  description={primaryClass.startingEquipment.choiceC}
-                  selected={character.equipmentChoiceMode === 'choiceC'}
-                  onClick={() => applyEquipmentState({ classMode: 'choiceC' })}
-                />
-              )}
-            </div>
-
-            {primaryClass && (
-              <ClassStartingGoldChoice
-                character={character}
-                definition={primaryClass}
-                onChange={commitEquipmentUpdates}
-              />
-            )}
-
-            {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
-              (primaryClass?.startingEquipment.choiceRows ||
-                primaryClass?.startingEquipment.choiceARecords?.some(
-                  (record) => record.equipmentType && record.selectionId,
-                )) && (
-                <ClassEquipmentChoices
-                  character={character}
-                  definition={primaryClass}
-                  onChange={commitEquipmentUpdates}
-                />
-              )}
-            {/* 如果选择了职业套组，展示具体子方案 */}
-            {normalizeEquipmentMode(character.equipmentChoiceMode) === 'package' &&
-              !primaryClass?.startingEquipment.choiceRows &&
-              classPackageOptions.length > 1 && (
-                <div
-                  style={{
-                    marginTop: 16,
-                    padding: '12px',
-                    background: 'rgba(0,0,0,0.03)',
-                    borderRadius: '12px',
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: '0.85rem',
-                      fontWeight: '600',
-                      marginBottom: 8,
-                      opacity: 0.7,
-                    }}
-                  >
-                    选择具体套组内容：
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {classPackageOptions.map((option) => {
-                      const isSelected = selectedPackage === option;
-                      return (
-                        <div
-                          key={option}
-                          onClick={() => applyEquipmentState({ classPackage: option })}
-                          style={{
-                            padding: '10px 14px',
-                            borderRadius: '10px',
-                            fontSize: '0.85rem',
-                            fontWeight: isSelected ? '600' : 'normal',
-                            background: isSelected ? 'rgba(197, 160, 89, 0.1)' : 'white',
-                            color: isSelected
-                              ? 'var(--color-gold-accent)'
-                              : 'var(--color-text-primary)',
-                            cursor: 'pointer',
-                            border: isSelected ? '2px solid #0071e3' : '1px solid #e5e5e7',
-                            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px',
-                            transform: isSelected ? 'scale(1.01)' : 'scale(1)',
-                            boxShadow: isSelected ? '0 4px 12px rgba(0, 113, 227, 0.1)' : 'none',
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: '14px',
-                              height: '14px',
-                              borderRadius: '50%',
-                              border: isSelected ? '1.5px solid #0071e3' : '1.5px solid #d2d2d7',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              backgroundColor: 'white',
-                            }}
-                          >
-                            {isSelected && (
-                              <div
-                                style={{
-                                  width: '7px',
-                                  height: '7px',
-                                  borderRadius: '50%',
-                                  backgroundColor: 'var(--color-gold-accent)',
-                                }}
-                              />
-                            )}
-                          </div>
-                          {option}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
+            <h4>职业起始装备</h4>
+            <p>职业套组、套组内自选和起始金币在职业选择页配置。</p>
+            <a href={`../class/?id=${encodeURIComponent(character.id)}`}>返回职业选择页调整</a>
           </section>
-
           {/* 高等级金币补偿 */}
           {higherLevelGoldConfig && (
             <section
@@ -1519,7 +1379,7 @@ export default function EquipmentPage() {
               marginTop: 'auto',
               padding: '20px',
               background: 'var(--color-bg-dark)',
-              color: 'white',
+              color: 'var(--color-text-primary)',
               borderRadius: '16px',
             }}
           >
@@ -1545,7 +1405,7 @@ export default function EquipmentPage() {
               style={{
                 marginTop: 16,
                 paddingTop: 16,
-                borderTop: '1px solid rgba(255,255,255,0.1)',
+                borderTop: '1px solid var(--color-border-subtle)',
                 fontSize: '0.85rem',
                 textAlign: 'center',
               }}

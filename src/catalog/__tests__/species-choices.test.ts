@@ -5,7 +5,11 @@ import { createDefaultFiveEToolsSource } from '@/source/fiveetools-cn/client';
 import { defaultCatalog } from '../catalog';
 import { normalizeRace, normalizeSubrace } from '@/source/fiveetools-cn/normalizers/race';
 import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
-import { catalogEntryToSubspecies, getCatalogSpecies } from '../adapters/species';
+import {
+  catalogEntryToSpecies,
+  catalogEntryToSubspecies,
+  getCatalogSpecies,
+} from '../adapters/species';
 import { getSpeciesDefinition, getSubspeciesDefinition } from '@/engine/characterData';
 import { computeCombatStats } from '@/engine/combat';
 import { computeProficiencies } from '@/engine/proficiency';
@@ -29,6 +33,24 @@ function state(speciesId: string, subspeciesId?: string): CharacterState {
 }
 
 describe('5etools display and species choice regressions', () => {
+  it('只保留有效感官距离，不为没有黑暗视觉的种族生成空标签', () => {
+    expect(
+      catalogEntryToSpecies(normalizeRace({ name: '无感官测试', source: 'TST' })).senses,
+    ).toEqual({});
+    expect(
+      catalogEntryToSpecies(normalizeRace({ name: '感官测试', source: 'TST', darkvision: 60 }))
+        .senses,
+    ).toEqual({ darkvision: 60 });
+    expect(
+      catalogEntryToSpecies(
+        normalizeRace({
+          name: '异常感官测试',
+          source: 'TST',
+          senses: { darkvision: undefined, blindsight: 10, truesight: 0 },
+        }),
+      ).senses,
+    ).toEqual({ blindsight: 10 });
+  });
   it('renders reference labels instead of source IDs, including nested tags', () => {
     expect(
       clean5eTags(

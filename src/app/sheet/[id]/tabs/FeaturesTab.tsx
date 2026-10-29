@@ -1011,12 +1011,12 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
       }
     });
     background.languages?.forEach((l: any, i: number) => {
-      if (typeof l === 'string') profs.push(l);
+      if (typeof l === 'string') profs.push(translateProficiency(l));
       else {
         const key = `bg:${background.id}:prof:lang:${i}`;
         const selected =
           character.backgroundSelections?.[key] || character.backgroundSelections?.[`bg:lang:${i}`];
-        if (selected) selected.forEach((v: string) => profs.push(v));
+        if (selected) selected.forEach((v: string) => profs.push(translateProficiency(v)));
       }
     });
     return profs;
