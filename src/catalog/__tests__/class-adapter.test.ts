@@ -10,6 +10,25 @@ import mesmerSample from '@/source/__fixtures__/homebrew/mesmer-class.sample.jso
 import { translateProficiency } from '@/engine/terminology';
 
 describe('Catalog Class & Subclass Adapter Tests', () => {
+  it('保留已知法术职业的逐级额度，并优先使用显式准备额度', () => {
+    const raw = {
+      name: '已知法术测试',
+      source: 'PHB',
+      spellsKnownProgression: [0, 2, 3],
+      classTableGroups: [{ rowsSpellProgression: [[], [2], [3]] }],
+    };
+    const before = JSON.stringify(raw);
+    const assembled = assembleCatalogClass(normalizeClass(raw), new InMemoryCatalogService());
+    expect(
+      assembled.progression.slice(0, 3).map((row) => row.spellcasting?.spellsPrepared),
+    ).toEqual([0, 2, 3]);
+    const prepared = assembleCatalogClass(
+      normalizeClass({ ...raw, preparedSpellsProgression: [0, 4, 5] }),
+      new InMemoryCatalogService(),
+    );
+    expect(prepared.progression[1].spellcasting?.spellsPrepared).toBe(4);
+    expect(JSON.stringify(raw)).toBe(before);
+  });
   it('2024 套组内自选物品生成独立选择槽，保留原始装备结构', () => {
     const raw = {
       name: '套组职业',

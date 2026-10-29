@@ -66,7 +66,12 @@ function numberWord(value: string): number | undefined {
 
 function inferChoiceType(text: string): FeatureChoice['type'] | undefined {
   const low = text.toLowerCase();
-  if (/expertise|专精|双倍.*熟练|熟练加值.{0,10}(?:双倍|两倍)|double (?:its|your) proficiency/i.test(low)) return 'expertise';
+  if (
+    /expertise|专精|双倍.*熟练|熟练加值.{0,10}(?:双倍|两倍)|double (?:its|your) proficiency/i.test(
+      low,
+    )
+  )
+    return 'expertise';
   if (/weapon mastery|mastery propert|武器精通|精通属性|精通词条/i.test(low))
     return 'weaponMastery';
   if (/fighting style feat|战斗风格专长/i.test(low)) return 'feat';

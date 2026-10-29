@@ -319,7 +319,10 @@ export function assembleCatalogClass(
     (raw.classTableGroups || []).find((group: any) => Array.isArray(group.rowsSpellProgression))
       ?.rowsSpellProgression || [];
   const preparedProgression =
-    raw.preparedSpellsProgression || raw.spellsKnownProgressionFixed || [];
+    raw.preparedSpellsProgression ||
+    raw.spellsKnownProgression ||
+    raw.spellsKnownProgressionFixed ||
+    [];
   const pactTable =
     raw.casterProgression === 'pact'
       ? (raw.classTableGroups || []).find(
