@@ -203,7 +203,8 @@ export function getSpellDefinition(spellId?: string): Spell | undefined {
   if (!spellId) return undefined;
 
   // 1. 优先从统一 Catalog 服务检索（支持稳定全局 ID 及已注册的历史别名）
-  const catEntry = findCatalogEntry(['spell'], spellId);
+  const [reference, source] = spellId.split('|');
+  const catEntry = findCatalogEntry(['spell'], reference, source);
   if (catEntry && catEntry.kind === 'spell') {
     return catalogEntryToSpell(catEntry);
   }

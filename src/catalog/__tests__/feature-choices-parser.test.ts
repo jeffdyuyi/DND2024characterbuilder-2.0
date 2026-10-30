@@ -139,7 +139,7 @@ describe('职业特性通用选项解析器', () => {
     expect(result.choices[0]).toMatchObject({
       type: 'fightingStyle',
       numToChoose: 1,
-      options: ['Archery', 'Defense'],
+      options: ['Archery|TEST', 'Defense|TEST'],
     });
     expect(result.diagnostics).toEqual([]);
   });

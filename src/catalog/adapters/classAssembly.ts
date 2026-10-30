@@ -4,6 +4,7 @@ import { getFeatureMechanicsOverlay } from '@/mechanics-overlay/features';
 import { parseFeatureChoices } from './featureChoicesParser';
 import { belongsToClass, createClassFeatureLookup } from './classReferences';
 import { flattenEntries, clean5eTags } from '@/source/fiveetools-cn/utils';
+import { parseClassSpellTables } from './classSpellTables';
 
 type FeatureLookups = {
   classFeature: ReturnType<typeof createClassFeatureLookup>;
@@ -21,6 +22,7 @@ export function toFeature(entry: CatalogEntry): ClassFeature {
   const raw = entry.raw as any;
   const overlay = getFeatureMechanicsOverlay(entry);
   const parsed = parseFeatureChoices(entry);
+  const spellTable = parseClassSpellTables(raw);
   const existingChoices = Array.isArray(raw.mechanics?.choices) ? raw.mechanics.choices : [];
   const fixedProficiencies: Record<string, string[]> = {};
   if (parsed.skillProficiencies.length)
@@ -58,10 +60,12 @@ export function toFeature(entry: CatalogEntry): ClassFeature {
     mechanics:
       overlay ||
       parsed.choices.length > 0 ||
+      spellTable.spells.length > 0 ||
       raw.mechanics ||
       Object.keys(fixedProficiencies).length > 0
         ? {
             ...(raw.mechanics || {}),
+            ...(spellTable.spells.length ? { spells: spellTable.spells } : {}),
             ...fixedProficiencies,
             ...(parsed.choices.length > 0
               ? { choices: [...existingChoices, ...parsed.choices] }
@@ -157,6 +161,7 @@ export function assembleCatalogClass(
     if (seen.has(found.id)) return [];
     seen.add(found.id);
     choiceDiagnostics.push(...parseFeatureChoices(found).diagnostics);
+    choiceDiagnostics.push(...parseClassSpellTables(found.raw).diagnostics);
     const nested: ClassFeature[] = [];
     const visit = (value: unknown) => {
       if (Array.isArray(value)) {

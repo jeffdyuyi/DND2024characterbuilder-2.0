@@ -161,6 +161,13 @@ it('继承专长提升属性的固定和受限自选法术重载后保留，非�
     valid.id,
   ]);
   expect(getNativeFeatSpellGrants(reopened)[0].source).toContain('感知');
+  reopened.featSelections['background-feat'].ability = undefined;
+  reopened.featSelections['background-feat'].asi = { wis: 1 };
+  expect(getNativeFeatSpellGrants(reopened)[0].source).toContain('感知');
+  reopened.featSelections['background-feat'].asi = { wis: 2 };
+  expect(getNativeFeatSpellGrants(reopened)).toEqual([]);
+  reopened.featSelections['background-feat'].asi = undefined;
+  reopened.featSelections['background-feat'].ability = 'wis';
   expect(getInnateSpells(reopened).map((grant) => grant.spellId)).toEqual(
     expect.arrayContaining([spells[2].id, valid.id]),
   );

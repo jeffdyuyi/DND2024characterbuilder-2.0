@@ -1,5 +1,6 @@
 'use client';
 import { getActiveClassFeatures } from '@/engine/classFeatureActivation';
+import { getActiveClassSelections } from '@/engine/classSelectionScope';
 import { normalizeEquipmentMode, reconcileStartingEquipment } from '@/engine/startingEquipment';
 import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
 import ClassStartingGoldChoice from '@/components/ClassStartingGoldChoice';
@@ -15,7 +16,7 @@ import { useCharacterStore } from '@/store/characterStore';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
 import { computeProficiencies, isProficientWithWeapon } from '@/engine/proficiency';
-import { isActiveClassSelection, isClassSelectionForOwner } from '@/engine/classSelectionScope';
+import { isClassSelectionForOwner } from '@/engine/classSelectionScope';
 import styles from '../species/page.module.css'; // Reuse species layout styles
 import classStyles from './class.module.css';
 import {
@@ -283,23 +284,9 @@ export default function ClassPage() {
     [primaryClassEntry?.classId, choices],
   );
   const selectedClassId = primaryClassEntry?.classId;
-  const activeClassOwners = useMemo(
-    () =>
-      currentClasses.flatMap(({ classId }) =>
-        [classId, getClassDefinition(classId)?.nameEn].filter((owner): owner is string =>
-          Boolean(owner),
-        ),
-      ),
-    [character?.classes, choices],
-  );
   const activeClassSelections = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(character?.classSelections || {}).filter(([key]) =>
-          isActiveClassSelection(key, activeClassOwners),
-        ),
-      ),
-    [character?.classSelections, activeClassOwners],
+    () => getActiveClassSelections(character, getClassDefinition),
+    [character, choices],
   );
 
   const spellcastingSummary = useMemo(() => {

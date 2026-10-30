@@ -12,8 +12,8 @@ export default function SourceGrantedSpells({ grants }: { grants: InnateSpellSou
   }
   return (
     <section aria-label="来源页已获得的法术" style={{ marginBottom: 24 }}>
-      <h3>来源页已获得的法术</h3>
-      <p>以下结果来自种族、背景或专长的配置。可返回对应页面调整选择。</p>
+      <h3>已获得的额外法术</h3>
+      <p>按当前角色等级汇总各来源已获得的法术。可返回对应页面调整配置。</p>
       <ul>
         {[...rows].map(([spellId, sources]) => (
           <li key={spellId}>

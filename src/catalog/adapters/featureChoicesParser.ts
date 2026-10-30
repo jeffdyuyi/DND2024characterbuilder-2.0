@@ -31,6 +31,10 @@ function optionLabel(value: unknown): string | undefined {
   if (typeof value === 'string') return stripTags(value).trim() || undefined;
   if (!value || typeof value !== 'object') return undefined;
   const node = value as Record<string, unknown>;
+  if (typeof node.optionalfeature === 'string') {
+    const [name, source = 'PHB'] = node.optionalfeature.split('|');
+    return `${name}|${source}`;
+  }
   const reference =
     node.optionalfeature ||
     node.feat ||

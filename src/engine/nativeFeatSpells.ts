@@ -111,14 +111,22 @@ export function getInheritedFeatSpellAbility(
   originId: string,
 ) {
   const choices = character.featSelections?.[slotId];
-  if (choices?.featId !== originId || !choices.ability) return undefined;
+  if (choices?.featId !== originId) return undefined;
+  const allocations = Object.entries(choices.asi || {}).filter(([, amount]) => amount !== 0);
+  const ability =
+    allocations.length === 1 ? allocations[0][0] : allocations.length ? undefined : choices.ability;
+  if (!ability) return undefined;
   const improvements = defaultCatalog.get(originId)?.raw.ability;
   if (!Array.isArray(improvements)) return undefined;
   return improvements.some(
     (entry: any) =>
-      entry?.choose?.from?.includes(choices.ability) || Number(entry?.[choices.ability!]) > 0,
+      (entry?.choose?.from?.includes(ability) &&
+        (entry.choose.count ?? 1) === 1 &&
+        (!allocations.length || allocations[0][1] === (entry.choose.amount ?? 1))) ||
+      (Number(entry?.[ability]) > 0 &&
+        (!allocations.length || allocations[0][1] === entry[ability])),
   )
-    ? choices.ability
+    ? ability
     : undefined;
 }
 

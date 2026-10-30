@@ -76,6 +76,26 @@ export function flattenEntries(entries: unknown[] | undefined): string {
       lines.push(clean5eTags(item));
     } else if (item && typeof item === 'object') {
       const obj = item as Record<string, any>;
+      if (obj.type === 'abilityDc' || obj.type === 'abilityAttackMod') {
+        const labels: Record<string, string> = {
+          str: '力量',
+          dex: '敏捷',
+          con: '体质',
+          int: '智力',
+          wis: '感知',
+          cha: '魅力',
+        };
+        const attributes = Array.isArray(obj.attributes)
+          ? obj.attributes.map((key: string) => labels[key] || key).join('或')
+          : '';
+        if (attributes)
+          lines.push(
+            obj.type === 'abilityDc'
+              ? `法术豁免 DC = 8 + 熟练加值 + ${attributes}调整值`
+              : `法术攻击加值 = 熟练加值 + ${attributes}调整值`,
+          );
+        continue;
+      }
       if (obj.name) {
         lines.push(`【${clean5eTags(obj.name)}】`);
       }

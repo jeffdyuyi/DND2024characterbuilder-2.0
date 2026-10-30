@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { getActiveClassFeatures } from '../classFeatureActivation';
 import { buildCharacterFeatSlots } from '../featSlots';
+import { getActiveClassSelections } from '../classSelectionScope';
 import type { ClassFeature } from '@/types/class';
 import type { CharacterState } from '@/types/characterState';
 
@@ -51,4 +52,30 @@ it('关闭后保留旧选择但不提供专长槽位，重载并开启后恢复'
   expect(buildCharacterFeatSlots(opened, definitions)).toHaveLength(1);
   character.enabledOptionalClassFeatureIds = [];
   expect(buildCharacterFeatSlots(character, definitions)).toHaveLength(0);
+});
+
+it('关闭、降级后的旧语言记录不阻塞其他选择，重新开启后恢复', () => {
+  const feature: ClassFeature = {
+    catalogId: 'language-variant',
+    name: '语言增效',
+    level: 6,
+    isOptional: true,
+    description: '',
+    mechanics: {
+      choices: [{ id: 'languages', type: 'language', numToChoose: 2, options: ['Any Language'] }],
+    },
+  };
+  const key = 'cls:test:feat:语言增效:languages';
+  const character = {
+    classes: [{ classId: 'test', level: 6 }],
+    classSelections: { [key]: ['elvish'] },
+    enabledOptionalClassFeatureIds: [],
+  } as unknown as CharacterState;
+  const getClass = () => ({ nameEn: 'Test', features: [feature] });
+  expect(getActiveClassSelections(character, getClass)).toEqual({});
+  character.enabledOptionalClassFeatureIds = ['language-variant'];
+  expect(getActiveClassSelections(character, getClass)).toEqual({ [key]: ['elvish'] });
+  character.classes[0].level = 1;
+  expect(getActiveClassSelections(character, getClass)).toEqual({});
+  expect(character.classSelections?.[key]).toEqual(['elvish']);
 });

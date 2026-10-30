@@ -466,10 +466,14 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
   const totalLevel = state.classes?.reduce((acc, c) => acc + c.level, 0) || 1;
   const modifiers = computeAbilityScores(state).modifiers;
 
-  const processTraitSpells = (traits: any[] | undefined, sourceLabel: string) => {
+  const processTraitSpells = (
+    traits: any[] | undefined,
+    sourceLabel: string,
+    unlockLevel = totalLevel,
+  ) => {
     if (!traits) return;
     traits.forEach((trait) => {
-      if (trait.level && trait.level > totalLevel) return;
+      if (trait.level && trait.level > unlockLevel) return;
 
       const spells = trait.features?.spells || trait.mechanics?.spells;
       if (!spells) return;
@@ -507,7 +511,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
               (s.filter && getSpellDefinition(selId)
                 ? { spellId: selId, level: 1, isPrepared: true, freeCastsPerLongRest: 0 }
                 : undefined);
-            if (opt && opt.level <= totalLevel) {
+            if (opt && opt.level <= unlockLevel) {
               result.push({
                 spellId: opt.spellId,
                 source: spellSource,
@@ -523,7 +527,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
           spellList.forEach((sp: string) => {
             const def = getSpellDefinition(sp);
             const resolvedId = def?.id || s.spellId || s.spellName || sp;
-            if ((s.level || 0) <= totalLevel) {
+            if ((s.level || 0) <= unlockLevel) {
               result.push({
                 spellId: resolvedId,
                 source: spellSource,
@@ -624,7 +628,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
 
     const activeFeatures = classDef.features.filter((f) => f.level <= cEntry.level);
     const startIndex = result.length;
-    processTraitSpells(activeFeatures, `职业: ${classDef.name}`);
+    processTraitSpells(activeFeatures, `职业: ${classDef.name}`, cEntry.level);
     legacyPreparedByClass.set(
       classDef.catalogId || cEntry.classId,
       new Set(
@@ -640,7 +644,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
       if (subclassDef) {
         const activeSubTraits = subclassDef.traits.filter((t) => t.level <= cEntry.level);
         const subStart = result.length;
-        processTraitSpells(activeSubTraits, `子职业: ${subclassDef.name}`);
+        processTraitSpells(activeSubTraits, `子职业: ${subclassDef.name}`, cEntry.level);
         legacyPreparedBySubclass.set(
           JSON.stringify([
             classDef.catalogId || cEntry.classId,

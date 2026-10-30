@@ -503,7 +503,7 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
     expect(assembled.features[0].mechanics?.choices?.[0]).toMatchObject({
       type: 'custom',
       numToChoose: 1,
-      options: ['Archery', 'Defense'],
+      options: ['Archery|TEST', 'Defense|TEST'],
     });
     expect(assembled.choiceDiagnostics).toHaveLength(1);
     expect(assembled.choiceDiagnostics[0]).toContain('feature-choice-generic:');

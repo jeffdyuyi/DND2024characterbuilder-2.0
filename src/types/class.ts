@@ -22,6 +22,7 @@ export interface ClassFeature {
       isFree?: boolean;
       count?: number;
       condition?: string;
+      freeCastsPerLongRest?: number;
     }[];
     resources?: {
       resourceName: string;

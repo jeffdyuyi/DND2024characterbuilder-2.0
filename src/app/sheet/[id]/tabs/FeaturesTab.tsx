@@ -18,11 +18,19 @@ import {
 } from '@/engine/terminology';
 import { computeAbilityScores } from '@/engine/ability';
 import { getCatalogCharacterOptions } from '@/catalog';
+import FightingStyleChoice from '@/components/FightingStyleChoice';
+import {
+  matchingFightingStyles,
+  matchesStyleReference,
+  featFightingStyleChoices,
+} from '@/catalog/fightingStyles';
+import { defaultCatalog } from '@/catalog/catalog';
 
 const FeatureDetailItem = ({ feature }: { feature: any }) => {
   const hasDescription = feature.description && feature.description.trim().length > 0;
   const passiveEffects = feature.features?.passiveEffects || [];
   const combinedTraits = feature.combinedTraits || [];
+  const styleDetails = feature.styleDetails || [];
 
   return (
     <div
@@ -163,6 +171,9 @@ const FeatureDetailItem = ({ feature }: { feature: any }) => {
         </div>
       </div>
 
+      {styleDetails.map((entry: any) => (
+        <FightingStyleChoice key={entry.id} options={[entry]} selected={[entry.id]} />
+      ))}
       {feature.prerequisite && (
         <div
           style={{
@@ -754,6 +765,18 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
       if (!classDefinition) return [];
       const selectedSubclass = getSubclassDefinition({ ...character, classes: [classEntry] });
       const currentLevel = classEntry.level || 0;
+      const classStyleDetails = (feature: any) =>
+        (feature.mechanics?.choices || [])
+          .filter((choice: any) => choice.type === 'fightingStyle')
+          .flatMap((choice: any) => {
+            const saved =
+              character.classSelections?.[
+                `cls:${classEntry.classId}:feat:${feature.name}:${choice.id}`
+              ] || [];
+            return matchingFightingStyles(getCatalogCharacterOptions(), choice.options).filter(
+              (entry) => saved.some((id: string) => matchesStyleReference(entry, id)),
+            );
+          });
 
       // 2.1 收集基础职业特性与子职业特性
       const rawList: any[] = (classDefinition.features || [])
@@ -768,7 +791,12 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
 
           return !selectedSubclass || !isPlaceholder;
         })
-        .map((f: any) => ({ ...f, type: '职业', sourceName: classDefinition.name }));
+        .map((f: any) => ({
+          ...f,
+          type: '职业',
+          sourceName: classDefinition.name,
+          styleDetails: classStyleDetails(f),
+        }));
 
       if (selectedSubclass) {
         const subclassFeatures = (selectedSubclass.traits || [])
@@ -781,6 +809,7 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
               : undefined,
             type: '子职业',
             sourceName: selectedSubclass.name,
+            styleDetails: classStyleDetails(f),
           }));
         rawList.push(...subclassFeatures);
       }
@@ -852,34 +881,36 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
         if (choices.length === 0) return feature;
 
         let extraDescription = '';
-        choices.forEach((choice: any) => {
-          const selected = resolveClassSelection(feature, choice);
-          if (selected && Array.isArray(selected) && selected.length > 0) {
-            const selectedDetails = selected.map((val) => {
-              const feat = getFeatDefinition(val);
-              if (feat) return { name: feat.name, description: feat.description };
+        choices
+          .filter((choice: any) => choice.type !== 'fightingStyle')
+          .forEach((choice: any) => {
+            const selected = resolveClassSelection(feature, choice);
+            if (selected && Array.isArray(selected) && selected.length > 0) {
+              const selectedDetails = selected.map((val) => {
+                const feat = getFeatDefinition(val);
+                if (feat) return { name: feat.name, description: feat.description };
 
-              const localOption = (feature.options || []).find(
-                (o: any) =>
-                  typeof o === 'object' && (o.id === val || o.nameEn === val || o.name === val),
-              );
-              if (localOption && typeof localOption === 'object') {
-                return { name: localOption.name, description: localOption.description };
-              }
+                const localOption = (feature.options || []).find(
+                  (o: any) =>
+                    typeof o === 'object' && (o.id === val || o.nameEn === val || o.name === val),
+                );
+                if (localOption && typeof localOption === 'object') {
+                  return { name: localOption.name, description: localOption.description };
+                }
 
-              const translated =
-                translateSkill(val) !== val
-                  ? translateSkill(val)
-                  : translateProficiency(val) !== val
-                    ? translateProficiency(val).split(' (')[0]
-                    : val;
-              return { name: translated, description: '' };
-            });
+                const translated =
+                  translateSkill(val) !== val
+                    ? translateSkill(val)
+                    : translateProficiency(val) !== val
+                      ? translateProficiency(val).split(' (')[0]
+                      : val;
+                return { name: translated, description: '' };
+              });
 
-            const label = choice.name || (choice.id?.includes('prof') ? '熟练项' : '选择');
-            extraDescription += `\n\n> **已选项目 (${label})：**\n${selectedDetails.map((d) => `> - **${d.name}**${d.description ? `\n>   ${d.description.replace(/\n/g, '\n>   ')}` : ''}`).join('\n')}`;
-          }
-        });
+              const label = choice.name || (choice.id?.includes('prof') ? '熟练项' : '选择');
+              extraDescription += `\n\n> **已选项目 (${label})：**\n${selectedDetails.map((d) => `> - **${d.name}**${d.description ? `\n>   ${d.description.replace(/\n/g, '\n>   ')}` : ''}`).join('\n')}`;
+            }
+          });
 
         return {
           ...feature,
@@ -1176,6 +1207,15 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
           type: '等级专长',
           category: featDef.category || 'General',
           selections: choices,
+          styleDetails: featFightingStyleChoices(defaultCatalog.get(featId)?.raw || {}).flatMap(
+            (group) =>
+              matchingFightingStyles(getCatalogCharacterOptions(), undefined, group.types).filter(
+                (entry) =>
+                  (choices.optionalFeatures?.[group.id] || []).some((id: string) =>
+                    matchesStyleReference(entry, id),
+                  ),
+              ),
+          ),
           sourceName: '职业等级',
         });
         processedFeatIds.add(featId);

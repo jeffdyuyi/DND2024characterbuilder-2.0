@@ -709,7 +709,15 @@ export default function SpellList({ character }: SpellListProps) {
     [character, choices],
   );
   const innateSpellIds = useMemo(() => innateSpells.map((s) => s.spellId), [innateSpells, choices]);
-  const sourcePageGrants = innateSpells.filter((grant) => /^(种族|背景|专长)/.test(grant.source));
+  const sourcePageGrants = innateSpells.filter(
+    (grant) =>
+      !grant.nativeClassPrepared &&
+      !grant.nativeSubclassGrant &&
+      !nativeClassPrepared.grants.some(
+        (prepared) =>
+          prepared.spellId === grant.spellId && grant.source === `职业: ${prepared.className}`,
+      ),
+  );
   const sourceGrantedSection = <SourceGrantedSpells grants={sourcePageGrants} />;
   const nativeFeatSection = (
     <NativeFeatSpellChoices

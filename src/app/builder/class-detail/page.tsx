@@ -3,13 +3,16 @@ import { getActiveClassFeatures, isClassFeatureEnabled } from '@/engine/classFea
 import { getEquipmentChoiceCandidates } from '@/catalog/equipmentChoices';
 import ClassFeatureGuidance, { featureConfigurationPage } from '@/components/ClassFeatureGuidance';
 import SubclassChoice from '@/components/SubclassChoice';
+import FightingStyleChoice from '@/components/FightingStyleChoice';
+import { getOccupiedFightingStyleIds } from '@/engine/fightingStyleSelections';
+import { matchingFightingStyles, matchesStyleReference } from '@/catalog/fightingStyles';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useCharacterStore } from '@/store/characterStore';
-import { isActiveClassSelection } from '@/engine/classSelectionScope';
+import { getActiveClassSelections } from '@/engine/classSelectionScope';
 import OptionCard from '@/components/OptionCard';
 import PillButton from '@/components/PillButton';
 import ChoiceFilterList, { ChoiceFacets } from '@/components/ChoiceFilterList';
@@ -308,23 +311,9 @@ export default function ClassDetailPage() {
     [primaryClassEntry?.classId, choices],
   );
   const selectedClassId = primaryClassEntry?.classId;
-  const activeClassOwners = useMemo(
-    () =>
-      currentClasses.flatMap(({ classId }) =>
-        [classId, getClassDefinition(classId)?.nameEn].filter((owner): owner is string =>
-          Boolean(owner),
-        ),
-      ),
-    [character?.classes, choices],
-  );
   const activeClassSelections = useMemo(
-    () =>
-      Object.fromEntries(
-        Object.entries(character?.classSelections || {}).filter(([key]) =>
-          isActiveClassSelection(key, activeClassOwners),
-        ),
-      ),
-    [character?.classSelections, activeClassOwners],
+    () => getActiveClassSelections(character, getClassDefinition),
+    [character, choices],
   );
 
   // Compute feat slots and features
@@ -504,6 +493,39 @@ export default function ClassDetailPage() {
   ) => {
     if (category === 'spell' || category === 'feat') return null;
     let chosen = character?.classSelections?.[id] || [];
+    if (category === 'fightingStyle' && character) {
+      const candidates = matchingFightingStyles(
+        choices.getCatalogCharacterOptions(),
+        selection.options,
+      );
+      return (
+        <FightingStyleChoice
+          key={id}
+          options={candidates}
+          disabledIds={getOccupiedFightingStyleIds(
+            character,
+            choices.getCatalogCharacterOptions(),
+            id,
+          )}
+          selected={chosen}
+          count={selection.numToChoose || 1}
+          onChange={(value) => {
+            const canonical = chosen.map(
+              (saved) =>
+                candidates.find((entry) => matchesStyleReference(entry, saved))?.id || saved,
+            );
+            const next = canonical.includes(value)
+              ? canonical.filter((saved) => saved !== value)
+              : (selection.numToChoose || 1) === 1
+                ? [value]
+                : [...canonical, value].slice(0, selection.numToChoose);
+            updateActiveCharacter({
+              classSelections: { ...character.classSelections, [id]: next },
+            });
+          }}
+        />
+      );
+    }
 
     // Expansion logic for generic keywords
     let options = [...(selection.options || [])];

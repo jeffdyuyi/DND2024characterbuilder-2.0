@@ -1,4 +1,8 @@
 'use client';
+import FightingStyleChoice from '@/components/FightingStyleChoice';
+import { getOccupiedFightingStyleIds } from '@/engine/fightingStyleSelections';
+import { matchingFightingStyles, featFightingStyleChoices } from '@/catalog/fightingStyles';
+import { defaultCatalog } from '@/catalog/catalog';
 import { resolveChoicePreview } from '@/components/choicePreview';
 import { useBuilderChoices } from '@/platform/useBuilderChoices';
 
@@ -487,7 +491,17 @@ export default function FeatsPage() {
                     })}
                   </div>
                   <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {['All', 'XPHB', 'PHB', 'TCoE'].map((src) => (
+                    {[
+                      'All',
+                      ...new Set(
+                        allFeats
+                          .filter(
+                            (feat) =>
+                              !activeSlot || activeSlot.allowedCategories.includes(feat.category),
+                          )
+                          .map((feat) => feat.source),
+                      ),
+                    ].map((src) => (
                       <PillButton
                         key={src}
                         size="xs"
@@ -701,6 +715,46 @@ export default function FeatsPage() {
                       </h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                         {/* ASI */}
+                        {featFightingStyleChoices(
+                          defaultCatalog.get(selectedFeatData.id)?.raw || {},
+                        ).map((group) => (
+                          <FightingStyleChoice
+                            key={group.id}
+                            options={matchingFightingStyles(
+                              choices.getCatalogCharacterOptions(),
+                              undefined,
+                              group.types,
+                            )}
+                            selected={activeChoices?.optionalFeatures?.[group.id] || []}
+                            disabledIds={getOccupiedFightingStyleIds(
+                              character,
+                              choices.getCatalogCharacterOptions(),
+                              `${activeSlot.id}:${group.id}`,
+                            )}
+                            count={group.count}
+                            onChange={(id) => {
+                              const current = activeChoices?.optionalFeatures?.[group.id] || [];
+                              const selected = current.includes(id)
+                                ? current.filter((value) => value !== id)
+                                : group.count === 1
+                                  ? [id]
+                                  : [...current, id].slice(0, group.count);
+                              updateActiveCharacter({
+                                featSelections: {
+                                  ...character.featSelections,
+                                  [activeSlot.id]: {
+                                    ...activeChoices,
+                                    featId: selectedFeatData.id,
+                                    optionalFeatures: {
+                                      ...activeChoices?.optionalFeatures,
+                                      [group.id]: selected,
+                                    },
+                                  },
+                                },
+                              });
+                            }}
+                          />
+                        ))}
                         {selectedFeatData.mechanics?.abilityScoreImprovement?.map((asi, idx) => {
                           const currentAsi = activeChoices?.asi || {};
                           const totalPointsUsed = Object.values(currentAsi).reduce(

@@ -37,6 +37,8 @@ import MarkdownText from '@/components/MarkdownText';
 import { buildCharacterFeatSlots } from '../featSlots';
 import { getClassDefinition } from '../characterData';
 import { computeProficiencies } from '../proficiency';
+import { getInnateSpells } from '../spellcasting';
+import { normalizeSpell } from '@/source/fiveetools-cn/normalizers/spell';
 
 function nodes(node: any): any[] {
   if (!node || typeof node !== 'object') return [];
@@ -344,4 +346,46 @@ it('可选特性开关保存来源ID，启用替换基础授予，关闭恢复�
     true,
   );
   expect(store.character.classSelections).toEqual({ 'manual:unchanged': ['history'] });
+});
+
+it('正文固定法术等级表按所属职业解锁，关闭和降级撤销，重载恢复且不占自选记录', () => {
+  const grant = feature('固定自然法术', 3, [
+    '你学会下方表格中的法术。这些法术不占用你的职业已知法术。',
+    {
+      type: 'table',
+      colLabels: ['职业等级', '法术'],
+      rows: [
+        ['3环', '{@spell 测试自然一}'],
+        ['5环', '{@spell 测试自然二}'],
+      ],
+    },
+    '你可以不消耗法术位施展这些法术每个一次。完成长休后恢复。',
+  ]);
+  grant.raw.isClassFeatureVariant = true;
+  const first = normalizeSpell({ name: '测试自然一', source: 'PHB', level: 1 });
+  const second = normalizeSpell({ name: '测试自然二', source: 'PHB', level: 2 });
+  defaultCatalog.registerMany([
+    { ...parent, raw: { ...parent.raw, classFeatures: ['固定自然法术|Page Wizard|XPHB|3'] } },
+    grant,
+    first,
+    second,
+  ]);
+  store.character.classes = [
+    { classId: parent.id, level: 4, source: 'XPHB', isMulticlass: false },
+    { classId: 'other-class', level: 2, source: 'PHB', isMulticlass: true },
+  ];
+  store.character.enabledOptionalClassFeatureIds = [grant.id];
+  const ids = () => getInnateSpells(store.character).map((entry) => entry.spellId);
+  expect(ids()).toContain(first.id);
+  expect(ids()).not.toContain(second.id);
+  store.character.classes[0].level = 5;
+  expect(ids()).toContain(second.id);
+  store.character = JSON.parse(JSON.stringify(store.character));
+  expect(ids()).toContain(second.id);
+  store.character.classes[0].level = 2;
+  expect(ids()).not.toContain(first.id);
+  store.character.classes[0].level = 5;
+  store.character.enabledOptionalClassFeatureIds = [];
+  expect(ids()).not.toContain(first.id);
+  expect(store.character.classSelections).toEqual({});
 });

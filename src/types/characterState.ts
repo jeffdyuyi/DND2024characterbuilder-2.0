@@ -76,6 +76,7 @@ export interface DeathSaveTrack {
 
 export interface FeatChoices {
   featId: string;
+  optionalFeatures?: Record<string, string[]>;
   ability?: keyof AbilityScores; // 专长带来的属性提升选择 (如 +1 力量)
   asi?: Partial<AbilityScores>; // 复杂属性提升 (如 ASI 专长的 +2 或 +1+1)
   skills?: string[]; // 专长带来的技能熟练选择
