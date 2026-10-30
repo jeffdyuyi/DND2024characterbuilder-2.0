@@ -1,4 +1,5 @@
 'use client';
+import { getActiveClassFeatures, isClassFeatureEnabled } from '@/engine/classFeatureActivation';
 import { getEquipmentChoiceCandidates } from '@/catalog/equipmentChoices';
 import ClassFeatureGuidance, { featureConfigurationPage } from '@/components/ClassFeatureGuidance';
 import SubclassChoice from '@/components/SubclassChoice';
@@ -377,6 +378,15 @@ export default function ClassDetailPage() {
   }, [classDefinition, primaryClassEntry, choices]);
 
   const totalLevel = currentClasses.reduce((acc, c) => acc + c.level, 0);
+  const activeFeatures = useMemo(
+    () =>
+      new Set(
+        character
+          ? getActiveClassFeatures(combinedFeatures, character, primaryClassEntry?.level || 0)
+          : [],
+      ),
+    [combinedFeatures, character, primaryClassEntry?.level],
+  );
 
   const handleLevelChange = (classId: string, delta: number) => {
     const newClasses = currentClasses.map((c) => {
@@ -1442,6 +1452,8 @@ export default function ClassDetailPage() {
                   {combinedFeatures.map((feature: ClassFeature, idx: number) => {
                     const isUnlocked = feature.level <= primaryClassEntry.level;
                     if (!isUnlocked) return null;
+                    const enabled = isClassFeatureEnabled(feature, character);
+                    if (!feature.isOptional && !activeFeatures.has(feature)) return null;
                     if (feature === subclassFeature && classDefinition.subClassInfo)
                       return (
                         <SubclassChoice
@@ -1473,12 +1485,43 @@ export default function ClassDetailPage() {
                           <span className={styles.traitName}>{feature.name}</span>
                           <span className={styles.traitNameEn}>{feature.nameEn}</span>
                           <span className={styles.usageBadge}>{feature.level} 级</span>
+                          {feature.isOptional && feature.catalogId && (
+                            <button
+                              type="button"
+                              role="switch"
+                              aria-checked={enabled}
+                              aria-label={`启用${feature.name}（${feature.level}级）`}
+                              onClick={() =>
+                                updateActiveCharacter({
+                                  enabledOptionalClassFeatureIds: enabled
+                                    ? (character.enabledOptionalClassFeatureIds || []).filter(
+                                        (id) => id !== feature.catalogId,
+                                      )
+                                    : [
+                                        ...(character.enabledOptionalClassFeatureIds || []),
+                                        feature.catalogId!,
+                                      ],
+                                })
+                              }
+                              style={{
+                                marginLeft: 'auto',
+                                color: 'var(--color-text-primary)',
+                                background: 'var(--color-bg-subtle)',
+                                border: '1px solid var(--color-border-subtle)',
+                                borderRadius: 12,
+                                padding: '4px 10px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              可选特性：{enabled ? '已开启' : '未开启'}
+                            </button>
+                          )}
                         </div>
                         <div className={styles.traitPara}>
                           <MarkdownText text={feature.description} />
                         </div>
 
-                        {featureConfigurationPage(feature) && (
+                        {enabled && featureConfigurationPage(feature) && (
                           <ClassFeatureGuidance
                             page={featureConfigurationPage(feature)!}
                             characterId={character.id}
@@ -1486,50 +1529,53 @@ export default function ClassDetailPage() {
                         )}
 
                         {/* Subclass Spells Table (Oath Spells, Domain Spells, etc.) */}
-                        {feature.mechanics?.spells && feature.mechanics.spells.length > 1 && (
-                          <div className={styles.spellTableContainer}>
-                            <table className={styles.spellTable}>
-                              <thead>
-                                <tr>
-                                  <th>等级</th>
-                                  <th>法术</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {feature.mechanics.spells.map((group: any, gIdx: number) => (
-                                  <tr key={gIdx}>
-                                    <td className={styles.levelCell}>{group.level} 级</td>
-                                    <td className={styles.spellsCell}>
-                                      {group.spells.map((sNameEn: string, sIdx: number) => {
-                                        const spell = getSpellDefinition(sNameEn);
-                                        return (
-                                          <span key={sIdx} className={styles.spellTag}>
-                                            {spell ? spell.name : sNameEn}
-                                          </span>
-                                        );
-                                      })}
-                                    </td>
+                        {enabled &&
+                          feature.mechanics?.spells &&
+                          feature.mechanics.spells.length > 1 && (
+                            <div className={styles.spellTableContainer}>
+                              <table className={styles.spellTable}>
+                                <thead>
+                                  <tr>
+                                    <th>等级</th>
+                                    <th>法术</th>
                                   </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
+                                </thead>
+                                <tbody>
+                                  {feature.mechanics.spells.map((group: any, gIdx: number) => (
+                                    <tr key={gIdx}>
+                                      <td className={styles.levelCell}>{group.level} 级</td>
+                                      <td className={styles.spellsCell}>
+                                        {group.spells.map((sNameEn: string, sIdx: number) => {
+                                          const spell = getSpellDefinition(sNameEn);
+                                          return (
+                                            <span key={sIdx} className={styles.spellTag}>
+                                              {spell ? spell.name : sNameEn}
+                                            </span>
+                                          );
+                                        })}
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
 
                         {/* Feature Choices */}
-                        {feature.mechanics?.choices
-                          ?.filter(
-                            (choice: any) => !['subclass', 'spell', 'feat'].includes(choice.type),
-                          )
-                          .map((choice: any) =>
-                            renderChoice(
-                              `cls:${selectedClassId}:feat:${feature.name}:${choice.id}`,
-                              choice,
-                              choice.type,
-                              false,
-                              feature,
-                            ),
-                          )}
+                        {enabled &&
+                          feature.mechanics?.choices
+                            ?.filter(
+                              (choice: any) => !['subclass', 'spell', 'feat'].includes(choice.type),
+                            )
+                            .map((choice: any) =>
+                              renderChoice(
+                                `cls:${selectedClassId}:feat:${feature.name}:${choice.id}`,
+                                choice,
+                                choice.type,
+                                false,
+                                feature,
+                              ),
+                            )}
                       </div>
                     );
                   })}

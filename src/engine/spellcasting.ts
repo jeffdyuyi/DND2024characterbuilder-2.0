@@ -263,7 +263,7 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
   >;
 
   state.classes.forEach((cEntry, index) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
 
     const progression = getClassProgression(classDef, cEntry.level);
@@ -377,7 +377,7 @@ export function computeSpellcasting(state: CharacterState): SpellcastingStats {
     featCapacity += 1;
   }
   state.classes.forEach((cEntry) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
     for (let l = 1; l <= cEntry.level; l++) {
       const prog = classDef.progression.find((p) => p.level === l);
@@ -619,7 +619,7 @@ export function getInnateSpells(state: CharacterState): InnateSpellSource[] {
   const legacyPreparedByClass = new Map<string, Set<string>>();
   const legacyPreparedBySubclass = new Map<string, Set<string>>();
   state.classes?.forEach((cEntry) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
 
     const activeFeatures = classDef.features.filter((f) => f.level <= cEntry.level);
@@ -745,7 +745,7 @@ export function computeSpellProgression(
   const classEntry = state.classes?.find((c) => c.classId === classId);
   if (!classEntry) return steps;
 
-  const classDef = getClassDefinition(classId);
+  const classDef = getClassDefinition(classId, state);
   if (!classDef) return steps;
   const abilityModifiers = computeAbilityScores(state).modifiers as unknown as Record<
     string,

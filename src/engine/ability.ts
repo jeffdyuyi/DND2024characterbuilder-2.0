@@ -185,7 +185,7 @@ export function computeAbilityScores(state: CharacterState): {
 
   // Add bonuses from class features (e.g. Primal Champion)
   state.classes?.forEach((cEntry) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
 
     const activeFeatures = classDef.features.filter((f) => f.level <= cEntry.level);

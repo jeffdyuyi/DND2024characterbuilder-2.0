@@ -3,7 +3,7 @@ import { ClassFeature, ClassLevelProgression, SubClass } from '@/types/class';
 import { getFeatureMechanicsOverlay } from '@/mechanics-overlay/features';
 import { parseFeatureChoices } from './featureChoicesParser';
 import { belongsToClass, createClassFeatureLookup } from './classReferences';
-import { flattenEntries } from '@/source/fiveetools-cn/utils';
+import { flattenEntries, clean5eTags } from '@/source/fiveetools-cn/utils';
 
 type FeatureLookups = {
   classFeature: ReturnType<typeof createClassFeatureLookup>;
@@ -17,7 +17,7 @@ function refText(ref: RefValue, kind: 'classFeature' | 'subclassFeature'): strin
   return typeof ref === 'string' ? ref : String(ref?.[kind] || '');
 }
 
-function toFeature(entry: CatalogEntry): ClassFeature {
+export function toFeature(entry: CatalogEntry): ClassFeature {
   const raw = entry.raw as any;
   const overlay = getFeatureMechanicsOverlay(entry);
   const parsed = parseFeatureChoices(entry);
@@ -45,6 +45,11 @@ function toFeature(entry: CatalogEntry): ClassFeature {
     );
   }
   return {
+    catalogId: entry.id,
+    isOptional: raw.isClassFeatureVariant === true,
+    ...(raw.isClassFeatureVariant === true && typeof raw.entries?.[0] === 'string'
+      ? { replacesFeatureName: clean5eTags(raw.entries[0]).match(/替代([^，。；]+?)特性/)?.[1] }
+      : {}),
     name: entry.name,
     nameEn: entry.englishName || entry.name,
     level: Number(raw.level || 0),

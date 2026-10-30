@@ -8,6 +8,8 @@ import {
   parseClassFeatureUid,
 } from '@/catalog/adapters/classReferences';
 import { parseCatalogSpellGrants } from '@/catalog/adapters/spellGrants';
+import { toFeature } from '@/catalog/adapters/classAssembly';
+import { getActiveClassFeatures } from './classFeatureActivation';
 import type { CatalogEntry, CatalogService } from '@/catalog/types';
 import type { CharacterState } from '@/types/characterState';
 import type { ParsedSpellGrants } from '@/types/spellGrant';
@@ -25,7 +27,7 @@ export interface ClassSpellGrantSources {
 
 /** 只收集当前职业拥有的原生授予数据；等级/分支/候选选择仍由后续配置层处理。 */
 export function collectClassSpellGrantSources(
-  character: Pick<CharacterState, 'classes'>,
+  character: Pick<CharacterState, 'classes' | 'enabledOptionalClassFeatureIds'>,
   catalog: CatalogService = defaultCatalog,
 ): ClassSpellGrantSources {
   const result: ClassSpellGrantSources = { sources: [], diagnostics: [] };
@@ -84,6 +86,16 @@ export function collectClassSpellGrantSources(
       });
     };
     const collectFeatures = (owner: CatalogEntry, subclass: boolean, references: string[]) => {
+      const allowedIds = new Set(
+        getActiveClassFeatures(
+          references
+            .map((reference) => (subclass ? findSubclassFeature : findFeature)(reference, owner))
+            .filter((feature): feature is CatalogEntry => Boolean(feature))
+            .map(toFeature),
+          character,
+          selected.level,
+        ).map((feature) => feature.catalogId),
+      );
       for (const reference of references) {
         const uid = parseClassFeatureUid(reference, subclass);
         if (!uid.valid) {
@@ -116,7 +128,7 @@ export function collectClassSpellGrantSources(
           report('mismatched-feature-parent', owner.id, reference);
           continue;
         }
-        add(feature, uid.level);
+        if (allowedIds.has(feature.id)) add(feature, uid.level);
       }
     };
     add(parent);

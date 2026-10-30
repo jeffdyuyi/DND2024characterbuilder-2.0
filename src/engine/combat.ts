@@ -135,7 +135,7 @@ export function computeCombatStats(state: CharacterState): CombatStats {
 
   // Class & Subclass Features
   state.classes?.forEach((cEntry) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
 
     classDef.features?.forEach((f) => {

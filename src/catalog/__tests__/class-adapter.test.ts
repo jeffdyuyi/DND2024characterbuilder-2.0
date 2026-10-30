@@ -316,6 +316,7 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
       });
     registerFeature('classFeature', {
       name: '星象施法',
+      isClassFeatureVariant: true,
       className: 'Astrologer',
       classSource: 'COREX',
       source: 'COREX',
@@ -343,6 +344,10 @@ describe('Catalog Class & Subclass Adapter Tests', () => {
     expect(assembled.features.map((feature) => feature.level)).toEqual([1, 2]);
     expect(assembled.features[1].isSubclassSelection).toBe(true);
     expect(assembled.progression[0].featuresUnlocked).toEqual(['星象施法']);
+    expect(assembled.features[0].isOptional).toBe(true);
+    expect(assembled.features[0].catalogId).toBeDefined();
+    expect(catalog.get(assembled.features[0].catalogId!)?.raw.isClassFeatureVariant).toBe(true);
+    expect(assembled.features[1].isOptional).toBe(false);
     expect(assembled.progression[1].spellcasting?.spellSlots.level1).toBe(3);
     expect(assembled.subclassUnlockLevel).toBe(2);
     expect(assembled.subclasses[0]).toMatchObject({ name: '月之道', source: 'EXPANSION' });

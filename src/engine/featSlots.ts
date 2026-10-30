@@ -3,6 +3,7 @@ import type { Background } from '@/types/background';
 import type { Species } from '@/types/species';
 import type { ClassData } from '@/types/class';
 import type { Feat } from '@/types/feat';
+import { getActiveClassFeatures } from './classFeatureActivation';
 
 export interface CharacterFeatSlot {
   id: string;
@@ -90,7 +91,7 @@ export function buildCharacterFeatSlots(
     const classDef = definitions.getClass(c.classId);
     if (!classDef) return;
 
-    classDef.features
+    getActiveClassFeatures(classDef.features, character, c.level)
       .filter((f: any) => f.level <= c.level)
       .forEach((f: any) => {
         if (f.mechanics?.choices) {

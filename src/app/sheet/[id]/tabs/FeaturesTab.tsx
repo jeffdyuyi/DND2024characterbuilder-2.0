@@ -750,7 +750,7 @@ const FeaturesTab: React.FC<FeaturesTabProps> = ({
   // 2. 职业特性处理逻辑
   const getClassFeaturesList = () => {
     return character.classes.flatMap((classEntry: any) => {
-      const classDefinition = getClassDefinition(classEntry.classId);
+      const classDefinition = getClassDefinition(classEntry.classId, character);
       if (!classDefinition) return [];
       const selectedSubclass = getSubclassDefinition({ ...character, classes: [classEntry] });
       const currentLevel = classEntry.level || 0;

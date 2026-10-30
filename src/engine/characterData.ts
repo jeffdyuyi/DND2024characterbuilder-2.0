@@ -11,6 +11,7 @@ import {
 } from '../catalog';
 import type { AnyItem, Armor } from '../types/equipment';
 import { Background, ClassData, Feat, Species, Spell, SubSpecies, SubClass } from '../types';
+import { getActiveClassFeatures } from './classFeatureActivation';
 
 export type { AnyItem } from '../types/equipment';
 
@@ -46,20 +47,38 @@ export function getPrimaryClassEntry(character: CharacterState): MulticlassEntry
   return character.classes?.[0];
 }
 
-export function getClassDefinition(classId?: string): ClassData | undefined {
+export function getClassDefinition(
+  classId?: string,
+  character?: CharacterState,
+): ClassData | undefined {
   if (!classId) return undefined;
 
   // 1. 优先通过 Catalog 稳定 ID / 别名检索
   const catEntry = findCatalogEntry(['class'], classId);
   if (catEntry && catEntry.kind === 'class') {
-    return catalogEntryToClass(catEntry);
+    const definition = catalogEntryToClass(catEntry);
+    if (!character) return definition;
+    const level = character.classes.find((entry) => entry.classId === classId)?.level ?? Infinity;
+    return {
+      ...definition,
+      features: getActiveClassFeatures(definition.features, character, level),
+      subClassInfo: definition.subClassInfo
+        ? {
+            ...definition.subClassInfo,
+            options: definition.subClassInfo.options.map((subclass) => ({
+              ...subclass,
+              traits: getActiveClassFeatures(subclass.traits || [], character, level),
+            })),
+          }
+        : undefined,
+    };
   }
 
   return undefined;
 }
 
 export function getPrimaryClassDefinition(character: CharacterState): ClassData | undefined {
-  return getClassDefinition(getPrimaryClassEntry(character)?.classId);
+  return getClassDefinition(getPrimaryClassEntry(character)?.classId, character);
 }
 
 export function getClassProgression(definition: ClassData | undefined, level: number) {
@@ -317,7 +336,7 @@ export function getAttunementStatus(character: CharacterState): AttunementStatus
   };
 
   character.classes?.forEach((classEntry) => {
-    const classDef = getClassDefinition(classEntry.classId);
+    const classDef = getClassDefinition(classEntry.classId, character);
     const subclass = classDef?.subClassInfo?.options.find(
       (option) =>
         option.catalogId === classEntry.subclassId ||

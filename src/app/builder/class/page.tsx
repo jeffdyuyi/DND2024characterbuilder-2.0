@@ -1,4 +1,5 @@
 'use client';
+import { getActiveClassFeatures } from '@/engine/classFeatureActivation';
 import { normalizeEquipmentMode, reconcileStartingEquipment } from '@/engine/startingEquipment';
 import ClassEquipmentChoices from '@/components/ClassEquipmentChoices';
 import ClassStartingGoldChoice from '@/components/ClassStartingGoldChoice';
@@ -331,7 +332,7 @@ export default function ClassPage() {
     let hasChanges = false;
 
     // 遍历所有已解锁特性
-    combinedFeatures.forEach((f) => {
+    getActiveClassFeatures(combinedFeatures, character, primaryClassEntry.level).forEach((f) => {
       if (f.level <= primaryClassEntry.level && f.mechanics?.choices) {
         f.mechanics.choices.forEach((choice: any) => {
           if (choice.defaultOptions && !updatedApplied.includes(choice.id)) {
@@ -1739,16 +1740,18 @@ export default function ClassPage() {
     }
 
     // Count feat slots across all levels of the current class
-    features.forEach((f) => {
-      if (
-        f.level <= primaryClassEntry.level &&
-        f.mechanics?.choices?.some((c: any) => c.type === 'feat')
-      ) {
-        slots += f.mechanics?.choices
-          ?.filter((c: any) => c.type === 'feat')
-          .reduce((acc: number, c: any) => acc + (c.numToChoose || 1), 0);
-      }
-    });
+    (character ? getActiveClassFeatures(features, character, primaryClassEntry.level) : []).forEach(
+      (f) => {
+        if (
+          f.level <= primaryClassEntry.level &&
+          f.mechanics?.choices?.some((c: any) => c.type === 'feat')
+        ) {
+          slots += f.mechanics?.choices
+            ?.filter((c: any) => c.type === 'feat')
+            .reduce((acc: number, c: any) => acc + (c.numToChoose || 1), 0);
+        }
+      },
+    );
 
     return {
       combinedFeatures: features
@@ -1756,13 +1759,13 @@ export default function ClassPage() {
         .sort((a, b) => a.level - b.level),
       featSlotCount: slots,
     };
-  }, [classDefinition, primaryClassEntry]);
+  }, [classDefinition, primaryClassEntry, character?.enabledOptionalClassFeatureIds]);
 
   // Generic feat slot logic for multiple classes (for summary card)
   const allFeatSlots = useMemo(() => {
     let total = 0;
     currentClasses.forEach((cEntry) => {
-      const def = getClassDefinition(cEntry.classId);
+      const def = getClassDefinition(cEntry.classId, character || undefined);
       if (def) {
         def.features.forEach((f: ClassFeature) => {
           if (f.level <= cEntry.level) {
@@ -1776,7 +1779,7 @@ export default function ClassPage() {
       }
     });
     return total;
-  }, [currentClasses]);
+  }, [currentClasses, character?.enabledOptionalClassFeatureIds]);
 
   const generalFeats = useMemo(
     () =>

@@ -303,3 +303,45 @@ it('固定技能授予传入正式卡计算，不呈现额外任选技能', () =
   expect(tree.some((node) => node.props?.children?.[0] === '奥秘（智力）')).toBe(false);
   expect(JSON.stringify(store.character)).toBe(before);
 });
+
+it('可选特性开关保存来源ID，启用替换基础授予，关闭恢复且不删除旧选择', () => {
+  const base = feature('基础训练', 1, ['你获得{@skill 奥秘}技能的熟练。']);
+  const optional = feature('替换训练', 1, [
+    '可选职业特性，替代基础训练特性',
+    '你获得{@skill 医药}技能的熟练。',
+  ]);
+  optional.raw.isClassFeatureVariant = true;
+  defaultCatalog.registerMany([
+    {
+      ...parent,
+      raw: {
+        ...parent.raw,
+        classFeatures: ['基础训练|Page Wizard|XPHB|1', '替换训练|Page Wizard|XPHB|1'],
+      },
+    },
+    base,
+    optional,
+  ]);
+  store.character.classSelections = { 'manual:unchanged': ['history'] };
+  let toggle = nodes(ClassDetailPage()).find((node) => node.props?.role === 'switch');
+  expect(toggle.props['aria-checked']).toBe(false);
+  expect(computeProficiencies(store.character).skills.some((skill) => skill.id === 'arcana')).toBe(
+    true,
+  );
+  toggle.props.onClick();
+  expect(store.update.mock.calls.at(-1)![0]).toEqual({
+    enabledOptionalClassFeatureIds: [optional.id],
+  });
+  Object.assign(store.character, store.update.mock.calls.at(-1)![0]);
+  expect(computeProficiencies(store.character).skills.some((skill) => skill.id === 'arcana')).toBe(
+    false,
+  );
+  toggle = nodes(ClassDetailPage()).find((node) => node.props?.role === 'switch');
+  expect(toggle.props['aria-checked']).toBe(true);
+  toggle.props.onClick();
+  Object.assign(store.character, store.update.mock.calls.at(-1)![0]);
+  expect(computeProficiencies(store.character).skills.some((skill) => skill.id === 'arcana')).toBe(
+    true,
+  );
+  expect(store.character.classSelections).toEqual({ 'manual:unchanged': ['history'] });
+});

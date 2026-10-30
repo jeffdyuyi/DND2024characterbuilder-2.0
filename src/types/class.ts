@@ -1,4 +1,8 @@
 export interface ClassFeature {
+  /** 原生目录身份，用于按来源保存可选特性状态。 */
+  catalogId?: string;
+  isOptional?: boolean;
+  replacesFeatureName?: string;
   name: string;
   nameEn?: string;
   level: number;

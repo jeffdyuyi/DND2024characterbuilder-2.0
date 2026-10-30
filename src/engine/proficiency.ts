@@ -388,7 +388,7 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
 
   // 3. 处理职业 (Classes)
   state.classes?.forEach((cEntry, index) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
 
     const sourceName = `职业: ${classDef.name}`;
@@ -407,15 +407,40 @@ export function computeProficiencies(state: CharacterState): ComputedProficienci
         }
       }
     };
-    classDef.features?.forEach((feature) =>
-      registerChoices(feature, feature.level <= cEntry.level),
+    const sourceDefinition = getClassDefinition(cEntry.classId)!;
+    sourceDefinition.features?.forEach((feature) =>
+      registerChoices(
+        feature,
+        feature.level <= cEntry.level &&
+          classDef.features.some((active) =>
+            active.catalogId
+              ? active.catalogId === feature.catalogId
+              : active.name === feature.name,
+          ),
+      ),
     );
-    classDef.subClassInfo?.options.forEach((subclass) => {
+    sourceDefinition.subClassInfo?.options.forEach((subclass) => {
       const selected = [subclass.catalogId, subclass.nameEn, subclass.name].includes(
         cEntry.subclassId,
       );
       subclass.traits?.forEach((feature) =>
-        registerChoices(feature, selected && feature.level <= cEntry.level),
+        registerChoices(
+          feature,
+          selected &&
+            feature.level <= cEntry.level &&
+            Boolean(
+              classDef.subClassInfo?.options
+                .find(
+                  (active) =>
+                    active.catalogId === subclass.catalogId || active.name === subclass.name,
+                )
+                ?.traits?.some((active) =>
+                  active.catalogId
+                    ? active.catalogId === feature.catalogId
+                    : active.name === feature.name,
+                ),
+            ),
+        ),
       );
     });
     if (classDef.features?.length)
@@ -776,7 +801,7 @@ export function computeMaxHP(state: CharacterState): number {
   let isFirstLevel = true;
 
   state.classes.forEach((cEntry) => {
-    const classDef = getClassDefinition(cEntry.classId);
+    const classDef = getClassDefinition(cEntry.classId, state);
     if (!classDef) return;
     const die = classDef.hitPointDie;
     for (let lvl = 1; lvl <= cEntry.level; lvl++) {
@@ -811,7 +836,7 @@ export function computeAC(
 
   if (!equippedArmorId) {
     state.classes?.forEach((cEntry) => {
-      const classDef = getClassDefinition(cEntry.classId);
+      const classDef = getClassDefinition(cEntry.classId, state);
       if (!classDef) return;
       classDef.features?.forEach((f) => {
         if (f.level <= cEntry.level && f.mechanics?.acCalculation) {

@@ -157,6 +157,7 @@ export interface CharacterState {
   // Step 3: Class
   classes: MulticlassEntry[];
   classSelections?: Record<string, string[]>; // classId/featureId -> [chosen options]
+  enabledOptionalClassFeatureIds?: string[];
 
   // Step 4: Abilities
   baseAbilityScores: AbilityScores;
